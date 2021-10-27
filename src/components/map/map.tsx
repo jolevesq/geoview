@@ -1,7 +1,8 @@
 /* eslint-disable react/require-default-props */
 import { useEffect, useState } from 'react';
 
-import { Map as LeafletMap, CRS } from 'leaflet';
+import L, { Map as LeafletMap, CRS } from 'leaflet';
+
 import { MapContainer, TileLayer, ScaleControl } from 'react-leaflet';
 
 import { useMediaQuery } from '@material-ui/core';
@@ -29,6 +30,10 @@ import { MapViewer } from '../../common/map-viewer';
 import { generateId } from '../../common/constant';
 import { NorthArrow, NorthPoleFlag } from '../mapctrl/north-arrow';
 import { ClickMarker } from '../mapctrl/click-marker';
+
+// import * as yourModuleName from 'module-name';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const vectorGrid = require('leaflet.vectorgrid');
 
 const useStyles = makeStyles((theme) => ({
     snackBar: {
@@ -129,6 +134,17 @@ export function Map(props: MapConfigProps): JSX.Element {
                 // call the ready function since rendering of this map instance is done
                 api.ready();
 
+                setTimeout(() => {
+                    vectorGrid
+                        .protobuf(
+                            'https://tiles.arcgis.com/tiles/HsjBaDykC1mjhXz9/arcgis/rest/services/Simple_V/VectorTileServer/tile/{z}/{x}/{y}.pbf.pict?cacheKey={key}',
+                            {
+                                rendererFactory: (L.canvas as any).tile,
+                                key: 'a40a0eb7c0fdf032',
+                            }
+                        )
+                        .addTo(cgpMap);
+                }, 2000);
                 // emit the map loaded event
                 setIsLoaded(true);
                 api.event.emit(EVENT_NAMES.EVENT_MAP_LOADED, id, { map: cgpMap });
