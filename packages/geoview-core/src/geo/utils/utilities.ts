@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import { WMSCapabilities } from 'ol/format';
 
+import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
 import { Cast, TypeCSSStyleDeclaration, TypeJsonObject } from '../../core/types/cgpv-types';
 import { xmlToJson } from '../../core/utils/utilities';
 
@@ -173,5 +174,32 @@ export class GeoUtilities {
     }
 
     return values;
+  };
+
+  createStyle = (colorFill: string): Style => {
+    return new Style({
+      stroke: new Stroke({
+        color: 'black',
+        width: 1,
+      }),
+      fill: new Fill({
+        color: colorFill,
+      }),
+    });
+  };
+
+  createCircleMarker = (colorFill: string): Style => {
+    return new Style ({
+      image: new CircleStyle({
+        radius: 5,
+        stroke: new Stroke({
+          color: colorFill,
+          width: 1,
+        }),
+        fill: new Fill({
+          color: colorFill,
+        }),
+      }),
+    });
   };
 }
