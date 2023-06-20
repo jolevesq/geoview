@@ -49,6 +49,15 @@
     "toggle_opacity": "Toggle Opacity",
     "zoom_to": "Zoom to Layer"
   },
+  "details": {
+    "zoom_to": "Zoom to feature"
+  },
+  "lightbox": {
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "download": "Download"
+  },
   "datagrid": {
     "exportJson": "Download GeoJSON",
     "filterMap": "Filter Map",
