@@ -9,7 +9,7 @@
         text-align: left;
         font-weight: bold;
         font-size: 15px;
-      }</style><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>GeoJSON Layers</strong></h1></td></tr></tbody></table><table><tbody><tr><td><a href="./index.html">Main</a><br/>&nbsp;&nbsp;&nbsp;&nbsp;<a href="./type-of-layers.html">Type Of Layers</a><br/></td></tr><tr><td><p>This page is used to showcase how the viewer may show GeoJSON layer types</p></td></tr><tr><td><a href="#HLYR1">1. Many GeoJSON Layers</a><br/></td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HLYR1">1. Many GeoJSON Layers</h4><a class="ref-link" href="#top">Top</a></div><div id="LYR1" class="llwp-map" triggerreadycallback="true" data-lang="en" data-config="{
+      }</style><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>GeoJSON Layers</strong></h1></td></tr></tbody></table><table><tbody><tr><td><a href="./index.html">Main</a><br/>&nbsp;&nbsp;&nbsp;&nbsp;<a href="./type-of-layers.html">Type Of Layers</a><br/></td></tr><tr><td><p>This page is used to showcase how the viewer may show GeoJSON layer types</p></td></tr><tr><td><a href="#HLYR1">1. Many GeoJSON Layers</a><br/></td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HLYR1">1. Many GeoJSON Layers</h4>&nbsp;<h5 id="HLYR1-state">(undefined)</h5><a class="ref-link" href="#top">Top</a></div><div id="LYR1" class="llwp-map" triggerreadycallback="true" data-lang="en" data-config="{
         'map': {
           'interaction': 'dynamic',
           'viewSettings': {
@@ -161,4 +161,16 @@
           displayLegend('LegendsId1', resultSets);
         },
         'LYR1/$LegendsLayerSet$'
-      );</script></body></html>
+      );
+
+      window.setInterval(() => {
+        const displayField1 = document.getElementById('HLYR1-state');
+        const geoviewLayers = cgpv.api.maps?.LYR1?.layer?.geoviewLayers;
+        if (geoviewLayers) {
+          const output = Object.keys(cgpv.api.maps?.LYR1?.layer?.geoviewLayers).reduce((outputValue, layerId) => {
+            const stateValue = cgpv.api.maps?.LYR1?.layer?.geoviewLayers[layerId].layerPhase;
+            return `${outputValue}${layerId}: ${stateValue}, `;
+          }, '(');
+          displayField1.textContent = output ? `${output.slice(0, -2)})` : '(undefined)';
+        } else displayField1.textContent = '(undefined)';
+      }, 250)</script></body></html>
