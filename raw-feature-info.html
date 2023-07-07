@@ -1,0 +1,106 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>Panel - Feature Info</strong></h1></td></tr><tr><td><a href="./index.html">Main</a><br/><a href="#HUC1">1. Basic map</a><br/></td></tr></tbody></table><table><tbody><tr><td>This page is used to test the creation and integration of the Feature Info component in a responsive design.</td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HUC1">1. Basic Map</h4><a class="ref-link" href="#top">Top</a></div><div id="mapWM1" class="llwp-map" data-lang="en"></div><hr/><div id="smallList" style="width: 400px; border: 1px solid balck;"></div><div id="bigList" style="width: 400px; border: 1px, solid, balck;"></div><script src="codedoc.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
+      cgpv.init(function () {
+        console.log('api is ready');
+
+        // import react and api from the core
+        const { react, reactDOM, api, ui } = cgpv;
+
+        // create fake canvas element
+        const canvas = document.createElement('canvas');
+        canvas.width = 50;
+        canvas.height = 50;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgb(200,0,0)';
+        ctx.fillRect (10, 10, 55, 50);
+
+        // create array of fake Feature Info objects followinf FeatureInfoLayerSet structure
+        const featureInfoArray = [
+          {
+            "featureKey": 0,
+            "geoviewLayerType": "GeoJSON",
+            "extent": [
+                339419.19836761174,
+                125038.02663518023,
+                781781.4590522015,
+                504663.0970258885
+            ],
+            "featureIcon": canvas,
+            "fieldInfo": {
+                "Province": {
+                    "fieldKey": 0,
+                    "value": "Ontario",
+                    "dataType": "string",
+                    "alias": "Province",
+                    "domain": null
+                },
+                "creationDate": {
+                    "fieldKey": 1,
+                    "value": "2020-05-23T17:00:00",
+                    "dataType": "date",
+                    "alias": "Creation Date",
+                    "domain": null
+                },
+                "myImages": {
+                    "fieldKey": 2,
+                    "value": "https://cdn.photoswipe.com/photoswipe-demo-images/photos/1/img-2500.jpg;https://cdn.photoswipe.com/photoswipe-demo-images/photos/2/img-2500.jpg;https://cdn.photoswipe.com/photoswipe-demo-images/photos/3/img-2500.jpg",
+                    "alias": "My Images",
+                    "domain": null
+                }
+            },
+            "nameField": "Province"
+          },
+          {
+            "featureKey": 1,
+            "geoviewLayerType": "GeoJSON",
+            "extent": [
+                339419.19836761174,
+                125038.02663518023,
+                781781.4590522015,
+                504663.0970258885
+            ],
+            "featureIcon": canvas,
+            "fieldInfo": {
+                "Province": {
+                    "fieldKey": 0,
+                    "value": "Ontario",
+                    "dataType": "string",
+                    "alias": "Province",
+                    "domain": null
+                },
+                "creationDate": {
+                    "fieldKey": 1,
+                    "value": "2020-05-23T17:00:00",
+                    "dataType": "date",
+                    "alias": "Creation Date",
+                    "domain": null
+                },
+                "myImages": {
+                    "fieldKey": 2,
+                    "value": "https://cdn.photoswipe.com/photoswipe-demo-images/photos/1/img-2500.jpg;https://cdn.photoswipe.com/photoswipe-demo-images/photos/2/img-2500.jpg;https://cdn.photoswipe.com/photoswipe-demo-images/photos/3/img-2500.jpg",
+                    "alias": "My Images",
+                    "domain": null
+                }
+            },
+            "nameField": "Province"
+          }
+        ]
+
+        const smallDiv = document.getElementById('smallList');
+        const item = cgpv.api.maps['mapWM1'].featureInfo.createFeatureInfoItem(featureInfoArray);
+        reactDOM.render(item, smallDiv);
+
+        const bigDiv = document.getElementById('bigList');
+        const lotItems = [];
+        let len = 1000;
+        const start = Date.now();
+        while (len--) {
+          lotItems.push(cgpv.api.maps['mapWM1'].featureInfo.createFeatureInfoItem([featureInfoArray[0]]));
+        }
+        console.log(`Created ${Date.now() - start}`);
+        reactDOM.render(lotItems, bigDiv);
+        console.log(`Rendered ${Date.now() - start}`);
+
+        //create snippets
+        createConfigSnippet();
+        createCodeSnippet();
+      });</script></body></html>
