@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>Panel - Feature Info</strong></h1></td></tr><tr><td><a href="./index.html">Main</a><br/><a href="#HUC1">1. Basic map</a><br/></td></tr></tbody></table><table><tbody><tr><td>This page is used to test the creation and integration of the Feature Info component in a responsive design.</td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HUC1">1. Basic Map</h4><a class="ref-link" href="#top">Top</a></div><div id="mapWM1" class="llwp-map" data-lang="en"></div><hr/><div style="display: flex"><div id="smallList" style="width: 400px; border: black solid 1px;"></div><div id="bigList" style="width: 400px; height: 600px; overflow: scroll; border: black solid 1px;"><button onclick="createBigList()">Create List</button></div><div id="accordionList" style="width: 400px; border: black solid 1px;"><button onclick="createAccordionList()">Create List</button></div></div><button type="button" class="collapsible">Code Snippet</button><pre id="codeSnippet" class="panel"></pre><script src="codedoc.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>Panel - Feature Info</strong></h1></td></tr><tr><td><a href="./index.html">Main</a><br/><a href="#HUC1">1. Basic map</a><br/></td></tr></tbody></table><table><tbody><tr><td>This page is used to test the creation and integration of the Feature Info component in a responsive design.</td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HUC1">1. Basic Map</h4><a class="ref-link" href="#top">Top</a></div><div id="mapWM1" class="llwp-map" data-lang="en"></div><hr/><div style="display: flex"><div id="smallList" style="width: 400px; border: black solid 1px;"></div><div id="bigList" style="width: 400px; height: 600px; overflow: scroll; border: black solid 1px;"><button onclick="createBigList()">Create List</button></div><div id="accordionList" style="width: 400px; border: black solid 1px;"><button onclick="createAccordionList()">Create List</button></div></div><hr/><button type="button" class="collapsible">Code Snippet</button><pre id="codeSnippet" class="panel"></pre><script src="codedoc.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
       cgpv.init(function () {
         console.log('api is ready');
 
@@ -45,6 +45,30 @@
                     "value": "https://cdn.photoswipe.com/photoswipe-demo-images/photos/1/img-2500.jpg;https://cdn.photoswipe.com/photoswipe-demo-images/photos/2/img-2500.jpg;https://cdn.photoswipe.com/photoswipe-demo-images/photos/3/img-2500.jpg",
                     "alias": "My Images",
                     "domain": null
+                },
+                "myLink": {
+                  "fieldKey": 3,
+                  "value": "This is a JSON file https://ftp.maps.canada.ca/pub/nrcan_rncan/Floods_Inondation/HFE/event/f5ecba77-4f17-45c9-991a-06ce11078047/event_precipitation_data_en_f5ecba77-4f17-45c9-991a-06ce11078047.json",
+                  "alias": "My Link 1",
+                  "domain": null
+                },
+                "myScript": {
+                  "fieldKey": 4,
+                  "value": "This is an attemp to inject script: <script>console.log('oups')<\/script>",
+                  "alias": "My Script",
+                  "domain": null
+                },
+                "myLink2": {
+                  "fieldKey": 5,
+                  "value": "This is a PDF file https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                  "alias": "My Link 2",
+                  "domain": null
+                },
+                "myLink3": {
+                  "fieldKey": 6,
+                  "value": "This is a Website https://github.com/Canadian-Geospatial-Platform/geoview and the demo site https://canadian-geospatial-platform.github.io/geoview/public/index.html",
+                  "alias": "My Link 3",
+                  "domain": null
                 }
             },
             "nameField": "Province"
