@@ -52,6 +52,7 @@
   },
   "details": {
     "zoom_to": "Zoom to feature",
+    "select": "Highlight feature on map",
     "external_link": "External Link"
   },
   "lightbox": {
