@@ -44,7 +44,8 @@
         cgpv.api.createMapFromConfig('LNG1', config);
 
         // loads config in blank map
-        cgpv.api.map('LNG2').loadMapConfig(config);
+        // cgpv.api.map('LNG2').loadMapConfig(config);
+        setTimeout(()=>cgpv.api.createMapFromConfig('LNG2', config), 15000);
 
         // change map language
         var mapLangButton = document.getElementById('Change-Lang-Button');

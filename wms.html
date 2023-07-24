@@ -289,10 +289,10 @@
         ]
       },
       'components': ['overview-map'],
-      'corePackages': [],
+      'corePackages': ['layers-panel'],
       'theme': 'dark',
       'suportedLanguages': ['en']
-    }"></div><label for="language">Select a layer style:</label> <select name="style" id="style"></select> <button class="collapsible">Get Legend</button><pre style="height: 20pc; overflow-y: scroll" id="LegendsId3-table-pre" class="panel"></pre><button type="button" class="collapsible">Get Feature Info</button><pre style="height: 20pc; overflow-y: scroll" id="ResultSetId3" class="panel">Click on feature on the map</pre><hr/><p>This map has a wms layer added from configuration.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="LYR3CS" class="panel"></pre><hr/><div class="map-title-holder"><h4 id="HLYR4">4. Automatic group creation from metadata information</h4>&nbsp;<h5 id="HLYR4-state">(undefined)</h5><a class="ref-link" href="#top">Top</a></div><div id="LYR4" class="llwp-map" data-lang="en" data-config="{
+    }"></div><button class="collapsible">Get Legend</button><pre style="height: 20pc; overflow-y: scroll" id="LegendsId3-table-pre" class="panel"></pre><button type="button" class="collapsible">Get Feature Info</button><pre style="height: 20pc; overflow-y: scroll" id="ResultSetId3" class="panel">Click on feature on the map</pre><hr/><p>This map has a wms layer added from configuration.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="LYR3CS" class="panel"></pre><hr/><div class="map-title-holder"><h4 id="HLYR4">4. Automatic group creation from metadata information</h4>&nbsp;<h5 id="HLYR4-state">(undefined)</h5><a class="ref-link" href="#top">Top</a></div><div id="LYR4" class="llwp-map" data-lang="en" data-config="{
         'map': {
           'interaction': 'dynamic',
           'viewSettings': {
@@ -341,24 +341,6 @@
           cgpv.api.event.emit({ handlerName: 'LYR3/$LegendsLayerSet$', event: cgpv.api.eventNames.GET_LEGENDS.TRIGGER });
           cgpv.api.event.emit({ handlerName: 'LYR4/$LegendsLayerSet$', event: cgpv.api.eventNames.GET_LEGENDS.TRIGGER });
 
-          const intervalId = window.setInterval(() => {
-            if (cgpv.api.maps.LYR3?.layer?.geoviewLayers?.['wmsLYR3-Root']?.layerState === 'loaded') {
-              const lyr3LayerConfig = cgpv.api.maps.LYR3.layer.registeredLayers['wmsLYR3-Root/landcover_2015_19classes'];
-              if (Array.isArray(lyr3LayerConfig?.source?.style)) {
-                const dropDownContent = document.getElementById('style');
-                lyr3LayerConfig.source.style.forEach((style) => {
-                  element = document.createElement('option');
-                  element.value = style;
-                  element.innerText = style;
-                  dropDownContent.appendChild(element);
-                });
-                dropDownContent.addEventListener('click', (e) => {
-                  cgpv.api.maps.LYR3.layer.geoviewLayers['wmsLYR3-Root'].setStyle(dropDownContent.value, 'wmsLYR3-Root/landcover_2015_19classes');
-                });
-              }
-              clearInterval(intervalId);
-            }
-          }, 1000)
         }
       });
 

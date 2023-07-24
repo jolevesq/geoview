@@ -93,7 +93,7 @@
           },
           'theme': 'light',
           'components': [],
-          'corePackages': [],
+          'corePackages': ['footer-panel'],
           'suportedLanguages': ['en']
         }"></div><p>Add a legend component.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="UC1CS" class="panel"></pre><div class="map-title-holder"><h4 id="HUC2">2. Class Break Style Legend</h4><a class="ref-link" href="#top">Top</a></div><div id="UC2" class="llwp-map" data-lang="en" data-config="{
           'map': {
@@ -128,7 +128,7 @@
           },
           'theme': 'dark',
           'components': [],
-          'corePackages': [],
+          'corePackages': ['footer-panel'],
           'suportedLanguages': ['en']
         }"></div><p>Add a legend component.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="UC2CS" class="panel"></pre><div class="map-title-holder"><h4 id="HUC3">3. Group Layer</h4><a class="ref-link" href="#top">Top</a></div><div id="UC3" class="llwp-map" data-lang="en" data-config="{
           'map': {
@@ -162,7 +162,7 @@
             ]
           },
           'components': [],
-          'corePackages': [],
+          'corePackages': ['footer-panel'],
           'theme': 'dark',
           'suportedLanguages': ['en']
         }"></div><p>Add a legend component.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="UC3CS" class="panel"></pre><div class="map-title-holder"><h4 id="HUC4">4. WMS Group</h4><a class="ref-link" href="#top">Top</a></div><div id="UC4" class="llwp-map" data-lang="en" data-config="{
@@ -235,7 +235,7 @@
       'suportedLanguages': [
         'en'
       ]
-  }"></div><p>Add a legend component in Panel.</p><div id="legend-item-example"></div><p>Add a single legend item component in div.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="UC4CS" class="panel"></pre><script src="codedoc.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
+  }"></div><p>Add a legend component in Panel from the HTML script tag with custom width.</p><div id="legend-item-example"></div><p>Add a single legend item component in div.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="UC4CS" class="panel"></pre><script src="codedoc.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
       cgpv.init(function () {
         console.log('api is ready');
 
@@ -244,7 +244,7 @@
         createConfigSnippet();
 
         // import react and api from the core
-        const { react, reactDOM, api, ui } = cgpv;
+        const { react, createRoot, api, ui } = cgpv;
 
         // define the map id
         const mapIdOne = 'UC1';
@@ -305,13 +305,15 @@
           panelId: 'AppbarPanelId',
           title: 'Legend',
           content: legendFour,
-          width: 200,
+          width: 500,
         };
 
         // call an api function to add a panel with a button in the default group
         api.map(mapIdFour).appBarButtons.createAppbarPanel(button, panel, null);
 
         const legendDiv = document.getElementById('legend-item-example');
+        // TODO: The legend component does not render properly
         const legendItemOutside = api.map(mapIdFour).legend.createLegendItem({ layerId: 'UC4Layer2-msi' });
-        reactDOM.render(legendItemOutside, legendDiv);
+        const root = createRoot(legendDiv);
+        root.render(legendItemOutside)
       });</script></body></html>
