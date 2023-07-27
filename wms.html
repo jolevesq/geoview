@@ -484,7 +484,7 @@
             const geoviewLayers = cgpv.api.maps?.LYR1?.layer?.geoviewLayers;
             if (geoviewLayers) {
               const output = Object.keys(cgpv.api.maps?.LYR1?.layer?.geoviewLayers).reduce((outputValue, layerId) => {
-                const stateValue = cgpv.api.maps?.LYR1?.layer?.geoviewLayers[layerId].allLayerEntryConfigProcessed() ? 'processed' : 'inprogress';
+                const stateValue = cgpv.api.maps?.LYR1?.layer?.geoviewLayers[layerId].layerPhase;
                 const numberOfErrors = cgpv.api.maps?.LYR1?.layer?.geoviewLayers[layerId].countErrorStatus();
                 let errorIndicator = '';
                 if (numberOfErrors) errorIndicator = numberOfErrors === 1 ? ' (1 error)' : ` (${numberOfErrors} errors)`;
@@ -499,7 +499,7 @@
             const geoviewLayers = cgpv.api.maps?.LYR2?.layer?.geoviewLayers;
             if (geoviewLayers) {
               const output = Object.keys(cgpv.api.maps?.LYR2?.layer?.geoviewLayers).reduce((outputValue, layerId) => {
-                const stateValue = cgpv.api.maps?.LYR2?.layer?.geoviewLayers[layerId].allLayerEntryConfigProcessed() ? 'processed' : 'inprogress';
+                const stateValue = cgpv.api.maps?.LYR2?.layer?.geoviewLayers[layerId].layerPhase;
                 const numberOfErrors = cgpv.api.maps?.LYR2?.layer?.geoviewLayers[layerId].countErrorStatus();
                 let errorIndicator = '';
                 if (numberOfErrors) errorIndicator = numberOfErrors === 1 ? ' (1 error)' : ` (${numberOfErrors} errors)`;
@@ -514,7 +514,7 @@
             const geoviewLayers = cgpv.api.maps?.LYR3?.layer?.geoviewLayers;
             if (geoviewLayers) {
               const output = Object.keys(cgpv.api.maps?.LYR3?.layer?.geoviewLayers).reduce((outputValue, layerId) => {
-                const stateValue = cgpv.api.maps?.LYR3?.layer?.geoviewLayers[layerId].allLayerEntryConfigProcessed() ? 'processed' : 'inprogress';
+                const stateValue = cgpv.api.maps?.LYR3?.layer?.geoviewLayers[layerId].layerPhase;
                 const numberOfErrors = cgpv.api.maps?.LYR3?.layer?.geoviewLayers[layerId].countErrorStatus();
                 let errorIndicator = '';
                 if (numberOfErrors) errorIndicator = numberOfErrors === 1 ? ' (1 error)' : ` (${numberOfErrors} errors)`;
@@ -529,7 +529,7 @@
             const geoviewLayers = cgpv.api.maps?.LYR4?.layer?.geoviewLayers;
             if (geoviewLayers) {
               const output = Object.keys(cgpv.api.maps?.LYR4?.layer?.geoviewLayers).reduce((outputValue, layerId) => {
-                const stateValue = cgpv.api.maps?.LYR4?.layer?.geoviewLayers[layerId].allLayerEntryConfigProcessed() ? 'processed' : 'inprogress';
+                const stateValue = cgpv.api.maps?.LYR4?.layer?.geoviewLayers[layerId].layerPhase;
                 const numberOfErrors = cgpv.api.maps?.LYR4?.layer?.geoviewLayers[layerId].countErrorStatus();
                 let errorIndicator = '';
                 if (numberOfErrors) errorIndicator = numberOfErrors === 1 ? ' (1 error)' : ` (${numberOfErrors} errors)`;
