@@ -105,6 +105,10 @@
   "dataTable": {
     "icon": "ICON",
     "zoom": "ZOOM",
-    "exportBtn": "Export"
+    "exportBtn": "Export",
+    "jsonExportBtn": "Download GeoJSON",
+    "downloadAsCSV": "Download as CSV",
+    "filterMap": "Filter Map",
+    "stopFilterMap": "Stop Filter Map"
   }
 }

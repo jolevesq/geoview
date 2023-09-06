@@ -4,8 +4,7 @@
             'viewSettings': {
               'zoom': 4,
               'center': [-100, 60],
-              'projection': 3978,
-              'extent': [-170, 0, -10, 90]
+              'projection': 3978
             },
             'basemapOptions': {
               'basemapId': 'transport',
@@ -14,6 +13,7 @@
             }
           },
           'components': ['overview-map'],
+          'overviewMap': {'hideOnZoom': 6},
           'corePackages': [],
           'theme': 'dark',
           'suportedLanguages': ['en']
@@ -32,6 +32,7 @@
             }
           },
           'components': ['overview-map'],
+          'overviewMap': {'hideOnZoom': 7},
           'corePackages': [],
           'theme': 'dark',
           'suportedLanguages': ['en']
@@ -42,7 +43,7 @@
             'zoom': 4,
             'center': [-100, 60],
             'projection': 3978,
-            'extent': [-170, 0, -10, 90]
+            'extent': [-160, 40, -40, 75]
           },
           'basemapOptions': {
             'basemapId': 'nogeom',
@@ -51,7 +52,8 @@
           }
         },
         'components': ['overview-map'],
-          'corePackages': [],
+        'overviewMap': {'hideOnZoom': 5},
+        'corePackages': [],
         'theme': 'dark',
         'suportedLanguages': ['en']
       }"></div><p>This map is in LLC projection with Shaded basemap with no labeling.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="BM3CS" class="panel"></pre><hr/><div class="map-title-holder"><h4 id="HBM4">4. OSM, Web Mercator Projection</h4><a class="ref-link" href="#top">Top</a></div><div id="BM4" class="llwp-map" data-lang="en" data-config="{
@@ -60,7 +62,8 @@
           'viewSettings': {
             'zoom': 4,
             'center': [-100, 60],
-            'projection': 3857
+            'projection': 3857,
+            'extent': [-160, 40, -40, 75]
           },
           'basemapOptions': {
             'basemapId': 'osm',

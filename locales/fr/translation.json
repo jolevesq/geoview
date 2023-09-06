@@ -105,6 +105,10 @@
   "dataTable": {
     "icon": "ICÔNE",
     "zoom": "ZOOM",
-    "exportBtn": "Exporter"
+    "exportBtn": "Exporter",
+    "jsonExportBtn": "Télécharger GeoJSON",
+    "downloadAsCSV": "Télécharger la CSV",
+    "filterMap": "Filtrer la carte",
+    "stopFilterMap": "Filtrer la carte d'arrêt"
   }
 }

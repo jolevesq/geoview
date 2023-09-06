@@ -28,7 +28,7 @@
               'geoviewLayerName': { 'en': 'GeoJSON Sample' },
               'metadataAccessPath': { 'en': './geojson/metadata.json' },
               'geoviewLayerType': 'GeoJSON',
-              'initialSettings': { 'visible': true },
+              'initialSettings': { 'visible': 'yes' },
               'listOfLayerEntryConfig': [
                 {
                   'layerId': 'polygons.json',
@@ -48,7 +48,7 @@
                     {
                       'layerId': 'icon_points.json',
                       'layerName': { 'en': 'Icons' },
-                      'initialSettings': { 'visible': false },
+                      'initialSettings': { 'visible': 'no' },
                       'layerFilter': 'creationDate >= date \'2020-01-14T12:00:01-05:00\''
                     },
                     {
@@ -63,6 +63,7 @@
           ]
         },
         'components': ['overview-map'],
+        'overviewMap': {'hideOnZoom': 7},
         'corePackages': [],
         'theme': 'dark',
         'suportedLanguages': ['en']
@@ -89,7 +90,7 @@
       // add an event listener when a button is clicked
       addGeoJSONButton.addEventListener('click', function (e) {
         // adding a geojson layer requires a type of geojson and url
-        const layerID = cgpv.api.map('LYR1').layer.addGeoviewLayer(
+        const layerID = cgpv.api.maps['LYR1'].layer.addGeoviewLayer(
           {
             geoviewLayerId: 'geoJsonSample',
             geoviewLayerName: {
@@ -136,7 +137,7 @@
       removeGeoJSONButton.addEventListener('click', function (e) {
         // removing a geojson layer using the ID
         const layerPath = document.getElementById('new-layer-id-label').innerText;
-        if (layerPath) cgpv.api.map('LYR1').layer.removeLayersUsingPath(layerPath);
+        if (layerPath) cgpv.api.maps['LYR1'].layer.removeLayersUsingPath(layerPath);
         document.getElementById('new-layer-id-label').innerText = '';
         createTableOfFilter('LYR1');
 
