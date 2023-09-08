@@ -55,12 +55,12 @@
         cgpv.api.utilities.showWarning('EVNT1', 'This is my first snackbar!');
 
         setInterval(() => {
-          cgpv.api.utilities.showMessage('EVNT1', 'I can even apply a function', {
+          cgpv.api.utilities.showMessage('EVNT1', 'I can even apply a function', false, {
             label: 'Click me!',
             action: () => {
               alert('You clicked me!');
             },
-          }, false);
+          });
 
           cgpv.api.utilities.addNotificationSuccess('EVNT1', 'this is a success notification title');
         }, 20000);
