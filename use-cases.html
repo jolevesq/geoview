@@ -132,7 +132,7 @@
           'suportedLanguages': ['en']
         }"></div><p>...</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="UC4CS" class="panel"></pre><hr/><button type="button" class="collapsible">Code Snippet</button><pre id="codeSnippet" class="panel"></pre><script src="codedoc.js"></script><script>function addPolyline(map) {
         // call an api function to draw a polyline
-        const polyline = cgpv.api.maps[map].layer.vector.addPolyline(
+        const polyline = cgpv.api.maps[map].layer.geometry.addPolyline(
           [
             [-100, 45],
             [-105, 50],
@@ -149,7 +149,7 @@
 
       function addPolygon(map) {
         // call an api function to draw a polygon
-        const polygon = cgpv.api.maps[map].layer.vector.addPolygon(
+        const polygon = cgpv.api.maps[map].layer.geometry.addPolygon(
           [
             [
               [-109.05, 41.0],
@@ -173,7 +173,7 @@
 
       function addCircle(map) {
         // call an api function to draw a polygon
-        const circle = cgpv.api.maps[map].layer.vector.addCircle([-109, 50], {
+        const circle = cgpv.api.maps[map].layer.geometry.addCircle([-109, 50], {
           style: {
             strokeColor: 'red',
             strokeWidth: 1,
