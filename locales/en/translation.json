@@ -56,7 +56,10 @@
     "overview_title": "Legend Overview",
     "add_layer": "Add Layer",
     "selected_legend": "Selected Legend",
-    "sort_layers": "Sort Layers"
+    "sort_layers": "Sort Layers",
+    "selected_Layers": "An overview of currrently selected layers",
+    "re-arrange": "re-arrange",
+    "categories_title" : "Categories"
   },
   "details": {
     "zoom_to": "Zoom to feature",
@@ -78,11 +81,6 @@
     "previous": "Previous",
     "close": "Close",
     "download": "Download"
-  },
-  "datagrid": {
-    "exportJson": "Download GeoJSON",
-    "filterMap": "Filter Map",
-    "stopFilterMap": "Stop Map Filter"
   },
   "keyboardnav": {
     "start": "Skip after map element",
