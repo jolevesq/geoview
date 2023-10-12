@@ -22,7 +22,6 @@ Below you will find a list of some available functions and payload types/interfa
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/functions/payloadIsQueryLegend.html">payloadIsQueryLegend</a></li>
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/functions/payloadIsTriggerLegend.html">payloadIsTriggerLegend</a></li>
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/functions/payloadIsGetLegends.html">payloadIsGetLegends</a></li>
-  <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/functions/payloadIsAInKeyfocus.html">payloadIsAInKeyfocus</a></li>
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/functions/payloadIsALngLat.html">payloadIsALngLat</a></li>
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/functions/payloadIsALayerConfig.html">payloadIsALayerConfig</a></li>
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/functions/payloadIsLayerRegistration.html">payloadIsLayerRegistration</a></li>
@@ -88,7 +87,6 @@ Below you will find a list of some available functions and payload types/interfa
   <li>
     <a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/classes/GetLegendsPayload.html#createTriggerLegendPayload">TypeTriggerLegendsPayload</a>
   </li>
-  <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/functions/inKeyfocusPayload-1.html">InKeyfocusPayload</a></li>
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/functions/lngLatPayload-1.html">lngLatPayload</a></li>
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/functions/layerConfigPayload-1.html">layerConfigPayload</a></li>
   <li>
@@ -126,7 +124,6 @@ Below you will find a list of some available functions and payload types/interfa
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/classes/GeoViewLayerPayload.html">GeoViewLayerPayload</a></li>
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/classes/GetFeatureInfoPayload.html">GetFeatureInfoPayload</a></li>
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/classes/GetLegendsPayload.html">GetLegendsPayload</a></li>
-  <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/classes/InKeyfocusPayload.html">InKeyfocusPayload</a></li>
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/classes/LngLatPayload.html">LngLatPayload</a></li>
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/classes/LayerConfigPayload.html">LayerConfigPayload</a></li>
   <li><a href="https://canadian-geospatial-platform.github.io/geoview/public/docs/classes/LayerSetPayload.html">LayerSetPayload</a></li>
