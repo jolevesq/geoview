@@ -85,6 +85,7 @@
                   'en': 'https://maps-cartes.ec.gc.ca/arcgis/rest/services/CESI/MapServer'
                 },
                 'geoviewLayerType': 'esriFeature',
+                'initialSettings': { 'visible': 'yes' },
                 'listOfLayerEntryConfig': [
                   { 'layerId': '5' }
                 ]
@@ -160,9 +161,9 @@
         // import footerTabs from the core for the current map
         const { footerTabs: ft1 } = api.maps[mapIdOne];
 
-        const legendOne = api
-          .maps[mapIdOne]
-          .legend2.createLegend({ layerIds: ['UC1-Layer1', 'UC1-Layer2', 'UC1-Layer3', 'UC1-Layer4', 'UC1-Layer5', 'geojsonLYR5'] });
+        const legendOne = api.maps[mapIdOne].legend2.createLegend({
+          layerIds: ['UC1-Layer1', 'UC1-Layer2', 'UC1-Layer3', 'UC1-Layer4', 'UC1-Layer5', 'geojsonLYR5'],
+        });
 
         // create new tab and add the LegendComponent to the footer tab
         ft1.createFooterTab({
@@ -170,5 +171,4 @@
           label: 'New Legend',
           content: () => legendOne,
         });
-
       });</script></body></html>
