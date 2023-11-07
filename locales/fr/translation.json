@@ -2,7 +2,10 @@
   "general": {
     "close": "Fermer",
     "open": "Ouvrir",
-    "layers": "Couches"
+    "layers": "Couches",
+    "add": "Ajouter",
+    "remove": "Retirer",
+    "name": "Nom"
   },
   "mapnav": {
     "arianavbar": "groupe de buttons vertical pour navigation sur la carte",
@@ -133,6 +136,7 @@
     "enlargeBtn": "Agrandir",
     "reduceBtn": "Réduire",
     "features": "Item(s)",
-    "featureFiltered": "Item filtrée(s)"
+    "featureFiltered": "Item filtrée(s)",
+    "images": "Images"
   }
 }

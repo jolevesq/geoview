@@ -37,13 +37,13 @@
           'corePackages': [],
           'theme': 'dark',
           'suportedLanguages': ['en']
-        }"></div><p>This map has a Vector Tiles layer added from configuration. By default no style is applied. Click the "Set Style" button to appy. Projection is 3978 as for metadata but there is zoom and label problems.</p><button type="button" style="margin-bottom: 15px;" onclick="setStyle(3978)">Set Style</button> <button type="button" class="collapsible">Configuration Snippet</button><pre id="LYR1CS" class="panel"></pre><hr/><div class="map-title-holder"><h4 id="HLYR2">2. Vector Tiles Layers (3857)</h4><a class="ref-link" href="#top">Top</a></div><button class="collapsible active">Map Status Flags</button><pre id="HLYR2-state" class="panel map-title-holder"></pre><div id="LYR2" class="llwp-map" data-lang="en" data-config="{
+        }"></div><p>This map has a Vector Tiles layer added from configuration. Projection is 3978 as for metadata but there is zoom and label problems.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="LYR1CS" class="panel"></pre><hr/><div class="map-title-holder"><h4 id="HLYR2">2. Vector Tiles Layers - no declutter</h4><a class="ref-link" href="#top">Top</a></div><button class="collapsible active">Map Status Flags</button><pre id="HLYR2-state" class="panel map-title-holder"></pre><div id="LYR2" class="llwp-map" data-lang="en" data-config="{
           'map': {
             'interaction': 'dynamic',
             'viewSettings': {
               'zoom': 4,
               'center': [-100, 60],
-              'projection': 3857
+              'projection': 3978
             },
             'basemapOptions': {
               'basemapId': 'nogeom',
@@ -76,7 +76,7 @@
           'corePackages': [],
           'theme': 'dark',
           'suportedLanguages': ['en']
-        }"></div><p>This map has a Vector Tiles layer added from configuration. By default no style is applied. Click the "Set Style" button to appy. Projection is 3857 and creates bad default zoom but label and resolutions are good.</p><button type="button" style="margin-bottom: 15px;" onclick="setStyle(3857)">Set Style</button> <button type="button" class="collapsible">Configuration Snippet</button><pre id="LYR2CS" class="panel"></pre><hr/><div class="map-title-holder"><h4 id="HLYR3">3. Vector Tiles olms library no GeoView</h4><a class="ref-link" href="#top">Top</a></div><button class="collapsible active">Map Status Flags</button><pre id="HLYR3-state" class="panel map-title-holder"></pre><div id="LYR3" style="width: 100%; height:400px"></div><p>This map has a Vector Tiles layer added from olms library automatically. No GeoView map involves and vector tile layers sources projection 3857 by default. This needs investigation</p><hr/><button type="button" class="collapsible">Code Snippet</button><pre id="codeSnippet" class="panel"></pre><script src="codedoc.js"></script><script src="layerlib.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
+        }"></div><p>This map has a Vector Tiles layer added from configuration. Declutter is set to false for this vector tile layer.</p><pre id="LYR2CS" class="panel"></pre><hr/><div class="map-title-holder"><h4 id="HLYR3">3. Vector Tiles olms library no GeoView</h4><a class="ref-link" href="#top">Top</a></div><button class="collapsible active">Map Status Flags</button><pre id="HLYR3-state" class="panel map-title-holder"></pre><div id="LYR3" style="width: 100%; height:400px"></div><p>This map has a Vector Tiles layer added from olms library automatically. No GeoView map involves and vector tile layers sources projection 3857 by default. This needs investigation</p><hr/><button type="button" class="collapsible">Code Snippet</button><pre id="codeSnippet" class="panel"></pre><script src="codedoc.js"></script><script src="layerlib.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
       cgpv.init(function (mapId) {
         console.log(`api is ready for ${mapId}`);
 
