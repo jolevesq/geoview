@@ -83,7 +83,7 @@
             'corePackages': [],
             'theme': 'dark',
             'suportedLanguages': ['en']
-          }"></div><button type="button" class="collapsible">Visibility and filters</button><pre id="layer1-buttons-pre" class="panel"></pre><button class="collapsible">Get Legend</button><pre id="LegendsId1-table-pre" class="panel"></pre><button type="button" class="collapsible">Get Feature Info</button><pre id="ResultSetId1-at_long_lat" class="panel">Click on feature on the map</pre><hr/><p>This map has a wms layer added from configuration.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="LYR1CS" class="panel"></pre><hr/><button type="button" class="collapsible">Code Snippet</button><pre id="codeSnippet" class="panel"></pre><script src="codedoc.js"></script><script src="layerlib.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
+          }"></div><button type="button" class="collapsible">Visibility and filters</button><pre id="layer1-buttons-pre" class="panel"></pre><button class="collapsible">Get Legend</button><pre id="LegendsId1-table-pre" class="panel"></pre><button type="button" class="collapsible">Get Feature Info</button><pre id="ResultSetId1-click" class="panel">Click on feature on the map</pre><hr/><p>This map has a wms layer added from configuration.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="LYR1CS" class="panel"></pre><hr/><button type="button" class="collapsible">Code Snippet</button><pre id="codeSnippet" class="panel"></pre><script src="codedoc.js"></script><script src="layerlib.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
       cgpv.init(function (mapId) {
         console.log(`api is ready for ${mapId}`);
 
@@ -99,8 +99,8 @@
           cgpv.api.event.on(
             cgpv.api.eventNames.GET_FEATURE_INFO.ALL_QUERIES_DONE,
             (payload) => {
-              const { layerSetId, resultSets, queryType } = payload;
-              createInfoTable('LYR1', 'ResultSetId1', resultSets, queryType);
+              const { layerSetId, resultSets, eventType } = payload;
+              createInfoTable('LYR1', 'ResultSetId1', resultSets, eventType);
             },
             'LYR1/FeatureInfoLayerSet'
           );

@@ -165,3 +165,11 @@ const [scaleMode, setScaleMode] = useState<number>(0);
 const expanded = useUIFooterBarExpanded();
 const scale = useMapScale();
 ```
+
+## 9- How we order functions in component
+
+After preivous section, code in the component should follow this order:
+- Core functions that are reusable without dependencies;
+- Event handlers functions that may change the states and raise events/callbacks;
+- Hooks section where we have the useEffect, useCallback methods grouped together (as the other those are defined is actually important - best to group them)
+- Rendering methods used for rendering the JSX

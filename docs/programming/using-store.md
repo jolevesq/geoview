@@ -1,4 +1,4 @@
-# Using Zusstand Store #
+# Using Zustand Store #
 
 We use [Zustand](https://github.com/pmndrs/zustand) store for our state management. We define a list of functions and concept to follow....
 For this reason we have put together some explanations here to help you use store functionnalities when programming.
@@ -33,6 +33,7 @@ __ts file__
     MapEventProcessor.clickMarkerIconShow(this.mapId, marker);
   }
 ```
+
 __event processor file__
 ``` ts
   // **********************************************************
