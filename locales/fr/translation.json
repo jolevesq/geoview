@@ -63,7 +63,9 @@
     "sort_layers": "Trier les calques",
     "selected_Layers": "Un aperçu des calques actuellement sélectionnés",
     "re-arrange": "Réarranger",
-    "categories_title": "Catégories"
+    "categories_title": "Catégories",
+    "layer_has_error": "La couche a une erreur...",
+    "layer_is_loading": "La couche se charge..."
   },
   "details": {
     "zoom_to": "Zoom à l'élément",
@@ -71,7 +73,6 @@
     "external_link": "Lien externe",
     "detailsView": "Vue détaillée",
     "selectVisbleLayer": "Sélectionnez n'importe quelle couche visible sur la carte pour commencer",
-    "availableLayers": "Couche",
     "feature": "item",
     "clickOnMap": "Cliquer sur la carte",
     "nextFeatureBtn": "Item suivant",
@@ -96,7 +97,8 @@
         "enable": "Activer",
         "skip": "Sauter"
       }
-    }
+    },
+    "exitFocus": "Sortir"
   },
   "validation": {
     "layer": {
@@ -130,13 +132,13 @@
     "downloadAsCSV": "Télécharger la CSV",
     "filterMap": "Filtrer la carte",
     "stopFilterMap": "Filtrer la carte d'arrêt",
-    "leftPanelHeading": "Couches",
     "rowsSelected": "{rowsSelected} sur {totalRows} ligne(s) sélectionnée(s)",
     "rowsFiltered": "{rowsFiltered} sur {totalRows} ligne(s) filtrée(s)",
     "enlargeBtn": "Agrandir",
     "reduceBtn": "Réduire",
     "features": "Item(s)",
     "featureFiltered": "Item filtrée(s)",
-    "images": "Images"
+    "images": "Images",
+    "close": "Fermer"
   }
 }
