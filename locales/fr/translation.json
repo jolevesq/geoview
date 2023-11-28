@@ -1,11 +1,12 @@
 {
   "general": {
-    "close": "Fermer",
-    "open": "Ouvrir",
-    "layers": "Couches",
     "add": "Ajouter",
-    "remove": "Retirer",
-    "name": "Nom"
+    "close": "Fermer",
+    "layers": "Couches",
+    "name": "Nom",
+    "exit": "Sortir",
+    "open": "Ouvrir",
+    "remove": "Retirer"
   },
   "mapnav": {
     "arianavbar": "groupe de buttons vertical pour navigation sur la carte",
@@ -33,7 +34,8 @@
       "toggle": "Basculer la mini-carte"
     },
     "attribution": {
-      "defaultnrcan": "© Sa Majesté le Roi du Chef du Canada, représentée par le ministre des Ressources naturelle"
+      "defaultnrcan": "© Sa Majesté le Roi du Chef du Canada, représentée par le ministre des Ressources naturelle",
+      "tooltip": "Attribution"
     },
     "crosshair": "Utilisez les touches <strong>fléchées</strong>, <strong>+</strong> et <strong>-</strong> pour naviguer sur la carte, <strong>Entrée</strong> pour sélectionner et <strong>Shift+fléchées</strong> <strong>Haut</strong> et <strong>Bas</strong> pour modfier le déplacement."
   },
@@ -97,8 +99,7 @@
         "enable": "Activer",
         "skip": "Sauter"
       }
-    },
-    "exitFocus": "Sortir"
+    }
   },
   "validation": {
     "layer": {
