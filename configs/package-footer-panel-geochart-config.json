@@ -139,7 +139,7 @@
       }
     ]
   },
-  "theme": "geoca",
+  "theme": "geo.ca",
   "corePackages": [
     "footer-panel"
   ],
