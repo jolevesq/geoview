@@ -65,12 +65,12 @@
       'externalPackages': [],
       'suportedLanguages': ['en']
     }`;
-
+    // TODO: make this function async and launch when api is ready
     setTimeout(() => {
       cgpv.api.createMapFromConfig('mapWM1', config);
     }, 1000);
 
     const switchThemeElem = document.getElementById("switchTheme");
     switchThemeElem.addEventListener("change", (e) => {
-      cgpv.api.maps['mapWM1'].changeTheme(e.target.value)
+      cgpv.api.maps['mapWM1'].setTheme(e.target.value)
     });</script></body></html>
