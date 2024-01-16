@@ -278,7 +278,12 @@
         ]
       },
       'components': ['overview-map'],
-      'corePackages': ['layers-panel'],
+      'footerTabs': {
+        'tabs': {
+          'core': ['legend', 'layers', 'details']
+        }
+      },
+      'corePackages': [],
       'theme': 'dark',
       'suportedLanguages': ['en']
     }"></div><label for="language">Select a layer style:</label> <select name="style" id="style"></select> <button class="collapsible">Get Legend</button><pre id="LegendsId3-table-pre" class="panel"></pre><button type="button" class="collapsible">Get Feature Info</button><pre id="ResultSetId3-click" class="panel">Click on feature on the map</pre><hr/><p>This map has a wms layer added from configuration.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="LYR3CS" class="panel"></pre><hr/><div class="map-title-holder"><h4 id="HLYR4">4. Automatic group creation from metadata information</h4><a class="ref-link" href="#top">Top</a></div><button class="collapsible active">Map Status Flags</button><pre id="HLYR4-state" class="panel map-title-holder"></pre><div id="LYR4" class="geoview-map" data-lang="en" data-config="{
@@ -396,7 +401,12 @@
               ]
             },
             'components': ['overview-map'],
-            'corePackages': ['footer-panel'],
+            'footerTabs': {
+              'tabs': {
+                'core': ['legend', 'layers', 'details']
+              }
+            },
+            'corePackages': [],
             'theme': 'geo.ca',
             'suportedLanguages': ['en']
           }"></div><script src="codedoc.js"></script><script src="layerlib.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
