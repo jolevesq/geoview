@@ -52,7 +52,7 @@
     "repoLink": "Lien repo"
   },
   "legend": {
-    "title": "Lédende",
+    "title": "Légende",
     "unknown": "Titre de légende inconnu",
     "removeLayer": "Supprimer le calque",
     "toggleOpacity": "Basculer le Opacité DEPRECATED",

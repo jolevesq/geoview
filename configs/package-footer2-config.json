@@ -28,7 +28,7 @@
   "components": [],
   "footerTabs": {
     "tabs": {
-      "core": ["legend", "layers", "details"]
+      "core": []
     }
   },
   "corePackages": [],
