@@ -103,7 +103,7 @@
           // set class and message
           message.classList.add('config-error');
           message.classList.remove('config-json-valid');
-          message.innerHTML = e;
+          message.innerHTML = cgpv.api.utilities.escapeRegExp(e.message);
           document.getElementById('createMap').disabled = true;
         }
       });
@@ -116,7 +116,7 @@
         // delete old map
         const mapDiv = cgpv.api.maps['sandboxMap'].remove(false);
         mapDiv.classList.remove('geoview-map');
-        
+
         // create map
         setTimeout(() => cgpv.api.createMapFromConfig('sandboxMap', document.getElementById('configGeoview').value), 1000);
       });
