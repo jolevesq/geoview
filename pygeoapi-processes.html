@@ -33,18 +33,6 @@
                   'en': 'Hydro Network',
                   'fr': 'Hydro Network'
               }
-            },
-            {
-              'geoviewLayerId': 'Hydro',
-              'geoviewLayerName': { 'en': 'Hydro' },
-              'metadataAccessPath': { 'en': 'https://maps.geogratis.gc.ca/wms/hydro_network_en' },
-              'geoviewLayerType': 'ogcWms',
-              'listOfLayerEntryConfig': [
-                {
-                  'layerId': 'hydro_network',
-                  'layerName': { 'en': 'hydro_network' }
-                }
-              ]
             }
           ]
         }
@@ -78,7 +66,7 @@
         displayLegend('geojsonLegendsId', resultSets);
       },
       'LYR5/LegendsLayerSet'
-    );</script>// =========================================================================================================================<script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
+    );</script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
       cgpv.init(function (mapId) {
         console.log(`api is ready for ${mapId}`);
         //create snippets
