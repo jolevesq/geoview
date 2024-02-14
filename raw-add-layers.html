@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><style>li.source-link {
         cursor: pointer;
-        color: #6082B6;
+        color: #6082b6;
       }
 
       .sourceLinkCopied {
@@ -74,7 +74,7 @@
           {
             'geoviewLayerId': 'geojsonLYR1',
             'geoviewLayerName': { 'en': 'GeoJSON Sample' },
-            'metadataAccessPath': { 'en': './geojson/metadata.json' },
+            'metadataAccessPath': { 'en': './datasets/geojson/metadata.json' },
             'geoviewLayerType': 'GeoJSON',
             'listOfLayerEntryConfig': [
               {
@@ -132,37 +132,37 @@
           }
         },
         'suportedLanguages': ['en']
-      }"></div><h4>Add Layer Examples</h4><div style="font-size: smaller"><div>ESRI Feature Service Layer<ul><li class="source-link">https://maps-cartes.ec.gc.ca/arcgis/rest/services/DMS/DEU_CSO_Volume/MapServer/8</li></ul></div><div>ESRI Dynamic Service Layer<ul><li class="source-link">https://maps-cartes.services.geo.ca/server_serveur/rest/services/NRCan/historical_flood_event_en/MapServer</li><li class="source-link">https://maps-cartes.services.geo.ca/server_serveur/rest/services/NRCan/forest_industry_hotspots_en/MapServer</li></ul></div><div>WMS Layer<ul><li class="source-link">https://ows.mundialis.de/services/service</li></ul></div><div>WFS Layer<ul><li class="source-link">https://giswebservices.massgis.state.ma.us/geoserver/wfs</li><li>Select 'Aiports' layer</li></ul></div><div>XYZ Layer<ul><li class="source-link">https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}</li></ul></div><div>GeoJson Layer<ul><li class="source-link">https://canadian-geospatial-platform.github.io/geoview/public/geojson/polygons.json</li><li class="source-link">https://canadian-geospatial-platform.github.io/geoview/public/geojson/lines.json</li><li class="source-link">https://canadian-geospatial-platform.github.io/geoview/public/geojson/points.json</li></ul></div><div>OGC API Feature Layer<ul><li class="source-link">https://b6ryuvakk5.execute-api.us-east-1.amazonaws.com/dev</li><li class="source-link">https://b6ryuvakk5.execute-api.us-east-1.amazonaws.com/dev/collections/lakes</li></ul></div><div>GeoCore UUID Layer<ul><li>ccc75c12-5acc-4a6a-959f-ef6f621147b9</li></ul></div><div>GeoPackage Layer<ul><li class="source-link">https://canadian-geospatial-platform.github.io/geoview/public/geojson/rivers.gpkg</li></ul></div></div><hr/><button type="button" class="collapsible">Configuration Snippet</button><pre id="mapWMCS" class="panel"></pre><hr/><div class="map-title-holder"><h4 id="HUC2">2. Layer Panel with layers in config</h4><a class="ref-link" href="#top">Top</a></div><div id="mapWM2" class="geoview-map" data-lang="en" data-config-url="./configs/layer-panel-zoom-config.json"></div><pre id="mapWM2CS" class="panel"></pre><script src="codedoc.js"></script><script>document.addEventListener('DOMContentLoaded', function () {
-          var sourceLinks = document.querySelectorAll('li.source-link');
+      }"></div><h4>Add Layer Examples</h4><div style="font-size: smaller"><div>ESRI Feature Service Layer<ul><li class="source-link">https://maps-cartes.ec.gc.ca/arcgis/rest/services/DMS/DEU_CSO_Volume/MapServer/8</li></ul></div><div>ESRI Dynamic Service Layer<ul><li class="source-link">https://maps-cartes.services.geo.ca/server_serveur/rest/services/NRCan/historical_flood_event_en/MapServer</li><li class="source-link">https://maps-cartes.services.geo.ca/server_serveur/rest/services/NRCan/forest_industry_hotspots_en/MapServer</li></ul></div><div>ESRI Image Layer<ul><li class="source-link">https://www5.agr.gc.ca/atlas/rest/services/app_agclimate_agclimat/agclimate_tx/ImageServer/</li></ul></div><div>WMS Layer<ul><li class="source-link">https://ows.mundialis.de/services/service</li></ul></div><div>WFS Layer<ul><li class="source-link">https://giswebservices.massgis.state.ma.us/geoserver/wfs</li><li>Select 'Aiports' layer</li></ul></div><div>XYZ Layer<ul><li class="source-link">https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}</li></ul></div><div>GeoJson Layer<ul><li class="source-link">https://canadian-geospatial-platform.github.io/geoview/public/datasets/geojson/polygons.json</li><li class="source-link">https://canadian-geospatial-platform.github.io/geoview/public/datasets/geojson/lines.json</li><li class="source-link">https://canadian-geospatial-platform.github.io/geoview/public/datasets/geojson/points.json</li></ul></div><div>OGC API Feature Layer<ul><li class="source-link">https://b6ryuvakk5.execute-api.us-east-1.amazonaws.com/dev</li><li class="source-link">https://b6ryuvakk5.execute-api.us-east-1.amazonaws.com/dev/collections/lakes</li></ul></div><div>GeoCore UUID Layer<ul><li>ccc75c12-5acc-4a6a-959f-ef6f621147b9</li></ul></div><div>GeoPackage Layer<ul><li class="source-link">https://canadian-geospatial-platform.github.io/geoview/public/datasets/geopackages/rivers.gpkg</li></ul></div><div>CSV Layer<ul><li class="source-link">https://canadian-geospatial-platform.github.io/geoview/public/datasets/csv-files/Station_List_Minus_HQ-MELCC.csv</li></ul></div></div><hr/><button type="button" class="collapsible">Configuration Snippet</button><pre id="mapWMCS" class="panel"></pre><hr/><div class="map-title-holder"><h4 id="HUC2">2. Layer Panel with layers in config</h4><a class="ref-link" href="#top">Top</a></div><div id="mapWM2" class="geoview-map" data-lang="en" data-config-url="./configs/layer-panel-zoom-config.json"></div><pre id="mapWM2CS" class="panel"></pre><script src="codedoc.js"></script><script>document.addEventListener('DOMContentLoaded', function () {
+        var sourceLinks = document.querySelectorAll('li.source-link');
 
-          sourceLinks.forEach(function (link) {
-              link.addEventListener('click', function () {
-                  // Get the content to copy
-                  var contentToCopy = link.innerHTML;
+        sourceLinks.forEach(function (link) {
+          link.addEventListener('click', function () {
+            // Get the content to copy
+            var contentToCopy = link.innerHTML;
 
-                  // Create a temporary textarea element to copy the content
-                  var textarea = document.createElement('textarea');
-                  textarea.value = contentToCopy;
-                  document.body.appendChild(textarea);
+            // Create a temporary textarea element to copy the content
+            var textarea = document.createElement('textarea');
+            textarea.value = contentToCopy;
+            document.body.appendChild(textarea);
 
-                  // Select the content and copy it to the clipboard
-                  textarea.select();
-                  document.execCommand('copy');
+            // Select the content and copy it to the clipboard
+            textarea.select();
+            document.execCommand('copy');
 
-                  // Remove the temporary textarea
-                  document.body.removeChild(textarea);
+            // Remove the temporary textarea
+            document.body.removeChild(textarea);
 
-                  // Show a message for 5 seconds
-                  var message = document.createElement('div');
-                  message.classList.add('sourceLinkCopied');
-                  message.innerHTML = 'Copied to clipboard';
-                  document.body.appendChild(message);
-                  setTimeout(function () {
-                      // Remove the message after 5 seconds
-                      document.body.removeChild(message);
-                  }, 2000);
-              });
+            // Show a message for 5 seconds
+            var message = document.createElement('div');
+            message.classList.add('sourceLinkCopied');
+            message.innerHTML = 'Copied to clipboard';
+            document.body.appendChild(message);
+            setTimeout(function () {
+              // Remove the message after 5 seconds
+              document.body.removeChild(message);
+            }, 2000);
           });
+        });
       });</script><script>function reloadMap() {
         cgpv.api.maps['mapWM'].setProjection(Number(document.getElementById('projections').value));
       }

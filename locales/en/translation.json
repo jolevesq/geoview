@@ -67,7 +67,8 @@
     "refreshLayer": "Refresh layer",
     "highlightLayer": "Highlight layer",
     "subLayersCount": "{count} sub-layers",
-    "itemsCount": "{count} of {totalCount} items"
+    "itemsCount": "{count} of {totalCount} items",
+    "legendInstructions": "Legend Instructions"
   },
   "layers": {
     "title": "Layers",
@@ -100,6 +101,7 @@
     "errorNone": "No file or source added",
     "errorFile": "Only geoJSON and GeoPackage files can be used",
     "errorServer": "source is not valid",
+    "errorNotLoaded": "An error occured when loading the geoview layer",
     "errorProj": "does not support current map projection",
     "only": "only",
     "opacity": "Opacity",
@@ -107,7 +109,10 @@
     "reloadLayer": "Reload layer",
     "visibilityIsAlways": "Visibility is always enabled",
     "toggleVisibility": "Toggle visibility",
-    "toggleCollapse": "Toggle collapse"
+    "toggleCollapse": "Toggle collapse",
+    "querying": "Querying",
+    "instructionsNoLayersTitle": "No layers visible",
+    "instructionsNoLayersBody": "Add visible layers on the map."
   },
   "details": {
     "title": "Details",
@@ -123,7 +128,8 @@
     "clearAllfeatures": "Clear all feature highlights",
     "highlightFeaturesOnMap": "Highlight features on map",
     "keepFeatureSelected": "Keep feature highlighted",
-    "detailsInstructions": "Details Instructions"
+    "detailsInstructions": "Details Instructions",
+    "loadingUI": "Loading user interface"
   },
   "lightbox": {
     "next": "Next",
@@ -192,6 +198,13 @@
     "featureFiltered": "features filtered",
     "images": "Images",
     "close": "Close"
+  },
+  "geoChart": {
+    "noChartAvailable": "Click on the map layer with chart"
+  },
+  "guide": {
+    "title": "Guide",
+    "errorMessage": "Sorry, unable to find the help document!"
   },
   "footerBar": {
     "focusToMap": "Focus to map",

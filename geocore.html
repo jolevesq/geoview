@@ -15,8 +15,6 @@
               {
                 'geoviewLayerType': 'geoCore',
                 'listOfLayerEntryConfig': [
-                  /*===========================================================================
-                  Temporarilly deactivate this entry because the service has a legend problem
                   {
                     'layerId': '0fe65119-e96e-4a57-8bfe-9d9245fba06b',
                     'geocoreLayerName': { 'en': 'HRDEM Mosaic Hillshade' },
@@ -30,7 +28,6 @@
                       }
                     ]
                   },
-                  /*===========================================================================*/
                   {
                     'layerId': 'ccc75c12-5acc-4a6a-959f-ef6f621147b9',
                     'geocoreLayerName': { 'en': 'Commemorative Map' },
@@ -65,6 +62,11 @@
             ]
           },
           'components': ['overview-map'],
+          'footerBar': {
+            'tabs': {
+              'core': ['legend', 'layers', 'details', 'data-table']
+            }
+          },
           'corePackages': [],
           'theme': 'dark',
           'suportedLanguages': ['en']

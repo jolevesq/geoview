@@ -67,7 +67,8 @@
     "refreshLayer": "Rafraîchir la couche",
     "highlightLayer": "Couche de mise en évidence",
     "subLayersCount": "{count} sous-couches",
-    "itemsCount": "{count} sur {totalCount} éléments"
+    "itemsCount": "{count} sur {totalCount} éléments",
+    "legendInstructions": "Legend Instructions"
   },
   "layers": {
     "title": "Couche",
@@ -100,6 +101,7 @@
     "errorNone": "Pas de fichier ou de source ajouté",
     "errorFile": "Seuls les fichiers geoJSON et GeoPackage peuvent être utilisés",
     "errorServer": "source n'est pas valide",
+    "errorNotLoaded": "Une erreur s'est produite lors du chargement de la couche geoview",
     "errorProj": "ne prend pas en charge la projection cartographique actuelle",
     "only": "seulement",
     "opacity": "Opacité",
@@ -107,7 +109,10 @@
     "reloadLayer": "Recharger la couche",
     "visibilityIsAlways": "La visibilité est toujours activée",
     "toggleVisibility": "Basculer la visibilité",
-    "toggleCollapse": "Basculer la fermeture"
+    "toggleCollapse": "Basculer la fermeture",
+    "querying": "Requête en cours",
+    "instructionsNoLayersTitle": "Aucune couche visible",
+    "instructionsNoLayersBody": "Ajoutez des couches visibles sur la carte."
   },
   "details": {
     "title": "Détails",
@@ -123,7 +128,8 @@
     "clearAllfeatures": "Déselctionner tout les items",
     "highlightFeaturesOnMap": "Déselctionner tout les items",
     "keepFeatureSelected": "Garder l'élément sélectionné",
-    "detailsInstructions": "Instructions détaillées"
+    "detailsInstructions": "Instructions détaillées",
+    "loadingUI": "Chargement de l'interface utilisateur"
   },
   "lightbox": {
     "next": "Prochaine",
@@ -192,6 +198,13 @@
     "featureFiltered": "Item filtrée(s)",
     "images": "Images",
     "close": "Fermer"
+  },
+  "geochart": {
+    "noChartAvailable": "Cliquez sur la couche de carte avec le graphique"
+  },
+  "guide": {
+    "title": "Guide",
+    "errorMessage": "Désolé, impossible de trouver le document d'aide !"
   },
   "footerBar": {
     "focusToMap": "Aller à la carte",
