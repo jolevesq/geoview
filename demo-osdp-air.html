@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>OSDP Air Demo</strong></h1></td></tr><tr><td><a href="./demos.html">Main</a><br/></td></tr></tbody></table><table><tbody><tr><td><p>Demonstration of Open Science Data Portal - Air Quality in GeoView</p></td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HMapWR1">Air Quality</h4></div><button class="collapsible active">Map Status Flags</button><pre id="HMapWR1-state" class="panel map-title-holder"></pre><div id="MapWR1" class="geoview-map" triggerreadycallback="true" data-lang="en" data-config="{
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>OSDP Air Demo</strong></h1></td></tr><tr><td><a href="./demos.html">Main</a><br/></td></tr></tbody></table><table><tbody><tr><td><p>Demonstration of Open Science Data Portal - Air Quality in GeoView</p></td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HMap1">Air Quality</h4></div><button class="collapsible active">Map Status Flags</button><pre id="HMap1-state" class="panel map-title-holder"></pre><div id="Map1" class="geoview-map" triggerreadycallback="true" data-lang="en" data-config="{
         'map': {
           'interaction': 'dynamic',
           'viewSettings': {
@@ -13,115 +13,29 @@
           },
           'listOfGeoviewLayerConfig': [
             {
-              'geoviewLayerId': 'HMS',
-              'geoviewLayerName': { 'en': 'Hydrometric Monitoring Stations' },
-              'geoviewLayerType': 'GeoJSON',
+              'geoviewLayerId': 'LYR1',
+              'geoviewLayerName': { 'en': 'Air pollutant emissions' },
+              'metadataAccessPath': {
+                'en': 'https://maps-cartes.ec.gc.ca/arcgis/rest/services/CESI/MapServer/'
+              },
+              'geoviewLayerType': 'esriDynamic',
               'listOfLayerEntryConfig': [
                 {
-                  'layerId': 'hydrometric-stations',
-                  'layerName': { 'en': 'Hydrometric Stations' },
-                  'source': {
-                    'dataAccessPath': {
-                      'en': 'https://api.weather.gc.ca/collections/hydrometric-stations/items?f=json'
-                    }
-                  }
+                  'layerId': '17'
                 }
               ]
             },
             {
-              'geoviewLayerId': 'geomet',
-              'geoviewLayerName': { 'en': 'GeoMet' },
-              'metadataAccessPath': { 'en': 'https://geo.weather.gc.ca/geomet' },
-              'geoviewLayerType': 'ogcWms',
+              'geoviewLayerId': 'LYR2',
+              'geoviewLayerName': { 'en': 'Air Quality' },
+              'metadataAccessPath': {
+                'en': 'https://maps-cartes.ec.gc.ca/arcgis/rest/services/CESI/MapServer/'
+              },
+              'geoviewLayerType': 'esriDynamic',
               'listOfLayerEntryConfig': [
-                { 'layerId': 'HRDPA.06F_WATERSHED' },
-                { 'layerId': 'HRDPA.06P_WATERSHED' },
-                { 'layerId': 'HRDPA.6F_PR' },
-                { 'layerId': 'HRDPA.6P_PR' },
-                { 'layerId': 'HRDPA.24F_WATERSHED' },
-                { 'layerId': 'HRDPA.24P_WATERSHED' },
-                { 'layerId': 'HRDPA.24F_PR' },
-                { 'layerId': 'HRDPA.24P_PR' }
-              ]
-            },
-            {
-              'geoviewLayerId': 'groundwater',
-              'geoviewLayerName': { 'en': 'Groundwater Information Network' },
-              'metadataAccessPath': { 'en': 'https://gin.gw-info.net/service/gin/wms/mediator/gin_en' },
-              'geoviewLayerType': 'ogcWms',
-              'listOfLayerEntryConfig': [
-                { 'layerId': '3dmodel' },
-                { 'layerId': 'bedrockgeology' }
-                /*===========================================================================
-                { 'layerId': 'gw_confinement' },
-                { 'layerId': 'gw_vulnerability' },
-                { 'layerId': 'HydrogeologicUnit' },
-                { 'layerId': 'composition' },
-                { 'layerId': 'gw_flow' },
-                { 'layerId': 'gw_level' },
-                { 'layerId': 'MonitoringStations' },
-                { 'layerId': 'gw_recharge' },
-                { 'layerId': 'samples' },
-                { 'layerId': 'gw_usage' },
-                { 'layerId': 'hy_cond' },
-                { 'layerId': 'HydroRegion' },
-                { 'layerId': 'gw_piezometry' },
-                { 'layerId': 'surficialgeology' },
-                { 'layerId': 'WaterWells' }
-                /*===========================================================================*/
-              ]
-            },
-            {
-              'geoviewLayerId': 'CanVec',
-              'geoviewLayerName': { 'en': 'CanVec' },
-              'metadataAccessPath': { 'en': 'https://maps.geogratis.gc.ca/wms/canvec_en' },
-              'geoviewLayerType': 'ogcWms',
-              'listOfLayerEntryConfig': [
-                { 'layerId': 'dam_polygon_50k' },
-                { 'layerId': 'dam_polygon_250k' }
-              ]
-            },
-            {
-              'geoviewLayerId': 'Active_Inactive_Disposal_at_Sea_Sites',
-              'geoviewLayerName': { 'en': 'Active Inactive Disposal at Sea Sites' },
-              'metadataAccessPath': { 'en': 'https://maps-cartes.ec.gc.ca/arcgis/services/Active_Inactive_Disposal_at_Sea_Sites/MapServer/WMSServer' },
-              'geoviewLayerType': 'ogcWms',
-              'listOfLayerEntryConfig': [
-                { 'layerId': '0' }
-              ]
-            },
-            {
-              'geoviewLayerId': 'ShorelineSegmentationWithSCATClassification',
-              'geoviewLayerName': { 'en': 'Shoreline Segmentation With SCAT Classification' },
-              'metadataAccessPath': { 'en': 'https://maps-cartes.ec.gc.ca/arcgis/services/EPB_EPO/ShorelineSegmentationWithSCATClassification/MapServer/WMSServer' },
-              'geoviewLayerType': 'ogcWms',
-              'listOfLayerEntryConfig': [
-                { 'layerId': '0' },
-                { 'layerId': '1' },
-                { 'layerId': '2' },
-                { 'layerId': '3' },
-                { 'layerId': '4' }
-              ]
-            },
-            {
-              'geoviewLayerId': 'geomet2',
-              'geoviewLayerName': { 'en': 'GeoMet 2' },
-              'metadataAccessPath': { 'en': 'https://geo.weather.gc.ca/geomet' },
-              'geoviewLayerType': 'ogcWms',
-              'listOfLayerEntryConfig': [
-                { 'layerId': 'CaLDAS-NSRPS_2.5km_SnowDepth' },
-                { 'layerId': 'CaLDAS-NSRPS_2.5km_SnowWaterEquiv' }
-              ]
-            },
-            {
-              'geoviewLayerId': 'abds',
-              'geoviewLayerName': { 'en': 'Arctic Marine Biodiversity' },
-              'metadataAccessPath': { 'en': 'https://geo.abds.is/geoserver/sambr/wms' },
-              'geoviewLayerType': 'ogcWms',
-              'listOfLayerEntryConfig': [
-                { 'layerId': 'C2f1_cold_currents' },
-                { 'layerId': 'C2f1_riverine_inflow' },
-                { 'layerId': 'C2f1_warm_currents' }
+                {
+                  'layerId': '27'
+                }
               ]
             }
           ]
@@ -141,7 +55,7 @@
         console.log(`api is ready for ${mapId}`);
       });
 
-      listenToLegendLayerSetChanges('HMapWR1-state', 'MapWR1/LegendsLayerSet');
+      listenToLegendLayerSetChanges('HMap1-state', 'Map1/LegendsLayerSet');
 
       //create snippets
       createCodeSnippet();
