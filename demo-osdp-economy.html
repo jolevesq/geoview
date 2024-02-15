@@ -16,17 +16,17 @@
               'geoviewLayerId': 'LYR1',
               'geoviewLayerName': { 'en': 'Greenhouse gas emissions' },
               'metadataAccessPath': {
-                'en': 'https://maps-cartes.services.geo.ca/server_serveur/rest/services/NRCan/major_projects_inventory_en/MapServer'
+                'en': 'https://maps-cartes.services.geo.ca/server_serveur/rest/services/NRCan/major_projects_inventory_en/MapServer/'
               },
               'geoviewLayerType': 'esriDynamic',
               'listOfLayerEntryConfig': [
                 {
-                  'layerId': '0'
-                  'name': { 'en': 'Major Projects Inventory [point]'}
+                  'layerId': '0',
+                  'layerName': { 'en': 'Major Projects Inventory [point]' }
                 },
                 {
-                  'layerId': '1'
-                  'name': { 'en': 'Major Projects Inventory [line]'}
+                  'layerId': '1',
+                  'layerName': { 'en': 'Major Projects Inventory [line]' }
                 }
               ]
             },
@@ -34,7 +34,7 @@
               'geoviewLayerId': 'LYR2',
               'geoviewLayerName': { 'en': 'Clean Energy Generating Stations' },
               'metadataAccessPath': {
-                'en': 'https://geoappext.nrcan.gc.ca/arcgis/rest/services/Energy/CERP_EN/MapServer'
+                'en': 'https://geoappext.nrcan.gc.ca/arcgis/rest/services/Energy/CERP_EN/MapServer/'
               },
               'geoviewLayerType': 'esriDynamic',
               'listOfLayerEntryConfig': [
@@ -46,7 +46,6 @@
           ]
         },
         'components': ['overview-map'],
-        'overviewMap': {'hideOnZoom': 7},
         'footerBar': {
           'tabs': {
             'core': ['legend', 'layers', 'details', 'data-table']
