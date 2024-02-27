@@ -18,7 +18,9 @@
     "zoomOut": "Zoom out",
     "coordinates": "Toggle Coordinates format",
     "scale": "Toggle between scale and resolution",
-    "location": "Zoom to my location"
+    "location": "Zoom to my location",
+    "collapseBtn": "Collapse",
+    "expandBtn": "Expand"
   },
   "mapctrl": {
     "rotation": {
@@ -155,8 +157,7 @@
       "loadfailed": "Layer [__param__] failed to load on map __param__.",
       "notfound": "The sublayer __param__ of the GeoView layer __param__ does not exist on the server",
       "createtwice": "Can not execute twice the createGeoViewRasterLayers method for the map __param__",
-      "usedtwice": "Duplicate use of geoview layer identifier [__param__] on map __param__",
-      "invalidConfig": "Invalid JSON config, default configuration applied"
+      "usedtwice": "Duplicate use of geoview layer identifier [__param__] on map __param__"
     },
     "schema": {
       "notFound": "A schema error was found, check the console to see what is wrong.",
@@ -165,7 +166,8 @@
     "changeDisplayLanguageLayers": "Layers can not be relaoded because the configuration does not support this language",
     "changeDisplayLanguage": "Only 'en' and 'fr' are supported",
     "changeDisplayTheme": "Theme unsuported",
-    "changeDisplayProjection": "Projection unsuported"
+    "changeDisplayProjection": "Projection unsuported",
+    "invalidConfig": "Invalid JSON config, default configuration applied"
   },
   "exportModal": {
     "title": "Export Map as PNG",
@@ -199,7 +201,10 @@
     "features": "feature(s)",
     "featureFiltered": "features filtered",
     "images": "Images",
-    "close": "Close"
+    "close": "Close",
+    "dataTableInstructions": "Data Table Instructions",
+    "selectVisbleLayer": "Click on a layer to view the data table",
+    "noFeatures": "unknown..."
   },
   "geoChart": {
     "noChartAvailable": "Click on the map layer with chart"

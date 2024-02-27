@@ -18,7 +18,9 @@
     "zoomOut": "Zoom arrière",
     "coordinates": "Basculer le format des coordonnées",
     "scale": "Basculer entre l'échelle et la résolution",
-    "location": "Zoom sur ma position"
+    "location": "Zoom sur ma position",
+    "collapseBtn": "Réduire",
+    "expandBtn": "Agrandir"
   },
   "mapctrl": {
     "rotation": {
@@ -155,8 +157,7 @@
       "loadfailed": "Le chargement de la couche [__param__] a échoué sur la carte __param__.",
       "notfound": "La sous couche __param__ de la couche GeoView __param__ n'existe pas sur le sereur",
       "createtwice": "On ne peut exécuter deux fois la méthode createGeoViewRasterLayers pour la carte __param__",
-      "usedtwice": "Utilisation en double de l'identifiant de couche geoview [__param__] sur la carte __param__",
-      "invalidConfig": "Configuration JSON non valide, configuration par défaut appliquée"
+      "usedtwice": "Utilisation en double de l'identifiant de couche geoview [__param__] sur la carte __param__"
     },
     "schema": {
       "notFound": "Une erreur de schéma a été trouvée, vérifiez la console pour voir ce qui ne va pas.",
@@ -165,7 +166,8 @@
     "changeDisplayLanguageLayers": "Les couches ne peuvent être chargée(s) de nouveau car la configuration ne supporte pas ce langage",
     "changeDisplayLanguage": "Seulement 'en' et 'fr' sont supporées",
     "changeDisplayTheme": "Theme non supporté",
-    "changeDisplayProjection": "Projection non supportée"
+    "changeDisplayProjection": "Projection non supportée",
+    "invalidConfig": "Configuration JSON non valide, configuration par défaut appliquée"
   },
   "exportModal": {
     "title": "Exporter la carte en PNG",
@@ -199,7 +201,10 @@
     "features": "Item(s)",
     "featureFiltered": "Item filtrée(s)",
     "images": "Images",
-    "close": "Fermer"
+    "close": "Fermer",
+    "dataTableInstructions": "Instructions relatives aux tableaux de données",
+    "selectVisbleLayer": "Cliquez sur une couche pour afficher le tableau de données",
+    "noFeatures": "inconnue..."
   },
   "geochart": {
     "noChartAvailable": "Cliquez sur la couche de carte avec le graphique"
