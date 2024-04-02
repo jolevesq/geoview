@@ -52,7 +52,7 @@
           cgpv.api.maps['EVNT1'].notifications.showWarning('This is my first snackbar!');
 
           setInterval(() => {
-            cgpv.api.maps['EVNT1'].notifications.showMessage('I can even apply a function', false, {
+            cgpv.api.maps['EVNT1'].notifications.showMessage('I can even apply a function', [], false, {
               label: 'Click me!',
               action: () => {
                 alert('You clicked me!');
