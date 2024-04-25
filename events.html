@@ -2,8 +2,6 @@
           'map': {
             'interaction': 'dynamic',
             'viewSettings': {
-              'zoom': 4,
-              'center': [-100, 60],
               'projection': 3978
             },
             'basemapOptions': {
@@ -41,7 +39,8 @@
 
           // listen to map moveend event
           cgpv.api.maps['EVNT1'].onMapMoveEnd((sender, payload) => {
-            mapPosition.innerHTML = mapPosition.innerHTML = `<p>Map ${sender.mapId} with latitude ${payload.lnglat[1]} and longitude ${payload.lnglat[0]}</p>`;
+            mapPosition.innerHTML =
+              mapPosition.innerHTML = `<p>Map ${sender.mapId} with latitude ${payload.lnglat[1]} and longitude ${payload.lnglat[0]}</p>`;
           });
 
           // listen to map rotation event
