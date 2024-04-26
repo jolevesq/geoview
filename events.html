@@ -12,7 +12,7 @@
           },
           'components': [],
           'corePackages': [],
-          'theme': 'dark',
+          'theme': 'geo.ca',
           'suportedLanguages': ['en']
         }"></div><div><button id="success-notif-but">Success Notification</button> <button id="info-notif-but">Info Notification</button> <button id="error-notif-but">Error Notification</button> <button id="warning-notif-but">Warning Notification</button></div><p>This script tag will trigger a basic notification on load and another with a custom function every 10 seconds.</p><p>Accessing map center from outside of the core viewer on Map MOVE event using api event listeners:</p><pre class="maps-position"><p>Map EVNT1 move end</p></pre><p>Accessing map rotation from outside of the core viewer on Map ROTATION event using api event listeners:</p><pre class="maps-rotation"><p>Map EVNT1 rotation 0</p></pre><button type="button" class="collapsible">Configuration Snippet</button><pre id="EVNT1CS" class="panel"></pre><hr/><button type="button" class="collapsible">Code Snippet</button><pre id="codeSnippet" class="panel"></pre><script src="codedoc.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
       cgpv.init((mapId) => {
