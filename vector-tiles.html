@@ -74,12 +74,13 @@
           'suportedLanguages': ['en']
         }"></div><p>This map has a Vector Tiles layer added from configuration. Declutter is set to false for this vector tile layer.</p><pre id="LYR2CS" class="panel"></pre><hr/><script src="codedoc.js"></script><script src="layerlib.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
     cgpv.init((mapId) => {
-      if (mapId === 'allMaps') {
+      if (mapId === 'LYR1') {
         listenToLegendLayerSetChanges('HLYR1-state', 'LYR1');
+      } else if (mapId === 'LYR2') {
         listenToLegendLayerSetChanges('HLYR2-state', 'LYR2');
-
-        // create snippets
-        createCodeSnippet();
-        createConfigSnippet();
       }
+
+      // create snippets
+      createCodeSnippet();
+      createConfigSnippet();
     });</script></body></html>
