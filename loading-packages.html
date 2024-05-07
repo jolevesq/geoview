@@ -60,9 +60,11 @@
           unloadBasemapPanelBtn.addEventListener('click', function (e) {
             cgpv.api.plugin.removePlugin('basemap-panel', 'mapWM');
           });
-
-          // create snippets
-          createCodeSnippet();
-          createConfigSnippet();
         }
+      });
+
+      // create snippets
+      window.addEventListener('load', () => {
+        createCodeSnippet();
+        createConfigSnippet();
       });</script></body></html>

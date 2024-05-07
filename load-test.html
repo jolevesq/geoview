@@ -79,10 +79,6 @@
               }),
             1000
           );
-
-          // create snippets
-          createCodeSnippet();
-          createConfigSnippet();
         }
       });
 
@@ -268,4 +264,10 @@
         const long = parseFloat(((Math.random() * (maxX * 100 - minX * 100 + 1) + minX * 100) / 100).toFixed(3));
 
         return [-long, lat];
-      }</script></body></html>
+      }
+
+      // create snippets
+      window.addEventListener('load', () => {
+        createCodeSnippet();
+        createConfigSnippet();
+      });</script></body></html>

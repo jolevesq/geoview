@@ -183,9 +183,11 @@
       if (mapId === 'MAP1') {
         // Init map
         initMap1(cgpv.api.maps['MAP1']);
+      }
+    });
 
-        // create snippets
+    // create snippets
+    window.addEventListener('load', () => {
         createCodeSnippet();
         createConfigSnippet();
-      }
-    });</script></body></html>
+      });</script></body></html>

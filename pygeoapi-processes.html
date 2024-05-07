@@ -57,10 +57,6 @@
             const { resultSet } = payload;
             displayLegend('geojsonLegendsId', resultSet);
           });
-
-          // create snippets
-          createCodeSnippet();
-          createConfigSnippet();
         }
       }, (mapId) => {
         if (mapId === 'LYR5') {
@@ -164,4 +160,10 @@
 
         document.getElementById('Hydro-New-Layer-Id-Label').innerText = addResult.layer.geoviewLayerId;
         createTableOfFilter('LYR5');
+      });
+
+      // create snippets
+      window.addEventListener('load', () => {
+        createCodeSnippet();
+        createConfigSnippet();
       });</script></body></html>
