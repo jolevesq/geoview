@@ -253,18 +253,23 @@ export function commonProcessFeatureInfoConfig(
   const { layerPath } = layerConfig;
   const layerMetadata = this.layerMetadata[layerPath];
   const queryable = (layerMetadata.capabilities as string).includes('Query');
-  if (layerConfig.source.featureInfo) {
-    // if queryable flag is undefined, set it accordingly to what is specified in the metadata
-    if (layerConfig.source.featureInfo.queryable === undefined) layerConfig.source.featureInfo.queryable = queryable;
-    // else the queryable flag comes from the user config.
-    else if (layerConfig.source.featureInfo.queryable && !layerMetadata.fields && layerMetadata.type !== 'Group Layer') {
-      layerConfig.layerStatus = 'error';
-      throw new Error(
-        `The config whose layer path is ${layerPath} cannot set a layer as queryable because it does not have field definitions`
-      );
-    }
-  } else layerConfig.source.featureInfo = layerConfig.isMetadataLayerGroup ? { queryable: false } : { queryable };
-  MapEventProcessor.setMapLayerQueryable(this.mapId, layerPath, layerConfig.source.featureInfo.queryable);
+
+  // TODO: set in config for now, hardcoded to true
+  // if (layerConfig.source.featureInfo) {
+  //   // if queryable flag is undefined, set it accordingly to what is specified in the metadata
+  //   if (layerConfig.source.featureInfo.queryable === undefined) layerConfig.source.featureInfo.queryable = queryable;
+  //   // else the queryable flag comes from the user config.
+  //   else if (layerConfig.source.featureInfo.queryable && !layerMetadata.fields && layerMetadata.type !== 'Group Layer') {
+  //     layerConfig.layerStatus = 'error';
+  //     throw new Error(
+  //       `The config whose layer path is ${layerPath} cannot set a layer as queryable because it does not have field definitions`
+  //     );
+  //   }
+  // } else layerConfig.source.featureInfo = layerConfig.isMetadataLayerGroup ? { queryable: false } : { queryable };
+
+  // TODO: refactor the queyrable is now on state object, hardcoded to queryable from metadata
+  MapEventProcessor.setMapLayerQueryable(this.mapId, layerPath, queryable);
+  if (!layerConfig.source.featureInfo) layerConfig.source.featureInfo = {};
 
   // dynamic group layer doesn't have fields definition
   if (layerMetadata.type !== 'Group Layer') {

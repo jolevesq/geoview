@@ -12,6 +12,7 @@ import { ConfigBaseClass } from '@/core/utils/config/validation-classes/config-b
 import { TypeHoverLayerData } from './hover-feature-info-layer-set';
 import { LayerApi } from '@/geo/layer/layer';
 import { AppEventProcessor } from '@/api/event-processors/event-processor-children/app-event-processor';
+import { MapEventProcessor } from '@/api/event-processors/event-processor-children/map-event-processor';
 
 /**
  * A class to hold a set of layers associated with a value of any type.
@@ -179,6 +180,7 @@ export abstract class AbstractLayerSet {
 
   /**
    * Processes layer data to query features on it, if the layer path can be queried.
+   * @param {string} mapId - mapId to use to qyery layer status
    * @param {TypeLayerData | TypeHoverLayerData} data - The layer data
    * @param {TypeLayerEntryConfig} layerConfig - The layer configuration
    * @param {string} layerPath - The layer path
@@ -187,6 +189,7 @@ export abstract class AbstractLayerSet {
    * @returns {Promise<TypeFeatureInfoEntry[] | undefined | null>} A promise resolving to the query results
    */
   protected static queryLayerFeatures(
+    mapId: string,
     data: TypeLayerData | TypeHoverLayerData,
     layerConfig: TypeLayerEntryConfig,
     layerPath: string,
@@ -196,7 +199,8 @@ export abstract class AbstractLayerSet {
     // If event listener is enabled, query status isn't in error, and geoview layer instance is defined
     if (data.eventListenerEnabled && data.queryStatus !== 'error' && layerConfig.geoviewLayerInstance) {
       // If source is queryable
-      if (layerConfig?.source?.featureInfo?.queryable) {
+      // TODO: refactor hardcoded true and get from layer when there (layer.states.queryable)
+      if (MapEventProcessor.getMapLayerQueryable(mapId, layerPath)) {
         // Get Feature Info
         return Promise.resolve(layerConfig.geoviewLayerInstance.getFeatureInfo(queryType, layerPath, location));
       }

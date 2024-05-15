@@ -46,8 +46,10 @@ export class HoverFeatureInfoLayerSet extends AbstractLayerSet {
     logger.logTraceCore('HOVER-FEATURE-INFO-LAYER-SET - onRegisterLayerCheck', layerConfig.layerPath, Object.keys(this.resultSet));
 
     // TODO: refactor layer - get flag from layer itself, not config
-    // TD.CONT: we should use the layerPath associated to thelayer we register and do not use layerPath parameter
-    const queryable = layerConfig.schemaTag === CONST_LAYER_TYPES.WMS ? false : layerConfig?.source?.featureInfo?.queryable;
+    // TD.CONT: we should use the layerPath associated to the layer we register and do not use layerPath parameter
+    // TD>CONT: get the value from layer itsel, hoardoced to true.... we can use the map event processor function or layer itself at this stage
+    // eslint-disable-next-line no-unneeded-ternary
+    const queryable = layerConfig.schemaTag === CONST_LAYER_TYPES.WMS ? false : true; // layerConfig?.source?.featureInfo?.queryable;
     return !!queryable;
   }
 
@@ -116,7 +118,7 @@ export class HoverFeatureInfoLayerSet extends AbstractLayerSet {
         data.queryStatus = 'init';
 
         // Process query on results data
-        HoverFeatureInfoLayerSet.queryLayerFeatures(data, layerConfig, layerPath, queryType, pixelCoordinate)
+        HoverFeatureInfoLayerSet.queryLayerFeatures(this.mapId, data, layerConfig, layerPath, queryType, pixelCoordinate)
           .then((arrayOfRecords) => {
             if (arrayOfRecords === null) {
               this.resultSet[layerPath].data.queryStatus = 'error';

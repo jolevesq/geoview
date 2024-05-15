@@ -500,6 +500,10 @@ export class MapEventProcessor extends AbstractEventProcessor {
     this.getMapStateProtected(mapId).setterActions.setQueryable(layerPath, queryable);
   }
 
+  static getMapLayerQueryable(mapId: string, layerPath: string): boolean | undefined {
+    return this.getMapStateProtected(mapId).setterActions.getIsQueryable(layerPath);
+  }
+
   static setOrToggleMapLayerVisibility(mapId: string, layerPath: string, newValue?: boolean): void {
     // Apply some visibility logic
     const curOrderedLayerInfo = this.getMapStateProtected(mapId).orderedLayerInfo;

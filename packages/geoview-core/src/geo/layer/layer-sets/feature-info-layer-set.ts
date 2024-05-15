@@ -62,7 +62,8 @@ export class FeatureInfoLayerSet extends AbstractLayerSet {
     // Log
     logger.logTraceCore('FEATURE-INFO-LAYER-SET - onRegisterLayerCheck', layerConfig.layerPath, Object.keys(this.resultSet));
 
-    const queryable = layerConfig?.source?.featureInfo?.queryable;
+    // TODO: refactor - get the value from layer itsel, hardcoded to true.... we can use the map event processor function or layer itself at this stage
+    const queryable = true; // layerConfig?.source?.featureInfo?.queryable;
     return !!queryable;
   }
 
@@ -189,8 +190,17 @@ export class FeatureInfoLayerSet extends AbstractLayerSet {
         data.features = undefined;
         data.queryStatus = 'processing';
 
+        data.layerName = getLocalizedValue(layerConfig.layerName, AppEventProcessor.getDisplayLanguage(this.mapId)) ?? '';
+
         // Process query on results data
-        const promiseResult = FeatureInfoLayerSet.queryLayerFeatures(data, layerConfig, layerPath, queryType, longLatCoordinate);
+        const promiseResult = FeatureInfoLayerSet.queryLayerFeatures(
+          this.mapId,
+          data,
+          layerConfig,
+          layerPath,
+          queryType,
+          longLatCoordinate
+        );
 
         // Add the promise
         allPromises.push(promiseResult);

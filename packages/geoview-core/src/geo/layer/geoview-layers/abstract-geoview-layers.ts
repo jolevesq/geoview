@@ -682,15 +682,10 @@ export abstract class AbstractGeoViewLayer {
     location: TypeLocation = null
   ): Promise<TypeFeatureInfoEntry[] | undefined | null> {
     try {
-      // TODO: Refactor - Rework this function to not need a layer path in the param, nor a need to get a layer config here..
-      // TO.DOCONT: For example, this call seems to have logic redundancy: `layerConfig.geoviewLayerInstance.getFeatureInfo(queryType, layerPath, location)`
-      // Get the layer config
-      const layerConfig = this.getLayerConfig(layerPath);
-
-      if (!layerConfig || !layerConfig?.source?.featureInfo?.queryable) {
-        logger.logError('Invalid usage of getFeatureInfo\nlayerConfig = ', layerConfig);
-        const queryableOrNot = layerConfig?.source?.featureInfo?.queryable ? '' : 'not';
-        logger.logError(`Layer is ${queryableOrNot} queryable`);
+      // layer is queryable or not
+      if (MapEventProcessor.getMapLayerQueryable(this.mapId, layerPath) === undefined) {
+        logger.logError('Invalid usage of getFeatureInfo\nlayerConfig = ', layerPath);
+        logger.logError(`Layer is queryable undefined`);
         return null;
       }
 

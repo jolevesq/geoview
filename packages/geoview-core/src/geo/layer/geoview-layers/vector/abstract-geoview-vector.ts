@@ -161,7 +161,7 @@ export abstract class AbstractGeoViewVector extends AbstractGeoViewLayer {
              which is defined as the midnight at the beginning of January 1, 1970, UTC (equivalent to the UNIX epoch). If the date type
              is not a number, we assume it is provided as an ISO UTC string. If not, the result is unpredictable.
           */
-          if (layerConfig.source?.featureInfo?.queryable && features) {
+          if (MapEventProcessor.getMapLayerQueryable(this.mapId, layerPath) && features) {
             const featureInfo = (layerConfig.source as TypeBaseSourceVectorInitialConfig).featureInfo!;
             const fieldTypes = featureInfo.fieldTypes?.split(',');
             const fieldNames = getLocalizedValue(featureInfo.outfields, AppEventProcessor.getDisplayLanguage(this.mapId))!.split(',');

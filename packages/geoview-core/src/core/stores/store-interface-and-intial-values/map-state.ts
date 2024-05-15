@@ -100,6 +100,7 @@ export interface IMapState {
     setOrderedLayerInfo: (newOrderedLayerInfo: TypeOrderedLayerInfo[]) => void;
     setHoverable: (layerPath: string, hoverable: boolean) => void;
     setQueryable: (layerPath: string, queryable: boolean) => void;
+    getIsQueryable: (layerPath: string) => boolean | undefined;
     setClickMarker: (coord: number[] | undefined) => void;
     setHoverFeatureInfo: (hoverFeatureInfo: TypeHoverFeatureInfo) => void;
   };
@@ -664,6 +665,23 @@ export function initializeMapState(set: TypeSetStore, get: TypeGetStore): IMapSt
           // Redirect
           get().mapState.setterActions.setOrderedLayerInfo([...curLayerInfo]);
         }
+      },
+
+      /**
+       * Gets whether a layer is queryable.
+       * @param {string} layerPath - The path of the layer.
+       *
+       * @return {boolean | undefined} queryable or not
+       */
+      getIsQueryable: (layerPath: string): boolean | undefined => {
+        const curLayerInfo = get().mapState.orderedLayerInfo;
+        const layerInfo = curLayerInfo.find((info) => info.layerPath === layerPath);
+        let queryable;
+        if (layerInfo) {
+          queryable = layerInfo.queryable;
+        }
+
+        return queryable;
       },
 
       /**

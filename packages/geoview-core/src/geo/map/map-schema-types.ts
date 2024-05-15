@@ -67,9 +67,6 @@ export type TypeVectorSourceFormats =
 
 // TODO: refactor - SWITCH to new format and fix old config and all viewer code to use new structure
 export type TypeFeatureInfoLayerConfig = {
-  /** Allow querying. Default = false. */
-  queryable: boolean;
-
   /**
    * The display field (English/French) of the layer. If it is not present the viewer will make an attempt to find the first valid
    * field.

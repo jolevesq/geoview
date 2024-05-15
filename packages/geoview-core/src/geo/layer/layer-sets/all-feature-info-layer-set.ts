@@ -40,7 +40,8 @@ export class AllFeatureInfoLayerSet extends AbstractLayerSet {
     )
       return false;
 
-    const queryable = layerConfig?.source?.featureInfo?.queryable;
+    // TODO: refactor - get the value from layer itsel, hoardoced to true.... we can use the map event processor function or layer itself at this stage
+    const queryable = true; // layerConfig?.source?.featureInfo?.queryable;
     return !!queryable;
   }
 
@@ -146,7 +147,7 @@ export class AllFeatureInfoLayerSet extends AbstractLayerSet {
         data.queryStatus = 'processing';
 
         // Process query on results data
-        const promiseResult = AllFeatureInfoLayerSet.queryLayerFeatures(data, layerConfig, layerPath, queryType, layerPath);
+        const promiseResult = AllFeatureInfoLayerSet.queryLayerFeatures(this.mapId, data, layerConfig, layerPath, queryType, layerPath);
 
         // Wait for promise to resolve
         const arrayOfRecords = await promiseResult;

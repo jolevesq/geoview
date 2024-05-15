@@ -10,6 +10,7 @@ import { Extent } from 'ol/extent';
 import XYZ from 'ol/source/XYZ';
 import TileLayer from 'ol/layer/Tile';
 
+import { TypeFeatureInfoLayerConfig } from '@config/types/map-schema-types';
 import { Cast, TypeJsonObject } from '@/core/types/global-types';
 import { TypeFeatureStyle } from '@/geo/layer/geometry/geometry-types';
 import { xmlToJson } from '@/core/utils/utilities';
@@ -21,6 +22,7 @@ import { AbstractBaseLayerEntryConfig } from '@/core/utils/config/validation-cla
 import { TypeStyleConfig } from '@/geo/map/map-schema-types';
 
 import { TypeBasemapLayer } from '../layer/basemap/basemap-types';
+import { VectorLayerEntryConfig } from '@/core/utils/config/validation-classes/vector-layer-entry-config';
 
 /**
  * Interface used for css style declarations
@@ -357,3 +359,51 @@ export function getMinOrMaxExtents(extentsA: Extent, extentsB: Extent, minmax = 
 export const isVectorLayer = (layer: AbstractGeoViewLayer): boolean => {
   return layer?.type in VECTOR_LAYER;
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function TemporaryConvertFeatureInfoStructure(fields: TypeJsonObject, layerConfig: VectorLayerEntryConfig): any {
+  const tempFeatureInfo: TypeFeatureInfoLayerConfig = { nameField: '', outfields: [] };
+
+  // eslint-disable-next-line no-param-reassign
+  if (!layerConfig.source) layerConfig.source = {};
+  // eslint-disable-next-line no-param-reassign
+  if (!layerConfig.source!.featureInfo) layerConfig?.source?.featureInfo = tempFeatureInfo;
+
+
+  // Process undefined outfields or aliasFields ('' = false and !'' = true). Also, if en is undefined, then fr is also undefined.
+  // when en and fr are undefined, we set both en and fr to the same value.
+  if (!layerConfig.source.featureInfo.outfields?.en || !layerConfig.source.featureInfo.aliasFields?.en) {
+    const processOutField = !layerConfig.source.featureInfo.outfields?.en;
+    const processAliasFields = !layerConfig.source.featureInfo.aliasFields?.en;
+    if (processOutField) {
+      layerConfig.source.featureInfo.outfields = { en: '' };
+      layerConfig.source.featureInfo.fieldTypes = '';
+    }
+    if (processAliasFields) layerConfig.source.featureInfo.aliasFields = { en: '' };
+
+    // TODO: check if this is a duplicate of getField function. Clean in other classes as well
+    Object.keys(fields).forEach((fieldEntry) => {
+      if (fields[fieldEntry].type === 'Geometry') return;
+      if (processOutField) {
+        layerConfig.source!.featureInfo!.outfields!.en = `${layerConfig.source!.featureInfo!.outfields!.en}${fieldEntry},`;
+        let fieldType: 'string' | 'date' | 'number';
+        if (fields[fieldEntry].type === 'date') fieldType = 'date';
+        else if (['int', 'number'].includes(fields[fieldEntry].type as string)) fieldType = 'number';
+        else fieldType = 'string';
+        layerConfig.source!.featureInfo!.fieldTypes = `${layerConfig.source!.featureInfo!.fieldTypes}${fieldType},`;
+      }
+      layerConfig.source!.featureInfo!.aliasFields!.en = `${layerConfig.source!.featureInfo!.aliasFields!.en}${fieldEntry},`;
+    });
+    layerConfig.source.featureInfo!.outfields!.en = layerConfig.source.featureInfo!.outfields?.en?.slice(0, -1);
+    layerConfig.source.featureInfo!.fieldTypes = layerConfig.source.featureInfo!.fieldTypes?.slice(0, -1);
+    layerConfig.source.featureInfo!.aliasFields!.en = layerConfig.source.featureInfo!.aliasFields?.en?.slice(0, -1);
+    layerConfig.source!.featureInfo!.outfields!.fr = layerConfig.source!.featureInfo!.outfields?.en;
+    layerConfig.source!.featureInfo!.aliasFields!.fr = layerConfig.source!.featureInfo!.aliasFields?.en;
+  }
+
+  layerConfig.source.featureInfo.nameField = layerConfig.source.featureInfo!.outfields?.en
+    ? layerConfig.source.featureInfo!.outfields?.en?.split(',')[0]
+    : '';
+
+  return layerConfig;
+}

@@ -670,7 +670,10 @@ export class MapViewer {
           let allGood = true;
           Object.entries(this.layer.registeredLayers).forEach(([layerPath, registeredLayer]) => {
             // If not queryable, don't expect a result set
-            if (!registeredLayer.source?.featureInfo?.queryable) return;
+            // TODO: refactor - this need to be handle somewhere else I think. THis whole check  resultset ready
+            // TD.CONT: should be inside the layer set itself.... defaulted to true
+            // eslint-disable-next-line no-self-compare
+            if (1 === 1 || !registeredLayer.source?.featureInfo) return; // !registeredLayer.source?.featureInfo?.queryable
 
             const { resultSet } = this.layer.featureInfoLayerSet;
             const layerResultSetReady = Object.keys(resultSet).includes(layerPath);

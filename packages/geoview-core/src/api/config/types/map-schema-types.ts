@@ -113,7 +113,7 @@ export type TypeFeatureInfoLayerConfig = {
    */
   nameField: string;
   /** The list of fields to be displayed by the UI. */
-  outfields: TypeOutfields;
+  outfields: TypeOutfields[];
 };
 
 /**

@@ -379,7 +379,7 @@ export class EsriDynamic extends AbstractGeoViewRaster {
       // Get the layer config in a loaded phase
       const layerConfig = (await this.getLayerConfig(layerPath)) as EsriDynamicLayerEntryConfig;
       if (!this.getVisible(layerPath)) return [];
-      if (!layerConfig.source?.featureInfo?.queryable) return [];
+      if (!MapEventProcessor.getMapLayerQueryable(this.mapId, layerPath)) return [];
 
       let identifyUrl = getLocalizedValue(layerConfig.source?.dataAccessPath, AppEventProcessor.getDisplayLanguage(this.mapId));
       if (!identifyUrl) return [];
