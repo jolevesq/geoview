@@ -12,13 +12,7 @@
       "labeled": true
     }
   },
-  "components": [
-    "overview-map",
-    "north-arrow"
-  ],
+  "components": ["overview-map", "north-arrow"],
   "corePackages": [],
-  "theme": "geo.ca",
-  "suportedLanguages": [
-    "en"
-  ]
+  "theme": "geo.ca"
 }
