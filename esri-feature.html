@@ -39,22 +39,22 @@
               {
                 'geoviewLayerId': 'classBreaksId',
                 'geoviewLayerName': { 'en': 'classBreaks' },
-                'metadataAccessPath': { 'en': 'https://maps-cartes.ec.gc.ca/arcgis/rest/services/DMS/DEU_CSO_Volume/MapServer/' },
+                'metadataAccessPath': { 'en': 'https://maps-cartes.ec.gc.ca/arcgis/rest/services/DMS/CSO_volume/MapServer/' },
                 'geoviewLayerType': 'esriFeature',
                 'listOfLayerEntryConfig': [
-                {
-                  'layerId': '8',
-                  'layerFilter': 'Total_CSO_Volume > 5000000',
-                  'source': { 'featureInfo': { 'queryable': true } }
-                }
-              ]
-            }
-          ]
-        },
-        'components': ['overview-map', 'north-arrow'],
-        'corePackages': [],
-        'theme': 'geo.ca'
-      }"></div><button type="button" class="collapsible">Visibility and filters</button><pre id="layer1-buttons-pre" class="panel"></pre><button class="collapsible">Get Legend</button><pre id="LegendsId1-table-pre" class="panel"></pre><button type="button" class="collapsible">Get Feature Info</button><pre id="ResultSetId1-click" class="panel">Click on feature on the map</pre><button type="button" class="collapsible" id="AllFeatureInfo1">Get All Feature Info</button><pre class="panel">
+                  {
+                    'layerId': '8',
+                    'layerFilter': 'Total_CSO_Volume > 5000000',
+                    'source': { 'featureInfo': { 'queryable': true } }
+                  }
+                ]
+              }
+            ]
+          },
+          'components': ['overview-map', 'north-arrow'],
+          'corePackages': [],
+          'theme': 'geo.ca'
+        }"></div><button type="button" class="collapsible">Visibility and filters</button><pre id="layer1-buttons-pre" class="panel"></pre><button class="collapsible">Get Legend</button><pre id="LegendsId1-table-pre" class="panel"></pre><button type="button" class="collapsible">Get Feature Info</button><pre id="ResultSetId1-click" class="panel">Click on feature on the map</pre><button type="button" class="collapsible" id="AllFeatureInfo1">Get All Feature Info</button><pre class="panel">
     <select name="dropdown1" id="dropdown1"></select>
     <div id="ResultSetId1-all-features"></div>
   </pre><hr/><p>This map has a wms layer added from configuration.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="LYR1CS" class="panel"></pre><div class="map-title-holder"><h4 id="HLYR2">2. Date filtering using time zone changed and non ISO date format</h4><a class="ref-link" href="#top">Top</a></div><button class="collapsible active">Map Status Flags</button><pre id="HLYR2-state" class="panel map-title-holder"></pre><div id="LYR2" class="geoview-map" data-lang="en" data-config="{
@@ -161,15 +161,15 @@
     }, (mapId) => {
       if (mapId === 'LYR1') {
         createTableOfFilter('LYR1');
-        if (cgpv.api.maps.LYR1.layer.registeredLayers['esriFeatureLYR1/0'].layerStatus === 'loaded') {
+
+        if (cgpv.api.maps.LYR1.layer.getLayerEntryConfig('esriFeatureLYR1/0').layerStatus === 'loaded') {
           let k = 0;
           window.setInterval(() => {
             const input = document.getElementById('filter-input-LYR1-esriFeatureLYR1');
             if (input) {
-              const layerConfig = cgpv.api.maps.LYR1.layer.registeredLayers['esriFeatureLYR1/0'];
               const checkbox = document.getElementById('checkbox-LYR1-esriFeatureLYR1');
-              const temporalData = cgpv.api.maps.LYR1.layer.getGeoviewLayer('esriFeatureLYR1/0').getTemporalDimension('esriFeatureLYR1/0');
-              cgpv.api.maps.LYR1.layer.getGeoviewLayer('esriFeatureLYR1/0').applyViewFilter('esriFeatureLYR1/0',
+              const temporalData = cgpv.api.maps.LYR1.layer.getGeoviewLayerHybrid('esriFeatureLYR1/0').getTemporalDimension('esriFeatureLYR1/0');
+              cgpv.api.maps.LYR1.layer.getGeoviewLayerHybrid('esriFeatureLYR1/0').applyViewFilter('esriFeatureLYR1/0',
                 `Date < date '${temporalData.range.range[k]}'`,
                 checkbox.value !== 'true'
               );
@@ -191,13 +191,15 @@
           createInfoTable('LYR2', 'ResultSetId2', resultSet, 'all-features');
         });
 
-        const lyr1RegisteredLayers = cgpv.api.maps.LYR1.layer.registeredLayers;
-        Object.keys(lyr1RegisteredLayers).forEach((layerPath) => {
-          if (lyr1RegisteredLayers[layerPath].layerStatus === 'loaded') {
-            const layerName = lyr1RegisteredLayers[layerPath]?.layerName?.en;
+        const lyr1RegisteredLayers = cgpv.api.maps.LYR1.layer.getLayerEntryConfigIds();
+        lyr1RegisteredLayers.forEach((layerPath) => {
+          const layerConfig = cgpv.api.maps.LYR1.layer.getLayerEntryConfig(layerPath);
+
+          if (layerConfig.layerStatus === 'loaded') {
+            const layerName = layerConfig.layerName?.en;
             element = document.createElement('option');
             element.value = layerPath;
-            element.innerText = layerName ? layerName : lyr1RegisteredLayers[layerPath].layerId;
+            element.innerText = layerName ? layerName : layerConfig.layerId;
             dropDownContent.appendChild(element);
           }
         });
@@ -209,8 +211,9 @@
         });
       } else if (mapId === 'LYR2') {
         createTableOfFilter('LYR2');
-        if (cgpv.api.maps?.LYR2?.layer?.registeredLayers?.['historical-flood/0']?.layerStatus === 'loaded') {
-          const field2 = cgpv.api.maps.LYR2.layer.getGeoviewLayer('historical-flood/0').getTemporalDimension('historical-flood/0').field;
+
+        if (cgpv.api.maps?.LYR2?.layer?.getLayerEntryConfig('historical-flood/0')?.layerStatus === 'loaded') {
+          const field2 = cgpv.api.maps.LYR2.layer.getGeoviewLayerHybrid('historical-flood/0').getTemporalDimension('historical-flood/0').field;
           const LYR2_FILTERS = [`${field2} >= date '01/01/2018 05:00:00' and ${field2} <= date '12/31/2019 19:00:00-05:00'`,
           `${field2} > date '01/01/2018 05:00:00' and ${field2} <= date '01/01/2020 05:00:00Z'`,
           `${field2} >= date '01/01/2018 05:00:00' and ${field2} < date '01/01/2020 00:00:00+05:00'`];
@@ -219,9 +222,8 @@
             const input = document.getElementById('filter-input-LYR2-historical-flood');
             if (input) {
               input.value = LYR2_FILTERS[i];
-              const layerConfig = cgpv.api.maps.LYR2.layer.registeredLayers['historical-flood/0'];
               const checkbox = document.getElementById('checkbox-LYR2-historical-flood');
-              cgpv.api.maps.LYR2.layer.getGeoviewLayer('historical-flood/0').applyViewFilter('historical-flood/0',
+              cgpv.api.maps.LYR2.layer.getGeoviewLayerHybrid('historical-flood/0').applyViewFilter('historical-flood/0',
                 LYR2_FILTERS[i],
                 checkbox.value !== 'true'
               );
@@ -232,8 +234,9 @@
 
       } else if (mapId === 'LYR3') {
         createTableOfFilter('LYR3');
-        if (cgpv.api.maps?.LYR3?.layer?.registeredLayers?.['historical-flood/0']?.layerStatus === 'loaded') {
-          const field3 = cgpv.api.maps.LYR3.layer.getGeoviewLayer('historical-flood/0').getTemporalDimension('historical-flood/0').field;
+
+        if (cgpv.api.maps?.LYR3?.layer?.getLayerEntryConfig('historical-flood/0')?.layerStatus === 'loaded') {
+          const field3 = cgpv.api.maps.LYR3.layer.getGeoviewLayerHybrid('historical-flood/0').getTemporalDimension('historical-flood/0').field;
           const LYR3_FILTERS = [`${field3} >= date '2018-01-01T00:00:00' and ${field3} <= date '2020-01-01T00:00:00'`,
           `${field3} > date '2018-01-01T00:00:00' and ${field3} <= date '2020-01-01T00:00:00'`,
           `${field3} >= date '2018-01-01T00:00:00' and ${field3} < date '2020-01-01T00:00:00'`];
@@ -242,9 +245,8 @@
             const input = document.getElementById('filter-input-LYR3-historical-flood');
             if (input) {
               input.value = LYR3_FILTERS[j];
-              const layerConfig = cgpv.api.maps.LYR3.layer.registeredLayers['historical-flood/0'];
               const checkbox = document.getElementById('checkbox-LYR3-historical-flood');
-              cgpv.api.maps.LYR3.layer.getGeoviewLayer('historical-flood/0').applyViewFilter('historical-flood/0',
+              cgpv.api.maps.LYR3.layer.getGeoviewLayerHybrid('historical-flood/0').applyViewFilter('historical-flood/0',
                 LYR3_FILTERS[j],
                 checkbox.value !== 'true'
               );
