@@ -34,9 +34,12 @@
                           }
                         },
                         {
-                          'layerId': 'CGSL.ETA_ICEC',
+                          'layerId': 'GDPS.ETA_ICEC',
                           'layerFilter': 'time = date \'2023-04-18T07:00:00-04:00\'',
-                          'layerName': { 'en': 'Ice Cover' }
+                          'layerName': { 'en': 'Ice Cover' },
+                          'source': {
+                            'style': 'SEA_ICECONC'
+                          }
                         }
                       ]
                     }
@@ -72,7 +75,10 @@
                   'listOfLayerEntryConfig': [
                     {
                       'layerId': 'RADAR_1KM_RSNO',
-                      'layerName': { 'en': 'Test Spatiotemporel' }
+                      'layerName': { 'en': 'Test Spatiotemporel' },
+                      'source': {
+                        'style': 'Radar-Snow_14colors'
+                      }
                     }
                   ]
                 }
@@ -288,7 +294,7 @@
       },
       'corePackages': [],
       'theme': 'geo.ca'
-    }"></div><label for="language">Select a layer style:</label> <select name="style" id="style"></select> <button class="collapsible">Get Legend</button><pre id="LegendsId3-table-pre" class="panel"></pre><button type="button" class="collapsible">Get Feature Info</button><pre id="ResultSetId3-click" class="panel">Click on feature on the map</pre><hr/><p>This map has a wms layer added from configuration.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="LYR3CS" class="panel"></pre><hr/><div class="map-title-holder"><h4 id="HLYR4">4. Automatic group creation from metadata information</h4><a class="ref-link" href="#top">Top</a></div><button class="collapsible active">Map Status Flags</button><pre id="HLYR4-state" class="panel map-title-holder"></pre><div id="LYR4" class="geoview-map" data-lang="en" data-config="{
+    }"></div><label for="language">Select a layer style:</label> <select name="style" id="style"></select> <button class="collapsible">Get Legend</button><pre id="LegendsId3-table-pre" class="panel"></pre><button type="button" class="collapsible">Get Feature Info</button><pre id="ResultSetId3-click" class="panel">Click on feature on the map</pre><hr/><p>This map has a wms layer added from configuration.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="LYR3CS" class="panel"></pre><hr/><div class="map-title-holder"><h4 id="HLYR4">4. Automatic group creation from metadata information (NOT WORKING)</h4><p>Use a child layer for the moment</p><a class="ref-link" href="#top">Top</a></div><button class="collapsible active">Map Status Flags</button><pre id="HLYR4-state" class="panel map-title-holder"></pre><div id="LYR4" class="geoview-map" data-lang="en" data-config="{
         'map': {
           'interaction': 'dynamic',
           'viewSettings': {
@@ -309,7 +315,15 @@
               'listOfLayerEntryConfig': [
                 {
                   'layerId': 'nhn:nhn',
-                  'layerName': { 'en': 'hydro_network' }
+                  'layerName': { 'en': 'National Hydro Network (NHN)' }
+                },
+                {
+                  'layerId': 'nhn:nhnda',
+                  'layerName': { 'en': 'Drainage Areas' }
+                },
+                {
+                  'layerId': 'nhn:toponyms',
+                  'layerName': { 'en': 'Toponyms' }
                 }
               ]
             }
@@ -415,7 +429,7 @@
                   // TO.DOCONT: Johann: This was to select a style for a WMS on the fly.... I think it is not use anymore. But I think it may be good to have this
                   // TO.DOCONT: and this mean we need the config section who extract and get the style and layers who apply the style form config or from function call.
                   cgpv.api.maps.LYR3.layer
-                    .getGeoviewLayer('wmsLYR3-Root')
+                    .getGeoviewLayerHybrid('wmsLYR3-Root')
                     .setStyle(dropDownContent.value, 'wmsLYR3-Root/landcover_2015_19classes');
                 });
               }
