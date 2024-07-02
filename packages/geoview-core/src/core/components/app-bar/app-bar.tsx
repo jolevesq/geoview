@@ -15,7 +15,6 @@ import {
   StorageIcon,
   SearchIcon,
   LayersOutlinedIcon,
-  AoiIcon,
 } from '@/ui';
 
 import { Plugin } from '@/api/plugin/plugin';
@@ -118,7 +117,6 @@ export function AppBar(props: AppBarProps): JSX.Element {
       details: { icon: <InfoOutlinedIcon />, content: <DetailsPanel fullWidth /> },
       legend: { icon: <HubOutlinedIcon />, content: <Legend fullWidth containerType={CONTAINER_TYPE.APP_BAR} /> },
       layers: { icon: <LayersOutlinedIcon />, content: <LayersPanel containerType={CONTAINER_TYPE.APP_BAR} /> },
-      'aoi-panel': { icon: <AoiIcon />, content: <Datapanel containerType={CONTAINER_TYPE.APP_BAR} /> },
       'data-table': { icon: <StorageIcon />, content: <Datapanel containerType={CONTAINER_TYPE.APP_BAR} /> },
     } as unknown as Record<string, GroupPanelType>;
   }, []);
@@ -273,7 +271,7 @@ export function AppBar(props: AppBarProps): JSX.Element {
         Plugin.loadScript(pluginName)
           .then((constructor: AbstractPlugin | ((pluginId: string, props: TypeJsonObject) => TypeJsonValue)) => {
             Plugin.addPlugin(
-              'basemap-panel',
+              pluginName,
               mapId,
               constructor,
               toJsonObject({
