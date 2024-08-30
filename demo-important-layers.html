@@ -60,7 +60,7 @@
           }
         }
       }"></div><h4 id="HUC1">Drop-down Selectors</h4><div style="font-size: smaller"><div class="container"><div class="selector"><div>Group Selector</div><select id="selectGroup"><option value="dataTeam">Data Team</option><option value="OSDP">OSDP</option></select></div><div class="selector"><div>Sub Group Selector</div><select id="selectSubGroup"></select></div><div class="selector"><div>Service Selector</div><select id="selectService"></select></div><div class="selector"><div>&nbsp;</div><button type="button" style="width: 100px" onclick="addLayer()">Add layer</button></div></div><br/><div><table class="display-fields" style="width: 1400px"><tr><td class="display-fields" style="width: 10%">Type</td><td class="display-fields" id="type-field"></td></tr><tr><td class="display-fields" style="width: 10%">Access Path</td><td class="display-fields" id="access-path-field"></td></tr><tr><td class="display-fields" style="width: 10%">Layer Id</td><td class="display-fields" id="layer-id-field"></td></tr></table></div><br/></div><hr/><button type="button" class="collapsible">Configuration Snippet</button><pre id="mapWMCS" class="panel"></pre><hr/><script src="codedoc.js"></script><script>async function addGeocore(uuid) {
-        const geoviewConfig = await cgpv.api.configApi.convertGeocoreToGeoview('en', {
+        const geoviewConfig = await cgpv.api.config.convertGeocoreToGeoview('en', {
           geoviewLayerType: 'geoCore',
           geoviewLayerId: uuid
         });
@@ -93,7 +93,7 @@
         const metadataAccessPath = document.getElementById('access-path-field').innerText;
         const layerId = document.getElementById('layer-id-field').innerText;
 
-        if (cgpv.api.configApi.isValidUUID(layerId)) addGeocore(layerId);
+        if (cgpv.api.config.isValidUUID(layerId)) addGeocore(layerId);
         else addGeoviewLayer(geoviewLayerType, metadataAccessPath, layerId);
       }
 
@@ -102,7 +102,7 @@
       }
 
       async function addGeocoreNametoSelectOption(uuid, optionElement) {
-        const geoviewConfig = await cgpv.api.configApi.convertGeocoreToGeoview('en', {
+        const geoviewConfig = await cgpv.api.config.convertGeocoreToGeoview('en', {
           geoviewLayerType: 'geoCore',
           geoviewLayerId: uuid
         });

@@ -9,6 +9,28 @@
       "shaded": true,
       "labeled": true
     },
+    "overlayObjects": {
+      "pointMarkers": {
+        "group1": [
+          {
+            "id": "1",
+            "coordinate": [-100, 60],
+            "color": "blue",
+            "opacity": 0.5
+          },
+          {
+            "id": "2",
+            "coordinate": [-80, 65],
+            "color": "rgb(0, 226, 0)"
+          },
+          {
+            "id": "3",
+            "coordinate": [-115, 66],
+            "color": "#C52022"
+          }
+        ]
+      }
+    },
     "listOfGeoviewLayerConfig": [
       {
         "geoviewLayerId": "airborne_radioactivity",
@@ -111,7 +133,10 @@
               },
               {
                 "layerId": "points_1.json",
-                "layerName": { "en": "Points 1" }
+                "layerName": { "en": "Points 1" },
+                "initialSettings": {
+                  "controls": { "remove": true }
+                }
               },
               {
                 "layerId": "points_2.json",
@@ -140,5 +165,8 @@
     "tabs": {
       "core": ["geolocator", "export"]
     }
+  },
+  "globalSettings": {
+    "canRemoveSublayers": false
   }
 }

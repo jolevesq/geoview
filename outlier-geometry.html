@@ -115,6 +115,32 @@
                   }
                 }
               ]
+            },
+            {
+              'geoviewLayerId': 'layerDef',
+              'geoviewLayerName': {
+                'en': 'IACC FR',
+                'fr': 'IAAC FR'
+              },
+              'metadataAccessPath': {
+                'en': 'https://maps-cartes.services.geo.ca/server_serveur/rest/services/IAAC/assessment_inventory_fr/MapServer/',
+                'fr': 'https://maps-cartes.services.geo.ca/server_serveur/rest/services/IAAC/assessment_inventory_fr/MapServer/'
+              },
+              'geoviewLayerType': 'esriDynamic',
+              'listOfLayerEntryConfig': [
+                {
+                  'layerId': '0',
+                  'layerName': {
+                    'en': 'IACC FR',
+                    'fr': 'IAAC FR'
+                  },
+                  'initialSettings': {
+                  'states': {
+                    'visible': true
+                    }
+                  }
+                }
+              ]
             }
           ]
         },
@@ -126,7 +152,7 @@
         },
         'corePackages': [],
         'theme': 'geo.ca'
-      }"></div><hr/><div>Outlier Geometry Layers:<ul><li>CSRS Layer - EPSG: 4617 - Issue #1798</li><li>Multi Polygon Layer - Ensure multi polygon is working - Issue #550</li><li>Coral Sponge - had issues with get feature info - Issue #1996</li><li>Protected and conserved area - esri dynamic data table not fetching because of geometry in url - Issue #2200</li></ul></div><script src="codedoc.js"></script><script src="layerlib.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
+      }"></div><hr/><div>Outlier Geometry Layers:<ul><li>CSRS Layer - EPSG: 4617 - Issue #1798</li><li>Multi Polygon Layer - Ensure multi polygon is working - Issue #550</li><li>Coral Sponge - had issues with get feature info - Issue #1996</li><li>Protected and conserved area - esri dynamic data table not fetching because of geometry in url - Issue #2200</li><li>Impact Assessment Agency of Canada – Environmental and Impact Assessments (French) - esri layer definition character in French - Issue #2413</li></ul></div><script src="codedoc.js"></script><script src="layerlib.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
       cgpv.init((mapId) => {
           listenToLegendLayerSetChanges('HMap1-state', 'Map1');
       });
