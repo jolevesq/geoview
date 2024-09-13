@@ -77,9 +77,9 @@
       white-space: nowrap;
     }</style><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>Sandbox Configuration</strong></h1></td></tr></tbody></table><table><tbody><tr><td><a href="./index.html">Main</a><br/></td></tr></tbody></table><table><tbody><tr><td>This page is used to test the ConfigApi.</td></tr></tbody></table></div><div class="tab-container"><div class="tabs"><button class="tab-link active" onclick="openTab(event, 'tab1')">Map Config</button> <button class="tab-link" onclick="openTab(event, 'tab2')">GeoView Config</button> <button class="tab-link" onclick="openTab(event, 'tab3')">URL Config</button> <button class="tab-link" onclick="openTab(event, 'tab4')">Metadata Layer Tree</button></div><div id="tab1" class="tab-content"><div>This section lets you select and edit a complete map configuration.<br/><div id="urlExecutionDescriptionTab1"></div><br/><br/><div>Configuration to load: <select id="configLoaderTab1"><option value="">--select--</option><option value="./configs/validator/01-simple-esri-feature.json">Simple EsriFeature</option><option value="./configs/validator/02-unique-value-esri-dynamic.json">Unique Value EsriDynamic</option><option value="./configs/validator/03-class-breaks-esri-feature.json">Class Breaks EsriFeature</option><option value="./configs/validator/04-geocore.json">Geocore</option><option value="./configs/validator/05-esri-feature-and-dynamic.json">EsriFeature And EsriDynamic</option><option value="./configs/validator/06-ogc-wms.json">OGC WMS</option></select></div></div><div><select id="languageTab1"><option value="en">English</option><option value="fr">Français</option></select> <select id="urlExecutionChoiceTab1"><option value="getConfig">Create Map Config</option><option value="GetConfig-FetchAll">Create Map Config and Fetch All Metadata</option><option value="GetConfig-FetchAll-ApplyUserConfig">Create Map Config, Fetch All Metadata and Apply User Config</option><option value="GetConfig-LoopFetch">Create Map Config and Fetch Metadata One by One</option><option value="GetConfig-LoopFetch-ApplyUserConfig">Create Map Config, Fetch Metadata One by One and Apply User Config</option></select> <button id="executeOptionTab1" style="margin-top:10px;">Execute</button> <span id="executionTimeTab1"></span></div><div><table><tbody><tr><td><span>Input Configuration</span><div class="editor"><div class="line-numbers" id="inputLineNumbersTab1"><span></span></div><textarea id="inputTextAreaTab1" cols="110">
                   </textarea></div><div>&nbsp;</div></td><td><span>Map configuration:</span> <span id="messageTab1">File not validated...</span><div class="editor"><div class="line-numbers" id="outputLineNumbersTab1"><span></span></div><textarea id="outputTextAreaTab1" cols="110">
-                  </textarea></div><div>Element Displayed: <select id="elementSelectorTab1"><option value="mapConfig">Map Config</option><option value="geoviewLayer">GeoView Layer</option><option value="metadata">Raw Metadata</option><option value="errorFlags">Error Flags</option></select></div></td></tr></tbody></table></div></div><div id="tab2" class="tab-content" style="display:none"><div>This section lets you enter and edit a GeoView service URL or a GeoCore identifier. Each time the URL input changes. The <b>ConfigApi.guessLayerType</b> is called to see if the URL meets a known patern.<br/>If the GeoView layer type selected is wrong or unknown, you can force its value to the one you want using the drop-down.<br/>You can also activate the chekbox to use the drop-down list as a sample URL selector in which case the URL input field is not longer editable.<br/><br/><div id="urlExecutionDescriptionTab2"></div><br/><form><label for="sampleUrlTab2">Use drop-down to get a sample URL</label> <input type="checkbox" id="sampleUrlTab2" name="sampleUrlTab2"></form>GeoView Layer Type: <select id="geoviewLayerTypeTab2"><option value="unknown">unknown</option><option value="esriDynamic">EsriDynamic</option><option value="esriFeature">EsriFeature</option><option value="geoCore">GeoCore</option><option value="ogcWms">WMS</option></select></div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;URL:&nbsp; <input id="serviceUrlTab2" style="width: 90%;"/><br/>Layers:&nbsp; <input id="layerListTab2" style="width: 90%;"/><br/><div><select id="languageTab2"><option value="en">English</option><option value="fr">Français</option></select> <select id="urlExecutionChoiceTab2"><option value="getConfig">Get Config From URL</option><option value="getConfigAndFetch">Get Config From URL and Fetch</option></select> <button id="executeOptionTab2" style="margin-top:10px;">Execute</button> <span id="executionTimeTab2"></span><p></p></div><div style="width: 50%; margin: 0 auto; padding: 10px;"><span>GeoView Layer configuration:</span> <span id="messageTab2">File not validated...</span><br/><div class="editor"><div class="line-numbers" id="outputLineNumbersTab2"><span></span></div><textarea id="outputTextAreaTab2" cols="110">
+                  </textarea></div><div>Element Displayed: <select id="elementSelectorTab1"><option value="mapConfig">Map Config</option><option value="geoviewLayer">GeoView Layer</option><option value="metadata">Raw Metadata</option><option value="errorFlags">Error Flags</option></select></div></td></tr></tbody></table></div></div><div id="tab2" class="tab-content" style="display:none"><div>This section lets you enter and edit a GeoView service URL or a GeoCore identifier. Each time the URL input changes. The <b>ConfigApi.guessLayerType</b> is called to see if the URL meets a known patern.<br/>If the GeoView layer type selected is wrong or unknown, you can force its value to the one you want using the drop-down.<br/>You can also activate the chekbox to use the drop-down list as a sample URL selector in which case the URL input field is not longer editable.<br/><br/><div id="urlExecutionDescriptionTab2"></div><br/><form><label for="sampleUrlTab2">Use drop-down to get a sample URL</label> <input type="checkbox" id="sampleUrlTab2" name="sampleUrlTab2"></form>GeoView Layer Type: <select id="geoviewLayerTypeTab2"><option value="unknown">unknown</option><option value="esriDynamic">EsriDynamic</option><option value="esriFeature">EsriFeature</option><option value="geoCore">GeoCore</option><option value="ogcWms">WMS</option><option value="esriImage">EsriImage</option><option value="GeoJSON">GeoJSON</option></select></div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;URL:&nbsp; <input id="serviceUrlTab2" style="width: 90%;"/><br/>Layers:&nbsp; <input id="layerListTab2" style="width: 90%;"/><br/><div><select id="languageTab2"><option value="en">English</option><option value="fr">Français</option></select> <select id="urlExecutionChoiceTab2"><option value="getConfig">Get Config From URL</option><option value="getConfigAndFetch">Get Config From URL and Fetch</option></select> <button id="executeOptionTab2" style="margin-top:10px;">Execute</button> <span id="executionTimeTab2"></span><p></p></div><div style="width: 50%; margin: 0 auto; padding: 10px;"><span>GeoView Layer configuration:</span> <span id="messageTab2">File not validated...</span><br/><div class="editor"><div class="line-numbers" id="outputLineNumbersTab2"><span></span></div><textarea id="outputTextAreaTab2" cols="110">
           </textarea></div><div>Element Displayed: <select id="elementSelectorTab2"><option value="geoviewLayer">GeoView Layer</option><option value="errorFlags">Error Flags</option></select></div></div></div><div id="tab3" class="tab-content" style="display:none">This section allows you to enter and edit a string of parameters that would be written at the end of a GeoView URL. Its initial value is a sample of URL parameters.<br><div id="urlExecutionDescriptionTab3"></div><br/><br/><span>Parameters following the URL:</span> <input id="inputTextAreaTab3" style="width: 85%;" value="p=3857&z=4&c=-100,40&l=en&t=dark&b=basemapId:transport,shaded:false,labeled:true&i=dynamic&cc=overview-map&keys=12acd145-626a-49eb-b850-0a59c9bc7506,ccc75c12-5acc-4a6a-959f-ef6f621147b9"><div><select id="urlExecutionChoiceTab3"><option value="getConfig">Get Config From URL</option><option value="GetConfig-FetchAll">Get Config From URL and Fetch All Metadata</option><option value="GetConfig-FetchAll-ApplyUserConfig">Get Config From URL, Fetch All Metadata and Apply User Config</option><option value="GetConfig-LoopFetch">Get Config From URL and Fetch Metadata One by One</option><option value="GetConfig-LoopFetch-ApplyUserConfig">Get Config From URL, Fetch Metadata One by One and Apply User Config</option></select> <button id="executeOptionTab3" style="margin-top:10px;">Execute</button> <span id="executionTimeTab3"></span></div><div style="width: 50%; margin: 0 auto; padding: 10px;"><span>Map configuration:</span> <span id="messageTab3">File not validated...</span><br/><div class="editor"><div class="line-numbers" id="outputLineNumbersTab3"><span></span></div><textarea id="outputTextAreaTab3" cols="110">
-          </textarea></div><div>Element Displayed: <select id="elementSelectorTab3"><option value="mapConfig">Map Config</option><option value="geoviewLayer">GeoView Layer</option><option value="metadata">Raw Metadata</option><option value="errorFlags">Error Flags</option></select></div></div></div><div id="tab4" class="tab-content" style="display:none"><div>This section lets you enter and edit a GeoView service URL or a GeoCore identifier. Each time the URL input changes. The <b>ConfigApi.guessLayerType</b> is called to see if the URL meets a known patern.<br/>If the GeoView layer type selected is wrong or unknown, you can force its value to the one you want using the drop-down.<br/>You can also activate the chekbox to use the drop-down list as a sample URL selector in which case the URL input field is not longer editable.<br/><br/>When you are ready, click the <b>Create Layer Tree</b> button to call the <b>ConfigApi.createMetadataLayerTree</b> method and displays the resulting layer tree.<br/><br/><form><label for="sampleUrlTab4">Use drop-down to get a sample URL</label> <input type="checkbox" id="sampleUrlTab4" name="sampleUrlTab4"></form>GeoView Layer Type: <select id="geoviewLayerTypeTab4"><option value="unknown">unknown</option><option value="esriDynamic">EsriDynamic</option><option value="esriFeature">EsriFeature</option><option value="ogcWms">WMS</option></select></div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;URL:&nbsp; <input id="serviceUrlTab4" style="width: 90%;"/><br/>Layers:&nbsp; <input id="layerListTab4" style="width: 90%;"/><br/><div><select id="languageTab4"><option value="en">English</option><option value="fr">Français</option></select> <button id="createLayerConfigTab4" style="margin-top:10px;">Create Layer Tree</button><p></p></div><div style="width: 50%; margin: 0 auto; padding: 10px;"><span>GeoView Layer configuration:</span> <span id="messageTab4">File not validated...</span><br/><div class="editor"><div class="line-numbers" id="outputLineNumbersTab4"><span></span></div><textarea id="outputTextAreaTab4" cols="110">
+          </textarea></div><div>Element Displayed: <select id="elementSelectorTab3"><option value="mapConfig">Map Config</option><option value="geoviewLayer">GeoView Layer</option><option value="metadata">Raw Metadata</option><option value="errorFlags">Error Flags</option></select></div></div></div><div id="tab4" class="tab-content" style="display:none"><div>This section lets you enter and edit a GeoView service URL or a GeoCore identifier. Each time the URL input changes. The <b>ConfigApi.guessLayerType</b> is called to see if the URL meets a known patern.<br/>If the GeoView layer type selected is wrong or unknown, you can force its value to the one you want using the drop-down.<br/>You can also activate the chekbox to use the drop-down list as a sample URL selector in which case the URL input field is not longer editable.<br/><br/>When you are ready, click the <b>Create Layer Tree</b> button to call the <b>ConfigApi.createMetadataLayerTree</b> method and displays the resulting layer tree.<br/><br/><form><label for="sampleUrlTab4">Use drop-down to get a sample URL</label> <input type="checkbox" id="sampleUrlTab4" name="sampleUrlTab4"></form>GeoView Layer Type: <select id="geoviewLayerTypeTab4"><option value="unknown">unknown</option><option value="esriDynamic">EsriDynamic</option><option value="esriFeature">EsriFeature</option><option value="ogcWms">WMS</option><option value="ogcWfs">WFS</option><option value="esriImage">EsriImage</option><option value="GeoJSON">GeoJSON</option><option value="CSV">CSV</option><option value="ogcFeature">Ogc Feature</option><option value="GeoPackage">GeoPackage</option><option value="xyzTiles">xyz Tiles</option><option value="vectorTiles">Vector Tiles</option><option value="imageStatic">Image Static</option></select></div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;URL:&nbsp; <input id="serviceUrlTab4" style="width: 90%;"/><br/>Layers:&nbsp; <input id="layerListTab4" style="width: 90%;"/><br/><div><select id="languageTab4"><option value="en">English</option><option value="fr">Français</option></select> <button id="createLayerConfigTab4" style="margin-top:10px;">Create Layer Tree</button><p></p></div><div style="width: 50%; margin: 0 auto; padding: 10px;"><span>GeoView Layer configuration:</span> <span id="messageTab4">File not validated...</span><br/><div class="editor"><div class="line-numbers" id="outputLineNumbersTab4"><span></span></div><textarea id="outputTextAreaTab4" cols="110">
           </textarea></div><div>Element Displayed: <select id="elementSelectorTab4"><option value="layerTree">Metadata Layer Tree</option><option value="errorFlags">Error Flags</option></select></div></div></div></div><div class="map-title-holder"><h4 id="HLCONF1">Sanbox Map</h4><a class="ref-link" href="#top">Top</a></div><div id="mapSection"><div id="sandboxMap"></div></div><p>This map loads it's configurations from the text area.</p><hr/><button type="button" class="collapsible">Code Snippet</button><pre id="codeSnippet" class="panel"></pre><script src="codedoc.js"></script><script>// Utility functions ========================================================================================================
 
     // Tab selection function. This function is called when you clickmon a tab to select and display its content.
@@ -153,7 +153,7 @@
     generateLayerPathErrorFlag = (listOfLayerEntryConfig, buffer = '', prefix = '') => {
       listOfLayerEntryConfig.forEach((layer) => {
         buffer = buffer ? `${buffer}\n` : '';
-        buffer = `${buffer}${layer.getLayerPath()}: ${layer.getErrorDetectedFlag() ? 'ERROR' : 'Ok'}`;
+        buffer = `${buffer}${layer?.getLayerPath?.() || layer.layerName}: ${layer?.getErrorDetectedFlag?.() ? 'ERROR' : 'Ok'}`;
         if (layer.isLayerGroup) buffer = generateLayerPathErrorFlag(layer.listOfLayerEntryConfig, buffer, prefix ? `${prefix}.${layer.layerId}` : layer.layerId);
       });
       return buffer;
@@ -363,6 +363,8 @@
       esriDynamic: 'https://maps-cartes.ec.gc.ca/arcgis/rest/services/CESI/MapServer/',
       esriFeature: 'https://maps-cartes.services.geo.ca/server_serveur/rest/services/NRCan/Temporal_Test_Bed_en/MapServer/',
       ogcWms: 'https://geo.weather.gc.ca/geomet',
+      esriImage: 'NOT IMPLEMENTED', // 'https://www5.agr.gc.ca/atlas/rest/services/imageservices/annual_crop_inventory_2022/ImageServer',
+      GeoJSON: 'NOT IMPLEMENTED', // 'https://canadian-geospatial-platform.github.io/geoview/public/datasets/geojson/metadata.json',
     };
 
     // Get the GeoView Layer Type drop-down object used to select the type of layer.
@@ -392,8 +394,8 @@
     // Type drop-down with the resulting value.
     serviceUrlAreaTab2.addEventListener('keyup', (e) => {
       if (sampleUrlTab2.checked) return;
-      GeoviewLayerTypeDropDownTab2.value = cgpv.api.config.guessLayerType(serviceUrlAreaTab2.value);
-      if (!GeoviewLayerTypeDropDownTab2.value) GeoviewLayerTypeDropDownTab2.value = 'unknown';
+      const value = cgpv.api.config.guessLayerType(serviceUrlAreaTab2.value);
+      GeoviewLayerTypeDropDownTab2.value = value || 'unknown';
     });
 
     // Initialise the GeoView Layer Type drop-down value and set input field accordingly
@@ -550,6 +552,15 @@
       esriDynamic: 'https://maps-cartes.ec.gc.ca/arcgis/rest/services/CESI/MapServer/',
       esriFeature: 'https://maps-cartes.services.geo.ca/server_serveur/rest/services/NRCan/Temporal_Test_Bed_en/MapServer/',
       ogcWms: 'https://geo.weather.gc.ca/geomet',
+      esriImage: 'https://www5.agr.gc.ca/atlas/rest/services/imageservices/annual_crop_inventory_2022/ImageServer',
+      GeoJSON: 'https://canadian-geospatial-platform.github.io/geoview/public/datasets/geojson/metadata.json',
+      CSV: 'https://canadian-geospatial-platform.github.io/geoview/public/datasets/csv-files/Station_List_Minus_HQ-MELCC.csv',
+      ogcFeature: 'https://b6ryuvakk5.execute-api.us-east-1.amazonaws.com/dev/collections',
+      GeoPackage: 'https://canadian-geospatial-platform.github.io/geoview/public/datasets/geopackages/rivers.gpkg',
+      ogcWfs: 'https://ahocevar.com/geoserver/wfs?REQUEST=GetCapabilities&VERSION=2.0.0&SERVICE=WFS',
+      xyzTiles: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+      vectorTiles: 'https://tiles.arcgis.com/tiles/HsjBaDykC1mjhXz9/arcgis/rest/services/CBMT3978_v11/VectorTileServer/tile/{z}/{y}/{x}.pbf',
+      imageStatic: 'https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/imagery/aerial/napl/napl-ring-of-fire/napl-ring-of-fire-1954-08-07-60k-thumbnail.png',
     };
 
     // Get the GeoView Layer Type drop-down object used to select the type of layer.
@@ -612,23 +623,31 @@
         return item.trim();
       }) : [];
 
-      // Call the ConfigApi to get the Layer Tree
-      const metadataLayerTree = await cgpv.api.config.createMetadataLayerTree(
-        serviceUrlAreaTab4.value.trim(),
-        layerTypeTab4,
-        layerListTab4,
-        languageTab4
-      );
-      // Output instanciation result
-      metadataLayerTreeString = `${JSON.stringify(metadataLayerTree, (key, value) => {
-        if (['', 'layerId', 'layerName', 'isLayerGroup', 'listOfLayerEntryConfig'].includes(key)) return value;
-        if (/^\d+$/.test(key)) return value;
-        return undefined;
-      }, 2)}\n`;
-      layerPathErrorFlag = generateLayerPathErrorFlag(metadataLayerTree);
+      try {
+        // Call the ConfigApi to get the Layer Tree
+        const metadataLayerTree = await cgpv.api.config.createMetadataLayerTree(
+          serviceUrlAreaTab4.value.trim(),
+          layerTypeTab4,
+          layerListTab4,
+          languageTab4
+        );
 
-      if (metadataLayerTree) printMessage(messageTab4, 'Layer tree is valid');
-      else printMessage(messageTab4, 'Cannot generate layer tree, see console for details...', 'error');
+        // Output instanciation result
+        metadataLayerTreeString = `${JSON.stringify(metadataLayerTree, (key, value) => {
+          // Only display essential information
+          if (['', 'layerId', 'layerName', 'isLayerGroup', 'listOfLayerEntryConfig'].includes(key)) return value;
+          if (/^\d+$/.test(key)) return value;
+          return undefined;
+        }, 2)}\n`;
+        layerPathErrorFlag = generateLayerPathErrorFlag(metadataLayerTree);
+
+        printMessage(messageTab4, 'Layer tree is valid');
+      } catch (error) {
+        metadataLayerTreeString = '';
+        layerPathErrorFlag = '[]';
+        printMessage(messageTab4, 'Cannot generate layer tree, see console for details...', 'error');
+        cgpv.logger.logError('Cannot generate layer tree, see console for details\n', error);
+      }
 
       elementSelectorTab4.dispatchEvent(new Event('change'));
     });
