@@ -114,6 +114,7 @@ class TimeSliderPlugin extends FooterPlugin {
           nearestValues: obj.temporalDimension.nearestValues,
           range: DateMgt.createRangeOGC(obj.temporalDimension.range as unknown as string),
           singleHandle: obj.temporalDimension.singleHandle,
+          displayPattern: obj.temporalDimension.displayPattern,
         };
 
         // TODO: Check concurrency between plugin creation and setting temporal dimensions
