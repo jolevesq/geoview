@@ -42,7 +42,10 @@
     "tabs": {
       "core": [
         "legend",
-        "details"
+        "layers",
+        "details",
+        "geochart",
+        "data-table"
       ]
     }
   },
