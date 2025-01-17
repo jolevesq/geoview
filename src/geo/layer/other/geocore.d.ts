@@ -1,29 +1,4 @@
-import { TypeLayerEntryConfig, TypeGeoviewLayerConfig, TypeGeocoreLayerEntryConfig, TypeListOfGeoviewLayerConfig } from '../../map/map-schema-types';
-export interface TypeGeoCoreLayerConfig extends Omit<TypeGeoviewLayerConfig, 'listOfLayerEntryConfig'> {
-    geoviewLayerType: 'geoCore';
-    listOfLayerEntryConfig: TypeGeocoreLayerEntryConfig[];
-}
-/** *****************************************************************************************************************************
- * Type Gard function that redefines a TypeLayerEntryConfig as a TypeGeocoreLayerEntryConfig if the geoviewLayerType attribute of
- * the verifyIfGeoViewEntry.geoviewRootLayer attribute is GEOCORE. The type ascention applies only to the true block of the if
- * clause that use this function.
- *
- * @param {TypeLayerEntryConfig} verifyIfGeoViewEntry Polymorphic object to test in order to determine if the type ascention is
- * valid.
- *
- * @returns {boolean} true if the type ascention is valid.
- */
-export declare const geoviewEntryIsGeocore: (verifyIfGeoViewEntry: TypeLayerEntryConfig) => verifyIfGeoViewEntry is TypeGeocoreLayerEntryConfig;
-/** *****************************************************************************************************************************
- * Type Gard function that redefines a TypeGeoviewLayerConfig as a TypeGeoCoreLayerConfig if the geoviewLayerType attribute of
- * the verifyIfLayer parameter is GEOCORE. The type ascention applies only to the true block of the if clause that use this
- * function.
- *
- * @param {TypeGeoviewLayerConfig} verifyIfLayer Polymorphic object to test in order to determine if the type ascention is valid.
- *
- * @returns {boolean} true if the type ascention is valid.
- */
-export declare const layerConfigIsGeoCore: (verifyIfLayer: TypeGeoviewLayerConfig) => verifyIfLayer is TypeGeoCoreLayerConfig;
+import { TypeListOfGeoviewLayerConfig, TypeDisplayLanguage } from '@/geo/map/map-schema-types';
 /**
  * Class used to add geoCore layer to the map
  *
@@ -32,18 +7,19 @@ export declare const layerConfigIsGeoCore: (verifyIfLayer: TypeGeoviewLayerConfi
  */
 export declare class GeoCore {
     private mapId;
+    private displayLanguage;
     /** Config validation object used to validate the configuration and define default values */
     private configValidation;
     /**
-     * Initialize layer
+     * Constructor
      * @param {string} mapId the id of the map
      */
-    constructor(mapId: string);
+    constructor(mapId: string, displayLanguage: TypeDisplayLanguage);
     /**
-     * Get GeoView layer configurations list from the UUIDs of the list of layer entry configurations.
+     * Gets GeoView layer configurations list from the UUIDs of the list of layer entry configurations.
      *
-     * @param {TypeGeocoreLayerEntryConfig} geocoreLayerConfig the layer configuration
+     * @param {GeoCoreLayerEntryConfig} geocoreLayerConfig the layer configuration
      * @returns {Promise<TypeListOfGeoviewLayerConfig>} list of layer configurations to add to the map
      */
-    createLayers(geocoreLayerConfig: TypeGeoCoreLayerConfig): Promise<TypeListOfGeoviewLayerConfig[]>;
+    createLayersFromUUID(uuid: string): Promise<TypeListOfGeoviewLayerConfig>;
 }

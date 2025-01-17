@@ -1,11 +1,5 @@
 /// <reference types="react" />
-import { TextFieldProps } from '@mui/material';
-/**
- * Custom Material UI Textfield properties
- */
-declare type TypeTextFieldProps = TextFieldProps & {
-    mapId?: string;
-};
+import { TypeTextFieldProps } from '@/ui/panel/panel-types';
 /**
  * Create a Material UI TextField component
  *
@@ -13,4 +7,3 @@ declare type TypeTextFieldProps = TextFieldProps & {
  * @returns {JSX.Element} the text field ui component
  */
 export declare function TextField(props: TypeTextFieldProps): JSX.Element;
-export {};

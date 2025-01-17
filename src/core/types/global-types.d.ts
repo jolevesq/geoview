@@ -1,22 +1,27 @@
 import React from 'react';
+import { createRoot } from 'react-dom/client';
 import { useTheme } from '@mui/material/styles';
-import { useTranslation } from 'react-i18next';
 import { useMediaQuery } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
-import { API } from '../../api/api';
-import * as UI from '../../ui';
-import { AbstractPlugin } from '../../api/plugin/abstract-plugin';
-import { TypeDisplayLanguage, TypeMapFeaturesInstance } from '../../geo/map/map-schema-types';
+import { API } from '@/api/api';
+import { logger } from '@/core/utils/logger';
+import { useWhatChanged } from '@/core/utils/useWhatChanged';
+import * as UI from '@/ui';
+import { AbstractPlugin } from '@/api/plugin/abstract-plugin';
+import { TypeDisplayLanguage, TypeMapFeaturesInstance } from '@/geo/map/map-schema-types';
+export { getGeoViewStore } from '@/core/stores/stores-managers';
 export type { SelectChangeEvent } from '@mui/material';
-export type { Coordinate } from 'ol/coordinate';
+export type { AnySchemaObject } from 'ajv';
 /** ******************************************************************************************************************************
- *  Definition of the map feature configuration according to what is specified in the schema.
+ * Definition of the map feature configuration according to what can be specified in the map div and in the schema for the
+ * type extension TypeMapFeaturesInstance.
  */
 export interface TypeMapFeaturesConfig extends TypeMapFeaturesInstance {
     /** This attribute is not part of the schema. It is placed here to keep the 'id' attribute of the HTML div of the map. */
-    mapId?: string;
+    mapId: string;
     /** This attribute is not part of the schema. It is placed here to keep the 'data-lang' attribute of the HTML div of the map. */
     displayLanguage?: TypeDisplayLanguage;
+    /** If true, the ready callback 'cgpv.init(mapId)' is called with the mapId as a parameter when the map is ready */
+    triggerReadyCallback?: boolean;
 }
 /** ******************************************************************************************************************************
  *  Definition of a global Window type.
@@ -24,7 +29,7 @@ export interface TypeMapFeaturesConfig extends TypeMapFeaturesInstance {
 declare global {
     interface Window {
         cgpv: TypeCGPV;
-        plugins: Record<string, unknown>;
+        geoviewPlugins: Record<string, unknown>;
     }
 }
 /** ******************************************************************************************************************************
@@ -34,37 +39,32 @@ export interface TypeWindow extends Window {
     /** the core */
     cgpv: TypeCGPV;
     /** plugins added to the core */
-    plugins: {
+    geoviewPlugins: {
         [pluginId: string]: ((pluginId: string, props: TypeJsonValue) => TypeJsonValue) | AbstractPlugin | undefined;
     };
 }
 /** ******************************************************************************************************************************
  * Type used for exporting core.
  */
-export declare type TypeCGPV = {
-    init: TypeCallback;
-    api: TypeApi;
+export type TypeCGPV = {
+    init: CGPVInitCallback;
+    api: API;
     react: typeof React;
+    createRoot: typeof createRoot;
     ui: TypeCGPVUI;
-    useTranslation: typeof useTranslation;
-    types: typeof import('./cgpv-types');
+    logger: typeof logger;
 };
 /** ******************************************************************************************************************************
  * Type used for a callback function.
  */
-export declare type TypeCallback = (callback: () => void) => void;
-/** ******************************************************************************************************************************
- * Interface TypeApi extends API, Event, Projection, Plugin {} // #427
- */
-export interface TypeApi extends API, Event, Plugin {
-}
+export type CGPVInitCallback = (callbackMapsInit?: (mapId: string) => void, callbackMapsLayersLoaded?: (mapId: string) => void) => void;
 /** ******************************************************************************************************************************
  * Type used for exporting UI
  */
-export declare type TypeCGPVUI = {
+export type TypeCGPVUI = {
     useTheme: typeof useTheme;
     useMediaQuery: typeof useMediaQuery;
-    makeStyles: typeof makeStyles;
+    useWhatChanged: typeof useWhatChanged;
     elements: typeof UI;
 };
 /** ******************************************************************************************************************************
@@ -78,17 +78,17 @@ export declare function Cast<TargetType = never>(p: unknown): TargetType;
 /**
  * Type used for a value within a json object
  */
-export declare type TypeJsonValue = null | string | number | boolean | TypeJsonObject[] | {
+export type TypeJsonValue = null | string | number | boolean | TypeJsonObject[] | {
     [key: string]: TypeJsonObject;
 };
 /** ------------------------------------------------------------------------------------------------------------------------------
  * Type used for an array of objects
  */
-export declare type TypeJsonArray = TypeJsonValue & TypeJsonObject[];
+export type TypeJsonArray = TypeJsonValue & TypeJsonObject[];
 /** ------------------------------------------------------------------------------------------------------------------------------
  * Type used for a json object
  */
-export declare type TypeJsonObject = TypeJsonValue & {
+export type TypeJsonObject = TypeJsonValue & {
     [key: string]: TypeJsonObject;
 };
 /** ------------------------------------------------------------------------------------------------------------------------------
