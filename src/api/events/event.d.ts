@@ -1,6 +1,5 @@
-import EventEmitter from 'eventemitter3';
-import { EventStringId } from './event-types';
-import { PayloadBaseClass } from './payloads/payload-base-class';
+import { TypeMapFeaturesConfig } from '@/core/types/global-types';
+export type TypeEventHandlerFunction<T> = (payload: T) => void;
 /**
  * Class used to handle event emitting and subscribing for the API
  *
@@ -8,60 +7,54 @@ import { PayloadBaseClass } from './payloads/payload-base-class';
  * @class Event
  */
 export declare class Event {
-    eventEmitter: EventEmitter;
-    events: Record<string, Record<string, PayloadBaseClass>>;
+    #private;
     /**
      * Initiate the event emitter
      */
     constructor();
     /**
-     * Listen to emitted events
+     * Unregisters all events for the given handler name.
      *
-     * @param {string} eventName the event name to listen to
-     * @param {function} listener the callback function
-     * @param {string} [handlerName] the handler name to return data from
-     * @param {string[]} args optional additional arguments
+     * @param {string} handlerName - The name of the handler an event needs to be removed from
      */
-    on: (eventName: EventStringId, listener: (payload: PayloadBaseClass) => void, handlerName?: string, ...args: string[]) => void;
+    offAll(handlerName: string): void;
     /**
-     * Listen to emitted events once
-     *
-     * @param {string} eventName the event name to listen to
-     * @param {function} listener the callback function
-     * @param {string} [handlerName] the handler name to return data from
-     * @param {string[]} args optional additional arguments
+     * Emits a map reload event to all handlers. The map reload is an event thrown by the MapViewer which tells the Shell that it wants to reload itself.
+     * @param {string} handlerName - The handler name for this map construct event
+     * @param {TypeMapFeaturesConfig} mapFeaturesConfig - The map features config to emit
+     * @private
      */
-    once: (eventName: EventStringId, listener: (payload: PayloadBaseClass) => void, handlerName?: string, ...args: string[]) => void;
+    emitMapReload(handlerName: string, mapFeaturesConfig: TypeMapFeaturesConfig): void;
     /**
-     * Will remove the specified @listener from @eventname list
-     *
-     * @param {string} eventName the event name of the event to be removed
-     * @param {string} handlerName the name of the handler an event needs to be removed from
-     * @param {string[]} args optional additional arguments
+     * Registers a map reload event callback.
+     * @param {string} handlerName - The handler name for this map reload event
+     * @param {TypeEventHandlerFunction<TypeMapFeaturesConfig>} callback - The callback to be executed whenever the event is emitted
      */
-    off: (eventName: EventStringId, handlerName?: string, ...args: string[]) => void;
+    onMapReload(handlerName: string, callback: TypeEventHandlerFunction<TypeMapFeaturesConfig>): void;
     /**
-     * Unsubscribe from all events on the map
-     *
-     * @param {string} handlerName the id of the map to turn unsubscribe the event from
+     * Unregisters a map reload event callback.
+     * @param {string} handlerName - The handler name for this map reload event
+     * @param {TypeEventHandlerFunction<TypeMapFeaturesConfig>} callback - The callback to be removed whenever the event is emitted
      */
-    offAll: (handlerName: string) => void;
+    offMapReload(handlerName: string, callback: TypeEventHandlerFunction<TypeMapFeaturesConfig>): void;
     /**
-     * Will emit the event on the event name with the @payload
-     *
-     * @param {object} payload a payload (data) to be emitted for the event
-     * @param {string[]} args optional additional arguments
+     * Emits a map reconstruct event to all handlers. The map reconstruct is an event thrown as part of a map reload process.
+     * It focuses on reconstructing a map: its store, its react root, its AppStart.
+     * @param {string} handlerName - The handler name for this map construct event
+     * @param {TypeMapFeaturesConfig} mapFeaturesConfig - The map features config to emit
+     * @private
      */
-    emit: (payload: PayloadBaseClass, ...args: string[]) => void;
+    emitMapReconstruct(handlerName: string, mapFeaturesConfig: TypeMapFeaturesConfig): void;
     /**
-     * Get all the event handler names on a specified event
-     * @param eventName the event name to get all it's handler names
-     * @returns an array of all the event handler names
+     * Registers a map reconstruct event callback.
+     * @param {string} handlerName - The handler name for this map construct event
+     * @param {TypeEventHandlerFunction<TypeMapFeaturesConfig>} callback - The callback to be executed whenever the event is emitted
      */
-    getHandlerNames: (eventName: string) => Array<string>;
+    onMapReconstruct(handlerName: string, callback: TypeEventHandlerFunction<TypeMapFeaturesConfig>): void;
     /**
-     * Get all events with their data and event handler names
-     * @returns all the events with their data and handler names
+     * Unregisters a map reconstruct event callback.
+     * @param {string} handlerName - The handler name for this map construct event
+     * @param {TypeEventHandlerFunction<TypeMapFeaturesConfig>} callback - The callback to be removed whenever the event is emitted
      */
-    getEvents: () => Record<string, Record<string, PayloadBaseClass>>;
+    offMapReconstruct(handlerName: string, callback: TypeEventHandlerFunction<TypeMapFeaturesConfig>): void;
 }

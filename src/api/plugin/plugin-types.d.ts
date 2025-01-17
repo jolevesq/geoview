@@ -1,12 +1,11 @@
 import { AnySchemaObject } from 'ajv';
 import React from 'react';
-import makeStyles from '@mui/styles/makeStyles';
-import { TypeJsonObject, TypeJsonValue } from '../../core/types/global-types';
+import { TypeJsonObject, TypeJsonValue } from '@/core/types/global-types';
 import { API } from '../api';
 /** ******************************************************************************************************************************
  * interface used when creating the actual plugin.
  */
-export declare type TypePluginStructure = {
+export type TypePluginStructure = {
     pluginId: string;
     api: API;
     createElement: typeof React.createElement;
@@ -15,7 +14,6 @@ export declare type TypePluginStructure = {
     translate: TypeJsonValue;
     translations: TypeJsonObject;
     configObj: TypeJsonObject;
-    makeStyles: typeof makeStyles;
     schema?: () => AnySchemaObject;
     defaultConfig?: () => TypeJsonObject;
     added?: () => void;
@@ -24,8 +22,6 @@ export declare type TypePluginStructure = {
 /** ******************************************************************************************************************************
  * Record of plugins.
  */
-export declare type TypeRecordOfPlugin = {
-    [MapId: string]: {
-        [pluginId: string]: TypePluginStructure;
-    };
+export type TypeRecordOfPlugin = {
+    [pluginId: string]: TypePluginStructure;
 };

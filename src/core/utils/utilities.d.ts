@@ -1,28 +1,45 @@
 /// <reference types="react" />
-import { TypeLocalizedString } from '../../geo/map/map-schema-types';
-import { TypeJsonObject } from '../types/global-types';
+import { Root } from 'react-dom/client';
+import { TypeDisplayLanguage, TypeLocalizedString } from '@/geo/map/map-schema-types';
+import { TypeJsonArray, TypeJsonObject, TypeJsonValue, TypeMapFeaturesConfig } from '@/core/types/global-types';
 /**
- * Display a message in the snackbar
+ * Create a localized string and set its "en" and "fr" properties to the same value.
  *
  * @param {TypeLocalizedString} localizedString the localized string to process.
- * @param {string} mapId the map identifier that holds the localized string.
  *
  * @returns {string} The string value according to the map display language,
  */
-export declare function getLocalizedValue(localizedString: TypeLocalizedString | undefined, mapId: string): string | undefined;
+export declare function createLocalizedString(value: string): TypeLocalizedString;
 /**
- * Display a message in the snackbar
+ * Get the string associated to the current display language for localized object type.
  *
- * @param {string} mapId the map to show the message for
- * @param {string} message the message string
+ * @param {TypeLocalizedString} localizedString the localized string to process.
+ *
+ * @returns {string} The string value according to the map display language,
  */
-export declare function showMessage(mapId: string, message: string): void;
+export declare function getLocalizedValue(localizedString: TypeLocalizedString | undefined, language: TypeDisplayLanguage): string | undefined;
+/**
+ * Return proper language Geoview localized values from map i18n instance
+ *
+ * @param {string} mapId the map to get the i18n
+ * @param {string} localizedKey localize key to get
+ * @returns {string} message with values replaced
+ */
+export declare function getLocalizedMessage(localizedKey: string, language: TypeDisplayLanguage): string;
 /**
  * Generate a unique id if an id was not provided
  * @param {string} id an id to return if it was already passed
  * @returns {string} the generated id
  */
 export declare function generateId(id?: string | null): string;
+/**
+ * Take string like "My string is __param__" and replace parameters (__param__) from array of values
+ *
+ * @param {TypeJsonValue[] | TypeJsonArray | string[]} params array of parameters to replace, i.e. ['short']
+ * @param {string} message original message, i.e. "My string is __param__"
+ * @returns {string} message with values replaced "My string is short"
+ */
+export declare function replaceParams(params: TypeJsonValue[] | TypeJsonArray | string[], message: string): string;
 /**
  * Set alpha for a color
  * @param {number[]} colorArray the array of color numbers
@@ -55,5 +72,93 @@ export declare function getXMLHttpRequest(url: string): Promise<string>;
  *
  * @param {React.ReactElement} component the UI react component
  * @param {string} targetDivId the div id to insert the component in
+ *
+ * @return {Root} the React root element
  */
-export declare function addUiComponent(targetDivId: string, component: React.ReactElement): void;
+export declare function addUiComponent(targetDivId: string, component: React.ReactElement): Root;
+/**
+ * Sanitize HTML to remove threat
+ *
+ * @param {string} contentHtml HTML content to sanitize
+ * @returns {string} sanitze HTLM or empty string if all dirty
+ */
+export declare function sanitizeHtmlContent(contentHtml: string): string;
+/**
+ * Removes comments from JSON config
+ *
+ * @param {string} config Map config to clean
+ * @returns {string} cleaned config object
+ */
+export declare function removeCommentsFromJSON(config: string): string;
+/**
+ * Parses JSON config
+ *
+ * @param {string} configObjStr Map config to parse
+ * @returns {any} cleaned and parsed config object
+ */
+export declare function parseJSONConfig(configObjStr: string): unknown;
+/**
+ * Get a valid configuration from a string configuration
+ *
+ * @param {string} configString String configuration
+ * @returns {TypeMapFeaturesConfig} A valid configuration object
+ */
+export declare function getValidConfigFromString(configString: string, mapDiv: HTMLElement): TypeMapFeaturesConfig;
+/**
+ * Export the image data url as a PNG
+ * @param {string} datUrl the dataurl to be downloaded as png.
+ * @param {string} name name of exported file
+ */
+export declare function exportPNG(dataUrl: string, name: string): void;
+/**
+ * Find an object property by regex value
+ * @param {TypeJsonObject} objectItem the object item
+ * @param {RegExp} regex the regex value to find
+ * @returns {TypeJsonObject | undefined} the object if it exist or undefined
+ */
+export declare const findPropertyNameByRegex: (objectItem: TypeJsonObject, regex: RegExp) => TypeJsonObject | undefined;
+/**
+ * Check string to see if it is an image
+ *
+ * @param {string} item item to validate
+ * @returns {boolean} true if it is an image, false otherwise
+ */
+export declare function isImage(item: string): boolean;
+/**
+ * Checks object to see if it can be converted to a string; if not, returns an empty string
+ *
+ * @param {unknown} str
+ * @return {unknown|String} returns the original object if it can be converted to a string; '' otherwise
+ */
+export declare function stringify(str: unknown): unknown | string;
+/**
+ * This generic function checks for a validity of something via the checkCallback() until it's found or until the timer runs out.
+ * When the check callback returns true (or some found object), the doCallback() function is called with the found information.
+ * If checkCallback wasn't found and timer expired, the failCallback() function is called.
+ * @param {function} checkCallback the function executed to verify a particular condition until it's passed
+ * @param {function} doCallback the function executed when checkCallback returns true or some object
+ * @param {function} failCallback the function executed when checkCallback has failed for too long (went over the timeout)
+ * @param {number} timeout the duration in milliseconds until the task is aborted (defaults to 10 seconds)
+ * @param {number} checkFrequency the frequency in milliseconds to callback for a check (defaults to 100 milliseconds)
+ */
+export declare function whenThisThenThat<T>(checkCallback: () => T, doCallback: (value: T) => void, failCallback: (reason?: unknown) => void, timeout?: number, checkFrequency?: number): void;
+/**
+ * This asynchronous generic function checks for a validity of something via the checkCallback() until it's found or until the timer runs out.
+ * This method returns a Promise which the developper can use to await or use .then().catch().finally() principles.
+ * @param checkCallback the function executed to verify a particular condition until it's passed
+ * @param timeout the duration in milliseconds until the task is aborted (defaults to 10 seconds)
+ * @param checkFrequency the frequency in milliseconds to check for an update (defaults to 100 milliseconds)
+ */
+export declare function whenThisThen<T>(checkCallback: () => T, timeout?: number, checkFrequency?: number): Promise<T>;
+/**
+ * Delay helper function.
+ * @param ms number Number of milliseconds to wait for.
+ * @returns Promise<void> resolves when the delay timeout expires.
+ */
+export declare const delay: (ms: number) => Promise<void>;
+/**
+ * Escape special characters from string
+ * @param {string} text text to escape
+ * @returns {string} espaced string
+ */
+export declare function escapeRegExp(text: string): string;

@@ -3,8 +3,8 @@
  * Interface for the focus trap properties
  */
 interface FocusTrapProps {
+    mapId: string;
     focusTrapId: string;
-    callback: (dialogTrap: boolean) => void;
 }
 /**
  * Create a dialog component to explain to keyboard user how to trigger and remove FocusTrap

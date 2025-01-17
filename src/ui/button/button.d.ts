@@ -1,5 +1,5 @@
 /// <reference types="react" />
-import { TypeButtonProps } from '../panel/panel-types';
+import { TypeButtonProps } from '@/ui/panel/panel-types';
 /**
  * Create a customized Material UI button
  *
