@@ -9,7 +9,7 @@ if (!document.getElementById('Map1')) {
   newDiv.setAttributeNode(dataLang);
   document.getElementById('mapSection').appendChild(newDiv);
 }
-          </pre></details></div><div><button id="changeLanguage" style="margin: 10px" title="Changes the div language setting from french to english or english to french.">Change <code>data-lang</code> Attribute</button> Note: Will not effect the map until reloaded.<details style="margin-left: 30px;"><summary>Code</summary><pre>
+          </pre></details></div><div><button id="changeLanguage" style="margin: 10px" title="Changes the div language setting from french to english or english to french.">Change <code>data-lang</code> Attribute</button><p style="margin: 10px;margin-top: 0px;">Currently: <i id="dataLang">fr</i></p><p style="margin: 10px;margin-top: 0px;">Note: Will not effect the map until reloaded.</p><details style="margin-left: 30px;margin-top: 10px;"><summary>Code</summary><pre>
 lang = lang === 'fr' ? 'en' : 'fr';
 const mapDiv = document.getElementById('Map1');
 if (mapDiv) {
@@ -27,7 +27,7 @@ function addLayers(layers) {
     cgpv.api.maps.Map1.layer.addGeoviewLayerByGeoCoreUUID(layer);
   });
 }
-            </pre></details></div><br><div><div style="margin-left: 30px;"><div class="selector"><select name="Select custom config" id="switchCustom"><option value="Airborne Radioactivity">Airborne Radioactivity</option><option value="IAAC">IAAC</option><option value="CESI">CESI</option></select></div><div style="display: grid"><input id="layerUuidCustom" style="margin-top: 10px; margin-bottom: 10px; width: 300px"/> <textarea id="layerUuidCustomEntries" cols="80" rows="25"></textarea></div><div><button id="addLayersCustom" style="margin: 10px" title="Add entered Geocore UUID's to the map with a custom configuration (List of layer entries)">Add Layers With Custom Config</button><details style="margin-left: 30px;"><summary>Code</summary><pre>cgpv.api.maps.Map1.layer.addGeoviewLayerByGeoCoreUUID(uuid, customListOfLayerEntries);</pre></details></div></div></div></div><br><br><div style="display: flex"><h3>Current Stored Config:</h3><div><button id="refreshMap" style="margin: 10px" title="Recreates the map using the config below, creating a new div if it has been deleted">Refresh map</button><details style="margin-left: 30px;"><summary>Code</summary><pre>
+            </pre></details></div><br><div><div style="margin-left: 30px;"><div class="selector"><select name="Select custom config" id="switchCustom"><option value="Airborne Radioactivity">Airborne Radioactivity</option><option value="IAAC">IAAC</option><option value="CESI">CESI</option><option value="DFO">DFO</option><option value="landCover">Land Cover 2010</option></select></div><div style="display: grid"><input id="layerUuidCustom" style="margin-top: 10px; margin-bottom: 10px; width: 300px"/> <textarea id="layerUuidCustomEntries" cols="80" rows="25"></textarea></div><div><button id="addLayersCustom" style="margin: 10px" title="Add entered Geocore UUID's to the map with a custom configuration (List of layer entries)">Add Layers With Custom Config</button><details style="margin-left: 30px;"><summary>Code</summary><pre>cgpv.api.maps.Map1.layer.addGeoviewLayerByGeoCoreUUID(uuid, customListOfLayerEntries);</pre></details></div></div></div></div><br><br><div style="display: flex"><h3>Current Stored Config:</h3><div><button id="refreshMap" style="margin: 10px" title="Recreates the map using the config below, creating a new div if it has been deleted">Refresh map</button><details style="margin-left: 30px;"><summary>Code</summary><pre>
 return new Promise (resolve => {
   removeMap('Map1')
     .then(() => {
@@ -57,6 +57,9 @@ hybrid - Geocore layer names are kept, style to be reapplied by the service
       </textarea></div><div><h3>Change the layer names in the config:</h3><p>The examples provided below are for the default three layers in the add layers box above. To see this work, click the "Add Layers" button with the default layers, click "Update With Map State" once the layers are loaded, and then click "Change Names". The names in the config will be updated.</p><p>To try it yourself, add any layer to the map, update the config, and then copy the layer name you would like to change. Put it in square brackets in the box below, followed by a comma, and then the name you would like to replace it with - [name to change, new name]. Note that the order of the names in the pair, and the order of the pairs do not matter, [Radioactivité de l'air, Radioactivity] and [Radioactivity, Radioactivité de l'air] will function the same - any provided layer name will be replaced with its pair, so the same call can be used to switch a name and switch it back.</p><textarea id="layerNames" cols="100" rows="4">[Radioactivité de l'air, Radioactivity], [Périmètre de localisation des stations, Perimeter], [Carte commémorative du Canada, Commemorative Map]</textarea><br><button id="changeNames" style="margin: 10px" title="Replaces listed layer names with thei provided pair in the config">Change Names</button><details><summary>Code</summary><pre>
 const pairs = [["Radioactivité de l'air", 'Radioactivity'], ['Périmètre de localisation des stations', 'Perimeter'], ['Carte commémorative du Canada', 'Commemorative Map']];
 cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig);
+        </pre></details><button id="changeNamesAndRemove" style="margin: 10px" title="Replaces listed layer names with thei provided pair in the config, and removes any names that aren't listed">Change Names and Remove Unlisted</button><details><summary>Code</summary><pre>
+const pairs = [["Radioactivité de l'air", 'Radioactivity'], ['Périmètre de localisation des stations', 'Perimeter'], ['Carte commémorative du Canada', 'Commemorative Map']];
+cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig, true);
         </pre></details></div><br><br><script src="codedoc.js"></script><script>// Empty map config
       let mapConfig = {
         map: {
@@ -200,6 +203,7 @@ cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig);
       // add an event listener when a button is clicked
       changeLanguageButton.addEventListener('click', function () {
         lang = lang === 'fr' ? 'en' : 'fr';
+        document.getElementById('dataLang').innerHTML = lang;
         const mapDiv = document.getElementById('Map1');
         if (mapDiv) mapDiv.setAttribute('data-lang', lang);
       });
@@ -227,6 +231,20 @@ cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig);
             return result;
           }, []);
         cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig);
+        updateConfigTextArea();
+      });
+
+      // Change Names and Remove Button============================================================================================================
+      const changeNamesAndRemoveButton = document.getElementById('changeNamesAndRemove');
+
+      // add an event listener when a button is clicked
+      changeNamesAndRemoveButton.addEventListener('click', function () {
+        const pairs = document.getElementById('layerNames').value.replace(/\[|\]/g,'').split(',').map((name) => name.trim()).reduce((result, value, index, array) => {
+          if (index % 2 === 0)
+            result.push(array.slice(index, index + 2));
+            return result;
+          }, []);
+        cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig, true);
         updateConfigTextArea();
       });
 
@@ -326,6 +344,25 @@ cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig);
             ],
           },
         ],
+        DFO: 'db177a8c-5d7d-49eb-8290-31e6a45d786c',
+        DFOConfig: [
+          {
+            layerName: 'Critical Habitat for Aquatic Species at Risk - Canada'
+          },
+        ],
+        landCover: 'c688b87f-e85f-4842-b0e1-a8f79ebf1133',
+        landCoverConfig: [
+          {
+            "layerId": "landcover-2010",
+            "layerName": "2010 Land Cover of Canada",
+            "initialSettings": {
+              "states": {
+                "legendCollapsed": true,
+                "visible": false
+                }
+            }
+          }
+        ]
       };
 
 
