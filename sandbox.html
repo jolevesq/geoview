@@ -79,7 +79,7 @@
   'corePackages': [],
   'theme': 'geo.ca'
 }
-      </textarea></div><div><button id="validateConfig" style="margin: 10px">Validate</button> <button id="createMap" style="margin: 10px">Create Map</button> <button id="deleteMap" style="margin: 10px">Delete map</button> <span id="validationMessage" style="margin: 10px">File not validate...</span></div><div>Create Map with custom size</div><div class="selector-container"><p>Map Width:</p><div class="selector"><input placeholder="Width of the map" id="mapWidth"/></div><p>Map height:</p><div class="selector"><input placeholder="Height of the map" id="mapHeight"/></div><div class="selector"><button type="button" id="applyMapSize" disabled="disabled">Apply Size</button></div></div><div class="map-title-holder"><h4 id="HLCONF1">Sanbox Map</h4><a class="ref-link" href="#top">Top</a></div><button type="button" class="collapsible">Layers Status</button><pre id="sandboxMap-state" class="panel map-title-holder"></pre><div id="mapSection"><div id="sandboxMap"></div></div><p>This map loads it's configurations from the text area.</p><hr/><button type="button" class="collapsible">Code Snippet</button><pre id="codeSnippet" class="panel"></pre><script src="codedoc.js"></script><script>const isValid = false;
+      </textarea></div><div><button id="validateConfig" style="margin: 10px">Validate</button> <button id="createMap" style="margin: 10px">Create Map</button> <button id="deleteMap" style="margin: 10px">Delete map</button> <span id="validationMessage" style="margin: 10px">File not validate...</span></div><div>Create Map with custom size</div><div class="selector-container"><p>Map Width:</p><div class="selector"><input placeholder="Width of the map" id="mapWidth"/></div><p>Map height:</p><div class="selector"><input placeholder="Height of the map" id="mapHeight"/></div><div class="selector"><button type="button" id="applyMapSize" disabled="disabled">Apply Size</button></div></div><div class="map-title-holder"><h4 id="HLCONF1">Sanbox Map</h4><a class="ref-link" href="#top">Top</a></div><button type="button" class="collapsible">Layers Status</button><pre id="sandboxMap-state" class="panel map-title-holder"></pre><div id="mapSection"><div id="map1"></div></div><p>This map loads it's configurations from the text area.</p><hr/><button type="button" class="collapsible">Code Snippet</button><pre id="codeSnippet" class="panel"></pre><script src="codedoc.js"></script><script>const isValid = false;
 
       // Validate Button============================================================================================================
       const validateJSONButton = document.getElementById('validateConfig');
@@ -117,12 +117,12 @@
       // add an event listener when a button is clicked
       createMapButton.addEventListener('click', function (e) {
         // delete old map
-        cgpv.api.maps['sandboxMap']?.remove(true);
+        cgpv.api.deleteMapViewer('map1', true);
 
         // create new map in a new dom node
         const newDiv = document.createElement('div');
         const a = document.createAttribute('id');
-        a.value = 'sandboxMap';
+        a.value = 'map1';
         newDiv.setAttributeNode(a);
 
         const mapWidth = `${document.getElementById('mapWidth')?.value}px`;
@@ -141,8 +141,8 @@
         setTimeout(() => {
           // Regex expression to cature all single quotes (') except those preceded by a backslash (\)
           const regexExp = /(?<!\\)'/g
-          cgpv.api.createMapFromConfig('sandboxMap', document.getElementById('configGeoview').value.replaceAll(regexExp, '"'))
-            .then(() => listenToLegendLayerSetChanges('sandboxMap-state', 'sandboxMap'));
+          cgpv.api.createMapFromConfig('map1', document.getElementById('configGeoview').value.replaceAll(regexExp, '"'))
+            .then(() => listenToLegendLayerSetChanges('sandboxMap-state', 'map1'));
         }, 1500);
       });
 
@@ -184,7 +184,7 @@
 
       document.getElementById('mapHeight').value = '900';
 
-      const sandboxMap = document.getElementById('sandboxMap');
+      const sandboxMap = document.getElementById('map1');
       if (sandboxMap) {
         sandboxMap.dataset.height = '900px';
       }
@@ -196,7 +196,7 @@
       // add an event listener when a button is clicked
       deleteMapButton.addEventListener('click', function (e) {
         // Delete the map
-        cgpv.api.maps['sandboxMap'].remove(true);
+        cgpv.api.deleteMapViewer('map1', true);
       });
 
       // Editor script section===================================================================================================
@@ -217,7 +217,7 @@
       });
 
       // Create default map==========================================================================================================
-      cgpv.api.createMapFromConfig('sandboxMap', JSON.stringify({
+      cgpv.api.createMapFromConfig('map1', JSON.stringify({
               'map': {
                 'interaction': 'dynamic',
                 'viewSettings': {
@@ -249,7 +249,7 @@
               'corePackages': [],
               'theme': 'geo.ca'
         })
-      ).then(() => listenToLegendLayerSetChanges('sandboxMap-state', 'sandboxMap'));
+      ).then(() => listenToLegendLayerSetChanges('sandboxMap-state', 'map1'));
 
       // initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
       cgpv.init((mapId) => {

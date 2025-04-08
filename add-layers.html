@@ -15,7 +15,7 @@
         text-align: center;
         border-radius: 5px;
         z-index: 1;
-      }</style><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>Add Layers Panel</strong></h1></td></tr><tr><td><a href="./index.html">Main</a><br/><a href="#HUC1">Default Configuration</a><br/></td></tr></tbody></table><table><tbody><tr><td>This page is used to showcase loading "Layers Panel" with the ability to add various layer types.</td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HUC1">1. Default Configuration</h4><a class="ref-link" href="#top">Top</a></div><select name="projections" id="projections"><option value="3857">Web Mercator (3857)</option><option value="3978">LCC (3978)</option></select> <button type="button" onclick="reloadMap()">Set Projection</button><div id="mapWM" class="geoview-map" data-lang="en" data-config="{
+      }</style><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>Add Layers Panel</strong></h1></td></tr><tr><td><a href="./index.html">Main</a><br/><a href="#HUC1">Default Configuration</a><br/></td></tr></tbody></table><table><tbody><tr><td>This page is used to showcase loading "Layers Panel" with the ability to add various layer types.</td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HUC1">1. Default Configuration</h4><a class="ref-link" href="#top">Top</a></div><select name="projections" id="projections"><option value="3857">Web Mercator (3857)</option><option value="3978">LCC (3978)</option></select> <button type="button" onclick="reloadMap()">Set Projection</button><div id="map1" class="geoview-map" data-lang="en" data-config="{
         'map': {
           'interaction': 'dynamic',
           'viewSettings': {
@@ -48,7 +48,7 @@
         if (!document.getElementById('selectGeoCore').value) return;
 
         // Add the layer on the map
-        cgpv.api.maps['mapWM'].layer.addGeoviewLayerByGeoCoreUUID(document.getElementById('selectGeoCore').value);
+        cgpv.api.getMapViewer('map1').layer.addGeoviewLayerByGeoCoreUUID(document.getElementById('selectGeoCore').value);
       }
 
       document.addEventListener('DOMContentLoaded', function () {
@@ -83,7 +83,7 @@
           });
         });
       });</script><script>function reloadMap() {
-        cgpv.api.maps['mapWM'].setProjection(Number(document.getElementById('projections').value));
+        cgpv.api.getMapViewer('map1').setProjection(Number(document.getElementById('projections').value));
       }
 
       // initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready

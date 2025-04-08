@@ -34,7 +34,7 @@
       td.display-fields {
         border: 1px solid black;
         border-collapse: collapse;
-      }</style><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>Important Layers Test Panel</strong></h1></td></tr><tr><td><a href="./index.html">Main</a><br/><a href="#HUC1">Drop-down Zone</a><br/></td></tr></tbody></table><table><tbody><tr><td>This page allows you to load different geospatial layers depending on the service selected in the drop-down lists below the map.</td></tr></tbody></table></div><div class="map-title-holder"><h4>1. Selected Maps</h4></div><select name="projections" id="projections"><option value="3857">Web Mercator (3857)</option><option value="3978">LCC (3978)</option></select> <button type="button" onclick="reloadMap()">Set Projection</button> <button class="collapsible active">Layers Status</button><pre id="mapWM-state" class="panel map-title-holder"></pre><div id="mapWM" class="geoview-map" data-lang="en" data-config="{
+      }</style><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>Important Layers Test Panel</strong></h1></td></tr><tr><td><a href="./index.html">Main</a><br/><a href="#HUC1">Drop-down Zone</a><br/></td></tr></tbody></table><table><tbody><tr><td>This page allows you to load different geospatial layers depending on the service selected in the drop-down lists below the map.</td></tr></tbody></table></div><div class="map-title-holder"><h4>1. Selected Maps</h4></div><select name="projections" id="projections"><option value="3857">Web Mercator (3857)</option><option value="3978">LCC (3978)</option></select> <button type="button" onclick="reloadMap()">Set Projection</button> <button class="collapsible active">Layers Status</button><pre id="mapWM-state" class="panel map-title-holder"></pre><div id="map1" class="geoview-map" data-lang="en" data-config="{
         'map': {
           'interaction': 'dynamic',
           'viewSettings': {
@@ -71,12 +71,12 @@
           : 'geocore conversion error';
         document.getElementById('access-path-field').innerText = geoviewConfig ? geoviewConfig.metadataAccessPath : '';
 
-        cgpv.api.maps['mapWM'].layer.addGeoviewLayerByGeoCoreUUID(uuid);
+        cgpv.api.getMapViewer('map1').layer.addGeoviewLayerByGeoCoreUUID(uuid);
       }
 
       async function addGeoviewLayer(geoviewLayerType, metadataAccessPath, layerId) {
         // adding a geojson layer requires a type of geojson and url
-        const addResult = cgpv.api.maps['mapWM'].layer.addGeoviewLayer(
+        const addResult = cgpv.api.getMapViewer('map1').layer.addGeoviewLayer(
           {
             geoviewLayerType: `${geoviewLayerType}`,
             metadataAccessPath: `${metadataAccessPath}`,
@@ -100,7 +100,7 @@
       }
 
       function reloadMap() {
-        cgpv.api.maps['mapWM'].setProjection(Number(document.getElementById('projections').value));
+        cgpv.api.getMapViewer('map1').setProjection(Number(document.getElementById('projections').value));
       }
 
       async function addGeocoreNametoSelectOption(uuid, optionElement) {
@@ -177,7 +177,7 @@
           initTableFields();
         });
 
-        listenToLegendLayerSetChanges('mapWM-state', 'mapWM');
+        listenToLegendLayerSetChanges('mapWM-state', 'map1');
       });
 
       // create snippets

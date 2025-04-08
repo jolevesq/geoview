@@ -24,10 +24,10 @@ if (document.getElementById('Map1')) {
 
 function addLayers(layers) {
   layers.forEach((layer) => {
-    cgpv.api.maps.Map1.layer.addGeoviewLayerByGeoCoreUUID(layer);
+    cgpv.api.getMapViewer('Map1').layer.addGeoviewLayerByGeoCoreUUID(layer);
   });
 }
-            </pre></details></div><br><div><div style="margin-left: 30px;"><div class="selector"><select name="Select custom config" id="switchCustom"><option value="Airborne Radioactivity">Airborne Radioactivity</option><option value="IAAC">IAAC</option><option value="CESI">CESI</option><option value="DFO">DFO</option><option value="landCover">Land Cover 2010</option></select></div><div style="display: grid"><input id="layerUuidCustom" style="margin-top: 10px; margin-bottom: 10px; width: 300px"/> <textarea id="layerUuidCustomEntries" cols="80" rows="25"></textarea></div><div><button id="addLayersCustom" style="margin: 10px" title="Add entered Geocore UUID's to the map with a custom configuration (List of layer entries)">Add Layers With Custom Config</button><details style="margin-left: 30px;"><summary>Code</summary><pre>cgpv.api.maps.Map1.layer.addGeoviewLayerByGeoCoreUUID(uuid, customListOfLayerEntries);</pre></details></div></div></div></div><br><br><div style="display: flex"><h3>Current Stored Config:</h3><div><button id="refreshMap" style="margin: 10px" title="Recreates the map using the config below, creating a new div if it has been deleted">Refresh map</button><details style="margin-left: 30px;"><summary>Code</summary><pre>
+            </pre></details></div><br><div><div style="margin-left: 30px;"><div class="selector"><select name="Select custom config" id="switchCustom"><option value="Airborne Radioactivity">Airborne Radioactivity</option><option value="IAAC">IAAC</option><option value="CESI">CESI</option><option value="DFO">DFO</option><option value="landCover">Land Cover 2010</option></select></div><div style="display: grid"><input id="layerUuidCustom" style="margin-top: 10px; margin-bottom: 10px; width: 300px"/> <textarea id="layerUuidCustomEntries" cols="80" rows="25"></textarea></div><div><button id="addLayersCustom" style="margin: 10px" title="Add entered Geocore UUID's to the map with a custom configuration (List of layer entries)">Add Layers With Custom Config</button><details style="margin-left: 30px;"><summary>Code</summary><pre>cgpv.api.getMapViewer('Map1').layer.addGeoviewLayerByGeoCoreUUID(uuid, customListOfLayerEntries);</pre></details></div></div></div></div><br><br><div style="display: flex"><h3>Current Stored Config:</h3><div><button id="refreshMap" style="margin: 10px" title="Recreates the map using the config below, creating a new div if it has been deleted">Refresh map</button><details style="margin-left: 30px;"><summary>Code</summary><pre>
 return new Promise (resolve => {
   removeMap('Map1')
     .then(() => {
@@ -40,8 +40,8 @@ return new Promise (resolve => {
 
   function removeMap(map) {
     return new Promise(resolve => {
-      if (cgpv.api.maps[map]) {
-        cgpv.api.maps[map].remove(false)
+      if (cgpv.api.hasMapViewer(map)) {
+        cgpv.api.deleteMapViewer(map, false);
           .then(() => {
             resolve();
           });
@@ -53,13 +53,13 @@ return new Promise (resolve => {
           </pre></details></div><div><button id="updateState" style="margin: 10px" title="Updates the stored config with the current map state">Update Config With Current Map State</button><div class="selector" style="margin: 10px"><label for="keepNames">Override Geocore Service Names:</label> <select name="keepNames" id="keepNames"><option value="true">true</option><option value="false">false</option><option value="hybrid">hybrid</option></select></div><details style="margin-left: 30px;"><summary>Modes</summary><pre>true - All names are kept as they appear on the map
 false - All geocore names are set to undefined, to be reapplied by the service
 hybrid - Geocore layer names are kept, style to be reapplied by the service
-          </pre></details><details style="margin-left: 30px;"><summary>Code</summary><pre>mapConfig = cgpv.api.maps.Map1.createMapConfigFromMapState(overrideGeocoreServiceNames);</pre></details></div></div><br><div><textarea id="configTextArea" cols="100" rows="50" readonly="readonly">
+          </pre></details><details style="margin-left: 30px;"><summary>Code</summary><pre>mapConfig = cgpv.api.getMapViewer('Map1').createMapConfigFromMapState(overrideGeocoreServiceNames);</pre></details></div></div><br><div><textarea id="configTextArea" cols="100" rows="50" readonly="readonly">
       </textarea></div><div><h3>Change the layer names in the config:</h3><p>The examples provided below are for the default three layers in the add layers box above. To see this work, click the "Add Layers" button with the default layers, click "Update With Map State" once the layers are loaded, and then click "Change Names". The names in the config will be updated.</p><p>To try it yourself, add any layer to the map, update the config, and then copy the layer name you would like to change. Put it in square brackets in the box below, followed by a comma, and then the name you would like to replace it with - [name to change, new name]. Note that the order of the names in the pair, and the order of the pairs do not matter, [Radioactivité de l'air, Radioactivity] and [Radioactivity, Radioactivité de l'air] will function the same - any provided layer name will be replaced with its pair, so the same call can be used to switch a name and switch it back.</p><textarea id="layerNames" cols="100" rows="4">[Radioactivité de l'air, Radioactivity], [Périmètre de localisation des stations, Perimeter], [Carte commémorative du Canada, Commemorative Map]</textarea><br><button id="changeNames" style="margin: 10px" title="Replaces listed layer names with thei provided pair in the config">Change Names</button><details><summary>Code</summary><pre>
 const pairs = [["Radioactivité de l'air", 'Radioactivity'], ['Périmètre de localisation des stations', 'Perimeter'], ['Carte commémorative du Canada', 'Commemorative Map']];
-cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig);
+cgpv.api.getMapViewer('Map1').replaceMapConfigLayerNames(pairs, mapConfig);
         </pre></details><button id="changeNamesAndRemove" style="margin: 10px" title="Replaces listed layer names with thei provided pair in the config, and removes any names that aren't listed">Change Names and Remove Unlisted</button><details><summary>Code</summary><pre>
 const pairs = [["Radioactivité de l'air", 'Radioactivity'], ['Périmètre de localisation des stations', 'Perimeter'], ['Carte commémorative du Canada', 'Commemorative Map']];
-cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig, true);
+cgpv.api.getMapViewer('Map1').replaceMapConfigLayerNames(pairs, mapConfig, true);
         </pre></details></div><br><br><script src="codedoc.js"></script><script>// Empty map config
       let mapConfig = {
         map: {
@@ -131,8 +131,8 @@ cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig, true);
        */
       function removeMap(map) {
         return new Promise((resolve) => {
-          if (cgpv.api.maps[map]) {
-            cgpv.api.maps[map].remove(false).then(() => {
+          if (cgpv.api.hasMapViewer(map)) {
+            cgpv.api.deleteMapViewer(map, false).then(() => {
               resolve();
             });
           } else {
@@ -151,7 +151,7 @@ cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig, true);
           if (layers.indexOf(layer) < i) {
             layer = `${layer}:${crypto.randomUUID()}`;
           }
-          cgpv.api.maps.Map1.layer.addGeoviewLayerByGeoCoreUUID(layer);
+          cgpv.api.getMapViewer('Map1').layer.addGeoviewLayerByGeoCoreUUID(layer);
         });
       }
 
@@ -201,7 +201,7 @@ cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig, true);
       updateConfigButton.addEventListener('click', function () {
         const keepNames = document.getElementById('keepNames').value;
         const overrideGeocoreServiceNames = keepNames === "hybrid" ? "hybrid" : keepNames === "true";
-        mapConfig = cgpv.api.maps.Map1.createMapConfigFromMapState(overrideGeocoreServiceNames);
+        mapConfig = cgpv.api.getMapViewer('Map1').createMapConfigFromMapState(overrideGeocoreServiceNames);
         console.log(mapConfig);
         updateConfigTextArea();
       });
@@ -239,7 +239,7 @@ cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig, true);
             result.push(array.slice(index, index + 2));
             return result;
           }, []);
-        cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig);
+        cgpv.api.getMapViewer('Map1').replaceMapConfigLayerNames(pairs, mapConfig);
         updateConfigTextArea();
       });
 
@@ -253,7 +253,7 @@ cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig, true);
             result.push(array.slice(index, index + 2));
             return result;
           }, []);
-        cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig, true);
+        cgpv.api.getMapViewer('Map1').replaceMapConfigLayerNames(pairs, mapConfig, true);
         updateConfigTextArea();
       });
 
@@ -384,8 +384,8 @@ cgpv.api.maps.Map1.replaceMapConfigLayerNames(pairs, mapConfig, true);
           const layerUuid = document.getElementById('layerUuidCustom').value;
           const layerUuidEntries = document.getElementById('layerUuidCustomEntries').value;
 
-          if (layerUuidEntries === '') cgpv.api.maps.Map1.layer.addGeoviewLayerByGeoCoreUUID(layerUuid);
-          else cgpv.api.maps.Map1.layer.addGeoviewLayerByGeoCoreUUID(layerUuid, layerUuidEntries);
+          if (layerUuidEntries === '') cgpv.api.getMapViewer('Map1').layer.addGeoviewLayerByGeoCoreUUID(layerUuid);
+          else cgpv.api.getMapViewer('Map1').layer.addGeoviewLayerByGeoCoreUUID(layerUuid, layerUuidEntries);
         }
       });
 
