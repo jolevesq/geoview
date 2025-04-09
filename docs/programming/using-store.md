@@ -4,8 +4,8 @@ We use [Zustand](https://github.com/pmndrs/zustand) store for our state manageme
 For this reason we have put together some explanations here to help you use store functionnalities when programming.
 
 ## Dev tools ##
-For access to store values from within the browser you should use React Developer Tools to inspect React components. The store is only accessible for developement environement OR if you enable it.
-The `logger` is active when (1) running in dev environment or (2) the local storage `GEOVIEW_LOG_ACTIVE` key is set.
+For access to store values from within the browser you should use React Developer Tools to inspect React components.
+The `store` is active when (1) running in dev environment or (2) the local storage `GEOVIEW_DEVTOOLS` key is set.
 
 ## Characteristics to know when using the React and Zustand store ##
 
