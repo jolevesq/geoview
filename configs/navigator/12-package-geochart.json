@@ -70,7 +70,7 @@
       {
         "geoviewLayerId": "geojsonLYR5",
         "geoviewLayerName": "GeoJSON Sample",
-        "metadataAccessPath": "./datasets/geojson/metadata.meta",
+        "metadataAccessPath": "https://canadian-geospatial-platform.github.io/geoview/public/datasets/geojson/metadata.meta",
         "geoviewLayerType": "GeoJSON",
         "listOfLayerEntryConfig": [
           {
@@ -105,8 +105,7 @@
     "tabs": {
       "core": ["legend", "layers", "details", "geochart"]
     },
-    "selectedTab": "geochart",
-    "selectedGeoChartLayerPath": "airborne_radioactivity/1"
+    "selectedTab": "geochart"
   },
   "corePackages": []
 }

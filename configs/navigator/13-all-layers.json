@@ -13,7 +13,7 @@
       {
         "geoviewLayerId": "geojsonLYR1",
         "geoviewLayerName": "GeoJSON Sample",
-        "metadataAccessPath": "./datasets/geojson/metadata.meta",
+        "metadataAccessPath": "https://canadian-geospatial-platform.github.io/geoview/public/datasets/geojson/metadata.meta",
         "geoviewLayerType": "GeoJSON",
         "listOfLayerEntryConfig": [
           {
@@ -51,7 +51,7 @@
             "layerId": "NPRI-INRP_WaterEau_MediaGroupMilieu_2022",
             "layerName": "NPRI Water Media Group 2022",
             "source": {
-              "dataAccessPath": "./datasets/csv-files/NPRI-INRP_WaterEau_MediaGroupMilieu_2022.csv",
+              "dataAccessPath": "https://canadian-geospatial-platform.github.io/geoview/public/datasets/csv-files/NPRI-INRP_WaterEau_MediaGroupMilieu_2022.csv",
               "separator": ","
             }
           }
@@ -198,6 +198,16 @@
       "core": ["legend", "layers", "details", "data-table"]
     }
   },
+  "appBar": {
+    "tabs": {
+      "core": ["legend", "layers", "details", "data-table"]
+    }
+  },
   "corePackages": [],
-  "theme": "geo.ca"
+  "theme": "geo.ca",
+  "appBar": {
+    "tabs": {
+      "core": ["geolocator", "export"]
+    }
+  }
 }
