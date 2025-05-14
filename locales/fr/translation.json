@@ -57,7 +57,7 @@
       "defaultnrcan": "© Sa Majesté le Roi du Chef du Canada, représentée par le ministre des Ressources naturelle",
       "tooltip": "Attribution"
     },
-    "disclaimer":{
+    "disclaimer": {
       "message": "Avertissement: Cette carte n'est fournie qu'à titre d'illustration. Les marqueurs représentent les emplacements approximatifs en fonction des données accessibles. Le gouvernement du Canada ne peut être tenu responsable de l'interprétation de l'information par une tierce partie. Le gouvernement du Canada se réserve le droit de modifier l’information à tout moment."
     },
     "crosshair": "Utiliser les touches <strong>fléchées</strong>, <strong>+</strong> et <strong>-</strong> pour naviguer sur la carte, <strong>Entrée</strong> pour sélectionner et <strong>Shift+fléchées</strong> <strong>Haut</strong> et <strong>Bas</strong> pour modfier le déplacement."
@@ -103,8 +103,8 @@
     "url": "Entrer l'URL ou l'identifiant Geocore",
     "urlNoGeocore": "Entrer l'URL",
     "layer": "Couche",
-    "stepOne": "Ajouter un fichier ou entrer l'URL/ l'identifiant Geocore",
-    "stepOneNoGeocore": "Ajouter un fichier ou entrer l'URL",
+    "stepOne": "Entrer l'URL/ l'identifiant Geocore",
+    "stepOneNoGeocore": "Entrer l'URL",
     "stepTwo": "Sélectionner le format",
     "stepThree": "Configurer la couche",
     "stepFour": "Entrer le nom",
@@ -115,10 +115,10 @@
     "errorEmpty": "ne peut être vide",
     "errorNone": "Pas de fichier ou de source ajouté",
     "errorFile": "Seuls les fichiers geoJSON et CSV peuvent être utilisés",
-    "errorServer": "source n'est pas valide",
-    "errorNotLoaded": "Une erreur s'est produite lors du chargement de la couche",
+    "errorServer": "La source du __param__ n'est pas valide",
+    "errorNotLoaded": "Une erreur est survenue avec la couche '__param__'",
+    "errorImageLoad": "Une erreur est survenue avec l'image source pour la couche '__param__' au niveau de zoom __param__",
     "errorProj": "ne prend pas en charge la projection cartographique actuelle",
-    "errorImageLoad": "Erreur de chargement de l'image source pour la couche: __param__ au niveau de zoom __param__",
     "fetchProgress": "Téléchargement des données... Téléchargé __param__ de __param__ enregistrements",
     "fetchDone": "Données téléchargées - __param__ enregistrements",
     "fetchStart": "Début du téléchargement des données...",
@@ -157,7 +157,9 @@
     "clearAllfeatures": "Déselctionner tout les Élément",
     "keepFeatureSelected": "Garder l'élément sélectionné",
     "featureDetailsTitle": "Élément {count} sur {total}",
-    "featureDetailModalTitle": "Détails de l'élément"
+    "featureDetailModalTitle": "Détails de l'élément",
+    "notSymbolized": "Non symbolisé",
+    "nullValue": "Nul"
   },
   "lightbox": {
     "next": "Prochaine",
@@ -180,11 +182,11 @@
   "validation": {
     "layer": {
       "loadfailed": "Le chargement de la couche __param__ a échoué sur la carte",
-      "uuidNotFound": "L'identifiant de couche GeoCore __param__ n'existe pas sur le serveur",
       "notfound": "La sous couche __param__ de la couche __param__ n'existe pas sur le serveur",
       "createtwice": "On ne peut exécuter deux fois la méthode createGeoViewRasterLayers pour la couche __param__ sur la carte",
       "usedtwice": "Utilisation en double de l'identifiant de couche __param__ sur la carte",
-      "multipleUUID": "Les couches GeoCore ne peuvent avoir qu'un seul identifiant par couche"
+      "multipleUUID": "Les couches GeoCore ne peuvent avoir qu'un seul identifiant par couche",
+      "vectorFeaturesFailed": "Échec lors du chargement des enregistrements vectorielles pour la couche __param__"
     },
     "schema": {
       "notFound": "Une erreur de schéma a été trouvée, vérifiez la console pour voir ce qui ne va pas.",
@@ -264,7 +266,9 @@
       "noCSVGeometry": "Impossible de trouver des données géographiques dans la couche CSV __param__"
     },
     "geocore": {
-      "noLayer": "Aucune couche renvoyée par le service GeoCore"
+      "uuidNotFound": "L'identifiant de couche GeoCore __param__ n'existe pas sur le serveur",
+      "invalidResponse": "Réponse invalide (__param__) retournée par le service GeoCore pour UUID __param__",
+      "noLayer": "Aucune couche retournée par le service GeoCore pour UUID __param__"
     },
     "geolocator": {
       "noService": "Service de géolocalisation non disponible"

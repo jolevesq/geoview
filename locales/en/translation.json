@@ -57,7 +57,7 @@
       "defaultnrcan": "© His Majesty the King in Right of Canada, as represented by the Minister of Natural Resources",
       "tooltip": "Attribution"
     },
-    "disclaimer":{
+    "disclaimer": {
       "message": "Disclaimer: This map is for illustrative purposes. The markers represent the approximate locations based on available data. The Government of Canada shall not be held liable for any third party’s interpretation of the Information. The Government of Canada reserves the right to change or revise the Information at any time."
     },
     "crosshair": "Use <strong>Arrows</strong>, <strong>+</strong> and <strong>-</strong> keys to navigate the map, <strong>Enter</strong> to select and <strong>Shift+Arrow</strong> <strong>Up</strong> or <strong>Down</strong> to modify the pan value."
@@ -100,11 +100,11 @@
     "dropzone": "Drop here",
     "upload": "Choose a file",
     "drop": "Drop the file to upload",
-    "url": "Enter URL or Geocore id",
+    "url": "Enter URL or Geocore ID",
     "urlNoGeocore": "Enter URL",
     "layer": "Layer",
-    "stepOne": "Upload a file or enter URL/Geocore id",
-    "stepOneNoGeocore": "Upload a file or enter URL",
+    "stepOne": "Enter URL/Geocore ID",
+    "stepOneNoGeocore": "Enter URL",
     "stepTwo": "Select format",
     "stepThree": "Configure layer",
     "stepFour": "Enter name",
@@ -115,10 +115,10 @@
     "errorEmpty": "cannot be empty",
     "errorNone": "No file or source added",
     "errorFile": "Only geoJSON and CSV files can be used",
-    "errorServer": "source is not valid",
-    "errorNotLoaded": "An error occured when loading the layer",
+    "errorServer": "The __param__ source is not valid",
+    "errorNotLoaded": "An error occurred with the layer '__param__'",
+    "errorImageLoad": "An error occured with source image for layer '__param__' at zoom level __param__",
     "errorProj": "does not support current map projection",
-    "errorImageLoad": "Error loading source image for layer: __param__ at zoom level __param__",
     "fetchProgress": "Fetching data... Retrieved __param__ of __param__ records",
     "fetchDone": "Data fetched - __param__ records",
     "fetchStart": "Start fetching data...",
@@ -157,7 +157,9 @@
     "clearAllfeatures": "Clear all feature highlights",
     "keepFeatureSelected": "Keep feature highlighted",
     "featureDetailsTitle": "Feature {count} of {total}",
-    "featureDetailModalTitle": "Feature Detail"
+    "featureDetailModalTitle": "Feature Detail",
+    "notSymbolized": "Not symbolized",
+    "nullValue": "Null"
   },
   "lightbox": {
     "next": "Next",
@@ -181,10 +183,10 @@
     "layer": {
       "loadfailed": "Layer __param__ failed to load on map",
       "notfound": "The sublayer __param__ of the layer __param__ does not exist on the server",
-      "uuidNotFount": "GeoCore layer identifier __param__ does not exist on the server",
       "createtwice": "Can not execute the createGeoViewRasterLayers method twice for the layer __param__ on map",
       "usedtwice": "Duplicate use of layer identifier __param__ on map",
-      "multipleUUID": "GeoCore layers may only have one GeoCore id per layer"
+      "multipleUUID": "GeoCore layers may only have one GeoCore id per layer",
+      "vectorFeaturesFailed": "Failed to load the vector features on layer __param__"
     },
     "schema": {
       "notFound": "A schema error was found, check the console to see what is wrong.",
@@ -265,7 +267,9 @@
       "noCSVGeometry": "Could not find geographic data in the CSV layer __param__"
     },
     "geocore": {
-      "noLayer": "No layers returned by GeoCore service"
+      "uuidNotFound": "GeoCore layer identifier __param__ does not exist on the server",
+      "invalidResponse": "Invalid response (__param__) from GeoCore service for UUID __param__",
+      "noLayer": "No layers returned by GeoCore service for UUID __param__"
     },
     "geolocator": {
       "noService": "Geolocator service not available"
