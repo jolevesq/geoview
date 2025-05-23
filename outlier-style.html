@@ -101,10 +101,13 @@
         },
         'corePackages': [],
         'theme': 'geo.ca'
-      }"></div><hr/><div>Outlier Layers:<ul><li>Point and Polygon Layer - Style for only one geometry was used - Issue #2017</li><li>DSM Hillshade - Error from service not providing style - Issue #1891</li><li>CESI - conserved areas layer was not showing in legend (layer moved - now appears as empty layer) - Issue #1816</li><li>Flood susceptibility index - no default style, so no image legend - Issue #2220</li><li>Canadian Disasters, by Event Type - 45 icons, exceeds openlayers cache size - Issue #2112</li></ul></div><script src="codedoc.js"></script><script>// initialize cgpv and api events, a callback is optional, used if calling api's after the rendering is ready
-      cgpv.init((mapId) => {
-          listenToLegendLayerSetChanges(`H${mapId}-state`, mapId);
+      }"></div><hr/><div>Outlier Layers:<ul><li>Point and Polygon Layer - Style for only one geometry was used - Issue #2017</li><li>DSM Hillshade - Error from service not providing style - Issue #1891</li><li>CESI - conserved areas layer was not showing in legend (layer moved - now appears as empty layer) - Issue #1816</li><li>Flood susceptibility index - no default style, so no image legend - Issue #2220</li><li>Canadian Disasters, by Event Type - 45 icons, exceeds openlayers cache size - Issue #2112</li></ul></div><script src="codedoc.js"></script><script>// Register handler when map has been initialized
+      cgpv.onMapInit((mapViewer) => {
+        listenToLegendLayerSetChanges(`H${mapViewer.mapId}-state`, mapViewer);
       });
+
+      // initialize cgpv
+      cgpv.init();
 
       // create snippets
       window.addEventListener('load', () => {
