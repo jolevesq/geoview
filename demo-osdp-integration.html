@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>OSDP Integration - Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>OSDP Integration</strong></h1></td></tr><tr><td><a href="./demos.html">Main</a><br/></td></tr></tbody></table><table><tbody><tr><td><p>Demonstration of Open Science Data Portal Integration</p></td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HMap1">OSDP Integration</h4></div><div id="mapSection"><div id="Map1" class="geoview-map" data-lang="fr" data-config-url="./configs/OSDP/osdp-empty.json"></div></div><div style="display: flex"><h3>Changes to map div:</h3><div><button id="deleteMap" style="margin: 10px;margin-left: 30px;" title="Deletes map div if it exists, leaving the map object in cgpv.maps - Simulates moving away from map tab.">Delete map div</button><details style="margin-left: 30px;"><summary>Code</summary><pre>document.getElementById('Map1').remove();</pre></details></div><div><button id="createMap" style="margin: 10px" title="Creates a new div for the map, if the original div has been deleted">Create map div</button><details style="margin-left: 30px;"><summary>Code</summary><pre>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>OSDP Integration - Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>OSDP Integration</strong></h1></td></tr><tr><td><a href="./demos.html">Main</a><br/></td></tr></tbody></table><table><tbody><tr><td><p>Demonstration of Open Science Data Portal Integration</p></td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HMap1">OSDP Integration</h4></div><div id="mapSection"><div id="Map1" class="geoview-map" data-lang="fr" data-config-url="./configs/OSDP/osdp-empty.json"></div></div><div style="display: flex"><h3>Changes to map div:</h3><div><button id="deleteMap" style="margin: 10px;margin-left: 30px;" title="Deletes map div if it exists (deleting and unmounting the MapViewer in the process).">Delete map div</button><details style="margin-left: 30px;"><summary>Code</summary><pre>document.getElementById('Map1').remove();</pre></details></div><div><button id="createMap" style="margin: 10px" title="Creates a new div for the map, if the original div has been deleted">Create map div</button><details style="margin-left: 30px;"><summary>Code</summary><pre>
 if (!document.getElementById('Map1')) {
   const newDiv = document.createElement('div');
   const id = document.createAttribute('id');
@@ -28,31 +28,23 @@ function addLayers(layers) {
   });
 }
             </pre></details></div><br><div><div style="margin-left: 30px;"><div class="selector"><select name="Select custom config" id="switchCustom"><option value="Airborne Radioactivity">Airborne Radioactivity</option><option value="IAAC">IAAC</option><option value="CESI">CESI</option><option value="DFO">DFO</option><option value="landCover">Land Cover 2010</option></select></div><div style="display: grid"><input id="layerUuidCustom" style="margin-top: 10px; margin-bottom: 10px; width: 300px"/> <textarea id="layerUuidCustomEntries" cols="80" rows="25"></textarea></div><div><button id="addLayersCustom" style="margin: 10px" title="Add entered Geocore UUID's to the map with a custom configuration (List of layer entries)">Add Layers With Custom Config</button><details style="margin-left: 30px;"><summary>Code</summary><pre>cgpv.api.getMapViewer('Map1').layer.addGeoviewLayerByGeoCoreUUID(uuid, customListOfLayerEntries);</pre></details></div></div></div></div><br><br><div style="display: flex"><h3>Current Stored Config:</h3><div><button id="refreshMap" style="margin: 10px" title="Recreates the map using the config below, creating a new div if it has been deleted">Refresh map</button><details style="margin-left: 30px;"><summary>Code</summary><pre>
-return new Promise (resolve => {
-  removeMap('Map1')
-    .then(() => {
-      cgpv.api.createMapFromConfig('Map1', JSON.stringify(mapConfig), 800)
-        .then(() => {
-            resolve();
-        })
-        .catch((error) => {
-          console.error('Failed to create map from config', error);
-        });
-    });
-  });
+            async function refreshMap() {
+              try {
+                // Remove the map
+                await removeMap('Map1');
 
-  function removeMap(map) {
-    return new Promise(resolve => {
-      if (cgpv.api.hasMapViewer(map)) {
-        cgpv.api.deleteMapViewer(map, false);
-          .then(() => {
-            resolve();
-          });
-      } else {
-        resolve();
-      }
-    });
-  }
+                // Create map from config
+                await cgpv.api.createMapFromConfig('Map1', JSON.stringify(mapConfig), 800);
+              } catch (error) {
+                console.error('Failed to create map from config', error);
+              }
+            }
+
+            async function removeMap(mapId) {
+              if (cgpv.api.hasMapViewer(mapId)) {
+                  await cgpv.api.deleteMapViewer(mapId, false);
+              }
+            }
           </pre></details></div><div><button id="updateState" style="margin: 10px" title="Updates the stored config with the current map state">Update Config With Current Map State</button><div class="selector" style="margin: 10px"><label for="keepNames">Override Geocore Service Names:</label> <select name="keepNames" id="keepNames"><option value="true">true</option><option value="false">false</option><option value="hybrid">hybrid</option></select></div><details style="margin-left: 30px;"><summary>Modes</summary><pre>true - All names are kept as they appear on the map
 false - All geocore names are set to undefined, to be reapplied by the service
 hybrid - Geocore layer names are kept, style to be reapplied by the service
@@ -132,16 +124,27 @@ cgpv.api.getMapViewer('Map1').replaceMapConfigLayerNames(pairs, mapConfig, true)
        * @param map The map id.
        * @returns Promise<void>
        */
-      function removeMap(mapId) {
-        return new Promise((resolve) => {
-          if (cgpv.api.hasMapViewer(mapId)) {
-            cgpv.api.deleteMapViewer(mapId, false).then(() => {
-              resolve();
-            });
-          } else {
-            resolve();
-          }
-        });
+      async function removeMap(mapId) {
+        if (cgpv.api.hasMapViewer(mapId)) {
+            await cgpv.api.deleteMapViewer(mapId, false);
+        }
+      }
+
+      /** OSDP function
+       * Refresh the map.
+       *
+       * @param layers Array of layers.
+       */
+      async function refreshMap() {
+        try {
+          // Remove the map
+          await removeMap('Map1');
+
+          // Create map from config
+          await cgpv.api.createMapFromConfig('Map1', JSON.stringify(mapConfig), 800);
+        } catch (error) {
+          console.error('Failed to create map from config', error);
+        }
       }
 
       /** OSDP function
@@ -155,25 +158,6 @@ cgpv.api.getMapViewer('Map1').replaceMapConfigLayerNames(pairs, mapConfig, true)
             layer = `${layer}:${crypto.randomUUID()}`;
           }
           cgpv.api.getMapViewer('Map1').layer.addGeoviewLayerByGeoCoreUUID(layer);
-        });
-      }
-
-      /** OSDP function
-       * Refresh the map.
-       *
-       * @param layers Array of layers.
-       */
-      function refreshMap() {
-        return new Promise((resolve) => {
-          removeMap('Map1').then(() => {
-            cgpv.api.createMapFromConfig('Map1', JSON.stringify(mapConfig), 800)
-            .then(() => {
-              resolve();
-            })
-            .catch((error) => {
-              console.error('Failed to create map from config', error);
-            });
-          });
         });
       }
 
