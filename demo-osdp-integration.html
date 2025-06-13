@@ -1,4 +1,37 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>OSDP Integration - Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>OSDP Integration</strong></h1></td></tr><tr><td><a href="./demos.html">Main</a><br/></td></tr></tbody></table><table><tbody><tr><td><p>Demonstration of Open Science Data Portal Integration</p></td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HMap1">OSDP Integration</h4></div><div id="mapSection"><div id="Map1" class="geoview-map" data-lang="fr" data-config-url="./configs/OSDP/osdp-empty.json"></div></div><div style="display: flex"><h3>Changes to map div:</h3><div><button id="deleteMap" style="margin: 10px;margin-left: 30px;" title="Deletes map div if it exists (deleting and unmounting the MapViewer in the process).">Delete map div</button><details style="margin-left: 30px;"><summary>Code</summary><pre>document.getElementById('Map1').remove();</pre></details></div><div><button id="createMap" style="margin: 10px" title="Creates a new div for the map, if the original div has been deleted">Create map div</button><details style="margin-left: 30px;"><summary>Code</summary><pre>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>OSDP Integration - Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div class="header-table"><table><tbody><tr><td><img class="header-logo" alt="logo" src="./img/Logo.png"/></td><td class="header-title"><h1><strong>OSDP Integration</strong></h1></td></tr><tr><td><a href="./demos.html">Main</a><br/></td></tr></tbody></table><table><tbody><tr><td><p>Demonstration of Open Science Data Portal Integration</p></td></tr></tbody></table></div><div class="map-title-holder"><h4 id="HMap1">OSDP Integration</h4></div><div id="mapSection"><div id="Map1" class="geoview-map" data-lang="fr" data-config="{
+        'map': {
+          'interaction': 'dynamic',
+          'viewSettings': {
+            'projection': 3857,
+            'homeView': {
+              'zoomAndCenter': [8, [-71.26, 46.8]]
+            }
+          },
+          'basemapOptions': {
+            'basemapId': 'transport',
+            'shaded': false,
+            'labeled': true
+          },
+          'listOfGeoviewLayerConfig': []
+        },
+        'components': ['overview-map'],
+        'navBar': ['zoom', 'fullscreen', 'home', 'location', 'basemap-select'],
+        'appBar': {
+          'tabs': {
+            'core': ['legend', 'details', 'geolocator', 'export']
+          }
+        },
+        'footerBar': {
+          'tabs': {
+            'core': ['layers', 'data-table', 'time-slider', 'geochart']
+          }
+        },
+        'corePackages': [],
+        'serviceUrls': {
+          'metadataUrl': 'https://osdp-psdo.canada.ca/dp/en/search/metadata/NRCAN-FGP-1-'
+        },
+        'theme': 'geo.ca'
+      }"></div></div><div style="display: flex"><h3>Changes to map div:</h3><div><button id="deleteMap" style="margin: 10px;margin-left: 30px;" title="Deletes map div if it exists (deleting and unmounting the MapViewer in the process).">Delete map div</button><details style="margin-left: 30px;"><summary>Code</summary><pre>document.getElementById('Map1').remove();</pre></details></div><div><button id="createMap" style="margin: 10px" title="Creates a new div for the map, if the original div has been deleted">Create map div</button><details style="margin-left: 30px;"><summary>Code</summary><pre>
 if (!document.getElementById('Map1')) {
   const newDiv = document.createElement('div');
   const id = document.createAttribute('id');
@@ -76,12 +109,12 @@ cgpv.api.getMapViewer('Map1').replaceMapConfigLayerNames(pairs, mapConfig, true)
         navBar: ['zoom', 'fullscreen', 'home', 'location', 'basemap-select'],
         appBar: {
           tabs: {
-            core: ['geolocator', 'export'],
+            core: ['legend', 'details', 'geolocator', 'export'],
           },
         },
         footerBar: {
           tabs: {
-            core: ['legend', 'layers', 'details', 'data-table', 'time-slider', 'geochart'],
+            core: ['layers', 'data-table', 'time-slider', 'geochart'],
           },
         },
         corePackages: [],
