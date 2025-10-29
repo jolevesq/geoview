@@ -6,7 +6,7 @@
 
 This folder contains the **official API documentation** for using GeoView in your applications.
 
-> **🔍 TypeScript Reference:** For complete TypeScript API with all types, interfaces, and auto-generated documentation, see [TypeDoc API Documentation](https://canadian-geospatial-platform.github.io/geoview/public/docs/)
+> **🔍 TypeScript Reference:** For complete TypeScript API with all types, interfaces, and auto-generated documentation, see [TypeDoc API Documentation](https://canadian-geospatial-platform.github.io/geoview/public/typeDocAPI/)
 
 ## Quick Start
 
@@ -67,7 +67,7 @@ This folder contains the **official API documentation** for using GeoView in you
 
 #### ...handle map events
 
-→ [Event Processors](./event-processors.md#2-legendeventprocessor) - Use MapEventProcessor
+→ [Event Processors](./event-processors.md#2-mapeventprocessor) - Use MapEventProcessor
 
 #### ...work with layer visibility
 
@@ -134,11 +134,6 @@ cgpv (global object)
 - [TypeScript Patterns](../../../programming/using-type.md)
 - [Logging Standards](../../../programming/logging.md)
 
-### Legacy Documentation
-
-- [Internal Event System](../../event/README.md) - Internal implementation details (use Event Processors for API)
-- [GeoView Layers](../../geoview-layer/README.md) - Layer configuration details
-
 ## TypeScript Support
 
 All APIs are fully typed. Import types from geoview-core:
@@ -154,14 +149,14 @@ import type {
 
 **For Complete Type Definitions:**
 
-- 📚 [TypeDoc API Reference](https://canadian-geospatial-platform.github.io/geoview/public/docs/) - Complete TypeScript API with all interfaces, types, and classes
+- 📚 [TypeDoc API Reference](https://canadian-geospatial-platform.github.io/geoview/public/typeDocAPI/) - Complete TypeScript API with all interfaces, types, and classes
 - 🔍 Browse all exported types, event payloads, and internal structures
 - 💡 See JSDoc comments with parameter descriptions and examples
 
 ## Getting Help
 
 - 📖 **Documentation Issues?** Check the [main docs README](../../../README.md)
-- 🔍 **Need Type Definitions?** See [TypeDoc API Documentation](https://canadian-geospatial-platform.github.io/geoview/public/docs/)
+- 🔍 **Need Type Definitions?** See [TypeDoc API Documentation](https://canadian-geospatial-platform.github.io/geoview/public/typeDocAPI/)
 - 🐛 **Found a Bug?** [Report an issue](https://github.com/Canadian-Geospatial-Platform/geoview/issues)
 - 💬 **Questions?** See the examples in each documentation file
 

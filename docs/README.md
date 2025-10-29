@@ -22,7 +22,7 @@ Complete API reference for using GeoView in your applications:
 
 ### TypeScript API Reference (TypeDoc)
 
-> **🔍 Complete API Reference:** For detailed TypeScript interfaces, types, classes, and functions, see our auto-generated [TypeDoc API Documentation](https://canadian-geospatial-platform.github.io/geoview/public/docs/)
+> **🔍 Complete API Reference:** For detailed TypeScript interfaces, types, classes, and functions, see our auto-generated [TypeDoc API Documentation](https://canadian-geospatial-platform.github.io/geoview/public/typeDocAPI/)
 
 **What's in TypeDoc:**
 
@@ -118,7 +118,7 @@ docs/
 └── programming/          # Internal development practices
 
 TypeDoc (Auto-generated):
-└── public/docs/          # Complete TypeScript API reference
+└── public/typeDocAPI/    # Complete TypeScript API reference
     ├── modules.html      # All exported modules
     ├── classes/          # Class documentation
     ├── interfaces/       # Interface definitions
@@ -128,12 +128,12 @@ TypeDoc (Auto-generated):
 
 ### Documentation Types Explained
 
-| Type                  | Location            | Purpose                               | When to Use                           |
-| --------------------- | ------------------- | ------------------------------------- | ------------------------------------- |
-| **User Guides**       | `docs/app/doc-new/` | How to use GeoView APIs with examples | Learning how to build with GeoView    |
-| **TypeDoc Reference** | `public/docs/`      | Complete TypeScript API definitions   | Looking up exact types and signatures |
-| **Developer Guides**  | `docs/programming/` | Internal architecture and patterns    | Contributing to GeoView core          |
-| **Extension Guides**  | `docs/app/`         | Creating plugins and packages         | Building GeoView extensions           |
+| Type                  | Location             | Purpose                               | When to Use                           |
+| --------------------- | -------------------- | ------------------------------------- | ------------------------------------- |
+| **User Guides**       | `docs/app/doc-new/`  | How to use GeoView APIs with examples | Learning how to build with GeoView    |
+| **TypeDoc Reference** | `public/typeDocAPI/` | Complete TypeScript API definitions   | Looking up exact types and signatures |
+| **Developer Guides**  | `docs/programming/`  | Internal architecture and patterns    | Contributing to GeoView core          |
+| **Extension Guides**  | `docs/app/`          | Creating plugins and packages         | Building GeoView extensions           |
 
 ## 🔄 Key Concepts
 

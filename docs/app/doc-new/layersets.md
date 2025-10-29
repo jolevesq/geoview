@@ -833,7 +833,7 @@ function processFeatures(entry: TypeResultSetEntry) {
 
 ## TypeScript Support
 
-Layer Sets are fully typed for TypeScript projects. For complete type definitions, see the [TypeDoc Reference](../../../public/docs/).
+Layer Sets are fully typed for TypeScript projects. For complete type definitions, see the [TypeDoc Reference](../../../public/typeDocAPI/).
 
 **Key Types:**
 
@@ -864,9 +864,8 @@ import type {
 - [Layer API](./layer-api.md) - Complete Layer API reference with all methods
 - [Event Processors](./event-processors.md) - State management and event handling patterns
 - [API Reference](./api.md) - Main GeoView API entry points
-- [TypeDoc Reference](../../../public/docs/) - Auto-generated API documentation
+- [TypeDoc Reference](../../../public/typeDocAPI/) - Auto-generated API documentation
 
 **For Core Developers:**
 
-- [Layer Set Event Management](../../app/event/LayerSet/LayerSet-event-managment.md) - Internal event architecture
-- [Layer Set Architecture](./event-layerset.md) - Technical implementation details
+- [Layer Set Architecture](../../programming/layerset-architecture.md) - Technical implementation details and internal event system
