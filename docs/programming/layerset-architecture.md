@@ -349,7 +349,7 @@ protected unregisterLayer(layerPath: string): void {
 
 ### Propagation Pattern
 
-Each Layer Set implements `onPropagateToStore()` to update the Zustand store:
+Each Layer Set implements `onPropagateToStore()` to update the Zustand store (i.e. FeatureInfoLayerSet):
 
 ```typescript
   /**
@@ -371,13 +371,27 @@ Each Layer Set implements `onPropagateToStore()` to update the Zustand store:
 Store slices mirror Layer Set resultSets:
 
 ```typescript
-// In LayerEventProcessor store slice
-interface LayerState {
-  legendsLayerSet: TypeResultSet;
-  featureInfoLayerSet: TypeResultSet;
-  allFeatureInfoLayerSet: TypeResultSet;
-  hoverFeatureInfoLayerSet: TypeResultSet;
+// In Layer State store slice
+export interface ILayerState {
+  highlightedLayer: string;
+  selectedLayer: TypeLegendLayer;
+  selectedLayerPath: string | undefined | null;
+  legendLayers: TypeLegendLayer[];
+  displayState: TypeLayersViewDisplayState;
+  layerDeleteInProgress: string;
+  selectedLayerSortingArrowId: string;
+  layersAreLoading: boolean;
+  setDefaultConfigValues: (geoviewConfig: TypeMapFeaturesConfig) => void;
+
+  actions: {
+   ...
+  };
+
+  setterActions: {
+    ...
+  };
 }
+
 ```
 
 ### React Integration

@@ -20,7 +20,10 @@
       window.$docsify = {
         name: "GeoView",
         repo: "https://github.com/Canadian-Geospatial-Platform/geoview",
-        loadSidebar: "_sidebar.md",
+        loadSidebar: true,
+        alias: {
+          "/.*/_sidebar.md": "/_sidebar.md",
+        },
         subMaxLevel: 3,
         auto2top: true,
         search: {
