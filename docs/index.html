@@ -17,9 +17,14 @@
   <body>
     <div id="app"></div>
     <script>
+      // Detect the base path dynamically
+      const path = window.location.pathname;
+      const basePath = path.substring(0, path.lastIndexOf('/docs/') + 6);
+      
       window.$docsify = {
         name: "GeoView",
         repo: "https://github.com/Canadian-Geospatial-Platform/geoview",
+        basePath: basePath,
         loadSidebar: true,
         alias: {
           "/.*/_sidebar.md": "/_sidebar.md",
@@ -32,6 +37,10 @@
           depth: 6,
         },
       };
+      
+      // Debug helper - check this in console
+      console.log('Docsify basePath:', basePath);
+      console.log('Sidebar URL:', basePath + '_sidebar.md');
     </script>
     <!-- Docsify v4 -->
     <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>

@@ -400,11 +400,10 @@ React components subscribe to store slices:
 
 ```typescript
 function LegendPanel() {
-  const legendsLayerSet = useLayerStoreState((state) => state.legendsLayerSet);
-
+  const layersList = useLayerLegendLayers();
   return (
     <div>
-      {Object.values(legendsLayerSet).map((entry) => (
+      {Object.values(layersList).map((entry) => (
         <LegendLayer key={entry.layerPath} entry={entry} />
       ))}
     </div>
@@ -438,29 +437,6 @@ Propagate to store
 React components re-render with new features
 ```
 
-### Concurrent Query Prevention
-
-```typescript
-// In AllFeatureInfoLayerSet
-private isQuerying = false;
-
-async queryLayers(): Promise<void> {
-  if (this.isQuerying) {
-    console.warn('Query already in progress');
-    return;
-  }
-
-  this.isQuerying = true;
-
-  try {
-    // Perform queries
-    await Promise.all(/* ... */);
-  } finally {
-    this.isQuerying = false;
-  }
-}
-```
-
 ## Event Management
 
 ### Layer Set Events
@@ -489,24 +465,6 @@ class AbstractLayerSet {
     });
   }
 }
-```
-
-### Event Types
-
-```typescript
-type PropagationType =
-  | "config-registration" // Layer config added
-  | "layer-registration" // Layer created
-  | "resultSet" // Data updated
-  | "remove"; // Layer removed
-
-type LayerSetUpdatedDelegate = (
-  sender: AbstractLayerSet,
-  payload: {
-    resultSetEntry: TypeResultSetEntry;
-    type: PropagationType;
-  }
-) => void;
 ```
 
 ## Best Practices for Core Developers
@@ -598,7 +556,7 @@ Use TypeScript strictly:
 
 ```typescript
 interface MyCustomResultSetEntry extends TypeResultSetEntry {
-  myCustomData: MyCustomType | null;
+  myCustomData: MyCustomType;
 }
 
 export class MyCustomLayerSet extends AbstractLayerSet {
@@ -617,38 +575,15 @@ const mapViewer = cgpv.api.getMapViewer("mapId");
 const legendsLayerSet = mapViewer.layer.legendsLayerSet;
 
 // Inspect result set
-console.log(legendsLayerSet.resultSet);
+logger.logDebug(legendsLayerSet.resultSet);
 
 // Check specific layer
-console.log(legendsLayerSet.resultSet["myLayer"]);
+logger.logDebug(legendsLayerSet.resultSet["myLayer"]);
 
 // Listen to updates
 legendsLayerSet.onLayerSetUpdated((sender, payload) => {
-  console.log("Updated:", payload);
+  logger.logDebug("Updated:", payload);
 });
-```
-
-### Event Tracing
-
-Enable event tracing in development:
-
-```typescript
-class AbstractLayerSet {
-  #emitLayerSetUpdated(
-    resultSetEntry: TypeResultSetEntry,
-    type: PropagationType
-  ): void {
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[LayerSet] ${this.constructor.name} updated:`, {
-        layerPath: resultSetEntry.layerPath,
-        type,
-        entry: resultSetEntry,
-      });
-    }
-
-    this.#layerSetUpdatedEmitter.emit({ resultSetEntry, type });
-  }
-}
 ```
 
 ## See Also
