@@ -166,7 +166,7 @@ Update `packages/geoview-core/src/geo/layer/geoview-layers/abstract-geoview-laye
 ```typescript
 export const DEFAULT_LAYER_NAMES: Record<string, TypeLocalizedString> = {
   // ... existing entries
-  imageStatic: { en: "Static Image", fr: "Image statique" },
+  imageStatic: "Static Image",
 };
 ```
 
@@ -428,7 +428,7 @@ const mapViewer = cgpv.api.createMapFromConfig("mapId", {
     {
       geoviewLayerId: "testImageStatic",
       geoviewLayerType: "imageStatic",
-      metadataAccessPath: { en: "https://example.com/image.png" },
+      metadataAccessPath: "https://example.com/image.png",
       listOfLayerEntryConfig: [
         {
           layerId: "image",

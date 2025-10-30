@@ -109,19 +109,13 @@ const mapViewer = cgpv.api.getMapViewer("mapId");
 
 const result = mapViewer.layer.addGeoviewLayer({
   geoviewLayerId: "myWmsLayer",
-  geoviewLayerName: {
-    en: "My WMS Layer",
-    fr: "Ma couche WMS",
-  },
+  geoviewLayerName: "My WMS Layer",
   geoviewLayerType: "ogcWms",
-  metadataAccessPath: {
-    en: "https://example.com/wms",
-    fr: "https://example.com/wms",
-  },
+  metadataAccessPath: "https://example.com/wms",
   listOfLayerEntryConfig: [
     {
       layerId: "layer1",
-      layerName: { en: "Layer 1", fr: "Couche 1" },
+      layerName: "Layer 1"
     },
   ],
 });
@@ -448,7 +442,7 @@ Raster layers use server-defined styles. Check your service's capabilities for a
 2. **Provide localized names**
 
    ```typescript
-   geoviewLayerName: { en: 'English Name', fr: 'Nom français' }
+   geoviewLayerName: 'English Name'
    ```
 
 3. **Set initial visibility and opacity**
@@ -511,7 +505,7 @@ Web Map Service - server-rendered raster images.
 {
   geoviewLayerId: 'wmsLayer',
   geoviewLayerType: 'ogcWms',
-  metadataAccessPath: { en: 'https://example.com/wms' },
+  metadataAccessPath: 'https://example.com/wms',
   listOfLayerEntryConfig: [{
     layerId: 'layerName'
   }]
@@ -526,7 +520,7 @@ ESRI Dynamic Map Service - server-rendered images.
 {
   geoviewLayerId: 'esriLayer',
   geoviewLayerType: 'esriDynamic',
-  metadataAccessPath: { en: 'https://example.com/MapServer' },
+  metadataAccessPath: 'https://example.com/MapServer',
   listOfLayerEntryConfig: [{
     layerId: '0'  // Layer index
   }]
@@ -541,7 +535,7 @@ ESRI Feature Service - vector features.
 {
   geoviewLayerId: 'featureLayer',
   geoviewLayerType: 'esriFeature',
-  metadataAccessPath: { en: 'https://example.com/FeatureServer/0' }
+  metadataAccessPath: 'https://example.com/FeatureServer/0'
 }
 ```
 
@@ -553,7 +547,7 @@ Web Feature Service - vector features.
 {
   geoviewLayerId: 'wfsLayer',
   geoviewLayerType: 'ogcWfs',
-  metadataAccessPath: { en: 'https://example.com/wfs' },
+  metadataAccessPath: 'https://example.com/wfs',
   listOfLayerEntryConfig: [{
     layerId: 'featureTypeName'
   }]

@@ -1217,20 +1217,9 @@ mapViewer.layer.addGeoviewLayer({
   listOfLayerEntryConfig: [
     {
       layerId: "layer1",
-      layerName: "Layer 1"},
+      layerName: "Layer 1"
     },
   ],
-});
-```
-
-### Adding a GeoJSON Layer
-
-```typescript
-mapViewer.layer.addGeoviewLayer({
-  geoviewLayerId: "geojsonLayer",
-  geoviewLayerName: { en: "GeoJSON Layer" },
-  geoviewLayerType: "geoJSON",
-  metadataAccessPath: { en: "/data/mydata.geojson" },
 });
 ```
 

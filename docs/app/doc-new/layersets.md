@@ -219,31 +219,6 @@ async function buildDataTable() {
 }
 ```
 
-**Example: CSV Export:**
-
-```typescript
-function exportToCSV() {
-  allFeatureInfoLayerSet.queryLayers().then(() => {
-    const rows = [];
-
-    Object.values(allFeatureInfoLayerSet.resultSet).forEach((entry) => {
-      if (entry.featureInfo?.features) {
-        entry.featureInfo.features.forEach((feature) => {
-          rows.push({
-            LayerName: entry.layerName,
-            ...feature.properties,
-          });
-        });
-      }
-    });
-
-    // Convert to CSV and download
-    const csv = convertToCSV(rows);
-    downloadFile(csv, "export.csv", "text/csv");
-  });
-}
-```
-
 ---
 
 ### 4. HoverFeatureInfoLayerSet
@@ -278,21 +253,6 @@ hoverLayerSet.onLayerSetUpdated((sender, payload) => {
   } else {
     hideTooltip();
   }
-});
-```
-
-**Optimized Hover with Debouncing:**
-
-```typescript
-let hoverTimeout;
-
-mapViewer.onMapPointerMove((sender, payload) => {
-  clearTimeout(hoverTimeout);
-
-  // Debounce to avoid excessive queries
-  hoverTimeout = setTimeout(() => {
-    hoverFeatureInfoLayerSet.queryLayers(payload.lnglat);
-  }, 100); // Wait 100ms after mouse stops moving
 });
 ```
 
