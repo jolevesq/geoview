@@ -20,9 +20,9 @@
       window.$docsify = {
         name: "GeoView",
         repo: "https://github.com/Canadian-Geospatial-Platform/geoview",
-        loadSidebar: true,
+        loadSidebar: "sidebar.md",
         alias: {
-          "/.*/_sidebar.md": "/_sidebar.md",
+          "/.*/sidebar.md": "/sidebar.md",
         },
         subMaxLevel: 3,
         auto2top: true,
@@ -32,27 +32,6 @@
           depth: 6,
         },
       };
-
-      // Debug helpers
-      console.log("Location:", window.location.href);
-      console.log("Pathname:", window.location.pathname);
-      console.log("Config:", window.$docsify);
-
-      // Test different paths
-      const paths = [
-        "_sidebar.md",
-        "./_sidebar.md",
-        "/geoview/docs/_sidebar.md",
-        "docs/_sidebar.md",
-      ];
-
-      paths.forEach((path) => {
-        fetch(path)
-          .then((r) =>
-            console.log(`Testing ${path}:`, r.status, r.ok ? "✓" : "✗")
-          )
-          .catch((err) => console.log(`Testing ${path}: ✗ ERROR`));
-      });
     </script>
     <!-- Docsify v4 -->
     <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
