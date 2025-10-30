@@ -1,5 +1,3 @@
-<!-- docs/_sidebar.md -->
-
 - [Home](/)
 - [Getting Started](README.md)
 
