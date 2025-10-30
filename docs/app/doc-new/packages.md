@@ -38,12 +38,6 @@ All packages are managed using Rush.js and built with TypeScript.
 - Multilingual support (English/French)
 - Accessibility features
 
-**Installation:**
-
-```bash
-npm install geoview-core
-```
-
 **Usage:**
 
 ```html
@@ -161,13 +155,11 @@ if (TimeSliderEventProcessor.isTimeSliderInitialized("mapId")) {
       {
         "geoviewLayerId": "wmsTimeLayer",
         "geoviewLayerType": "ogcWms",
-        "metadataAccessPath": {
-          "en": "https://example.com/wms"
-        },
+        "metadataAccessPath": "https://example.com/wms",
         "listOfLayerEntryConfig": [
           {
             "layerId": "temperature",
-            "layerName": { "en": "Temperature" },
+            "layerName": "Temperature",
             "source": {
               "featureInfo": {
                 "queryable": true
@@ -271,9 +263,7 @@ if (GeochartEventProcessor.isGeochartInitialized("mapId")) {
       {
         "geoviewLayerId": "populationLayer",
         "geoviewLayerType": "esriFeature",
-        "metadataAccessPath": {
-          "en": "https://example.com/FeatureServer/0"
-        }
+        "metadataAccessPath": "https://example.com/FeatureServer/0"
       }
     ]
   },
@@ -286,10 +276,7 @@ if (GeochartEventProcessor.isGeochartInitialized("mapId")) {
         "layerPath": "populationLayer",
         "xAxis": "city",
         "yAxis": "population",
-        "title": {
-          "en": "Population by City",
-          "fr": "Population par ville"
-        }
+        "title": "Population by City"
       }
     ]
   }
@@ -377,19 +364,15 @@ if (SwiperEventProcessor.isSwiperInitialized("mapId")) {
     "listOfGeoviewLayerConfig": [
       {
         "geoviewLayerId": "layer2020",
-        "geoviewLayerName": { "en": "2020 Imagery" },
+        "geoviewLayerName": "2020 Imagery" ,
         "geoviewLayerType": "xyzTiles",
-        "metadataAccessPath": {
-          "en": "https://tiles.example.com/2020/{z}/{x}/{y}.png"
-        }
+        "metadataAccessPath": "https://tiles.example.com/2020/{z}/{x}/{y}.png"
       },
       {
         "geoviewLayerId": "layer2024",
-        "geoviewLayerName": { "en": "2024 Imagery" },
+        "geoviewLayerName": "2024 Imagery",
         "geoviewLayerType": "xyzTiles",
-        "metadataAccessPath": {
-          "en": "https://tiles.example.com/2024/{z}/{x}/{y}.png"
-        }
+        "metadataAccessPath": "https://tiles.example.com/2024/{z}/{x}/{y}.png"
       }
     ]
   },
@@ -592,31 +575,7 @@ const geojson = DrawerEventProcessor.exportAsGeoJSON("mapId");
 
 #### Configuration Example
 
-```json
-{
-  "plugins": ["custom-legend"],
-  "custom-legend": {
-    "legendId": "myLegend",
-    "title": { "en": "Custom Legend", "fr": "Légende personnalisée" },
-    "layout": "vertical",
-    "style": {
-      "fontSize": "14px",
-      "fontFamily": "Arial",
-      "backgroundColor": "#ffffff"
-    },
-    "items": [
-      {
-        "label": { "en": "Category 1", "fr": "Catégorie 1" },
-        "symbol": {
-          "type": "circle",
-          "color": "#ff0000",
-          "size": 10
-        }
-      }
-    ]
-  }
-}
-```
+... To come
 
 ---
 
