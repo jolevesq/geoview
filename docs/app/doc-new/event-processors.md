@@ -1,8 +1,8 @@
-# Event Processors API
+﻿# Event Processors API
 
 > **👥 Audience:** API users building applications with GeoView
 >
-> **For Core Developers:** See [Event Processor Architecture](../../../programming/event-processor-architecture.md) for implementation details
+> **For Core Developers:** See [Event Processor Architecture](programming/event-processor-architecture.md) for implementation details
 
 Event Processors provide static methods to perform actions and manage state in GeoView. Use them to control maps, layers, UI elements, and plugin functionality.
 
@@ -630,11 +630,11 @@ console.log(controller.getMapInfo());
 
 ## See Also
 
-- **[MapViewer API](./map-viewer-api-doc.md)** - For listening to events
-- **[Layer API](./layer-api.md)** - For layer management methods
-- **[API Reference](./api.md)** - Main API entry points
-- **[Packages & Plugins](./packages.md)** - Plugin development
+- **[MapViewer API](app/doc-new/map-viewer-api-doc.md)** - For listening to events
+- **[Layer API](app/doc-new/layer-api.md)** - For layer management methods
+- **[API Reference](app/doc-new/api.md)** - Main API entry points
+- **[Packages & Plugins](app/doc-new/packages.md)** - Plugin development
 
 ---
 
-> **🔧 For Core Developers:** See [Event Processor Architecture](../../../programming/event-processor-architecture.md) for implementation details, creating custom processors, and internal patterns.
+> **🔧 For Core Developers:** See [Event Processor Architecture](programming/event-processor-architecture.md) for implementation details, creating custom processors, and internal patterns.

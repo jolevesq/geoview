@@ -1,4 +1,4 @@
-# Layer Sets in GeoView
+﻿# Layer Sets in GeoView
 
 GeoView uses the concept of Layer Sets to manage and synchronize groups of layers and their associated data, events, and UI updates. Each Layer Set is responsible for a specific aspect of layer management and interacts with the store and event processors to keep the application state in sync.
 

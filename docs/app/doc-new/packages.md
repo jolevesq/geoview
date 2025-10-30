@@ -1,4 +1,4 @@
-# GeoView Packages and Plugins
+﻿# GeoView Packages and Plugins
 
 GeoView is built as a monorepo with a core package and several plugin packages that extend functionality. This document covers all available packages and how to use them.
 
@@ -93,7 +93,7 @@ cgpv.api.createMapFromConfig("mapId", {
 });
 ```
 
-**See Also:** [API Reference](./api.md), [Map Viewer API](./map-viewer-api-doc.md)
+**See Also:** [API Reference](app/doc-new/api.md), [Map Viewer API](app/doc-new/map-viewer-api-doc.md)
 
 ---
 
@@ -210,7 +210,7 @@ const filters = TimeSliderEventProcessor.getTimeSliderFilters("mapId");
 const timeValues = TimeSliderEventProcessor.getTimeSliderValues("mapId");
 ```
 
-**See Also:** [TimeSliderEventProcessor](./event-processors.md#3-timeslidereventprocessor)
+**See Also:** [TimeSliderEventProcessor](app/doc-new/event-processors.md#3-timeslidereventprocessor)
 
 ---
 
@@ -311,7 +311,7 @@ const charts = GeochartEventProcessor.getGeochartCharts("mapId");
 GeochartEventProcessor.propagateGeochartToStore("mapId", layerPath, chartData);
 ```
 
-**See Also:** [GeochartEventProcessor](./event-processors.md#8-geocharteventprocessor)
+**See Also:** [GeochartEventProcessor](app/doc-new/event-processors.md#8-geocharteventprocessor)
 
 ---
 
@@ -416,7 +416,7 @@ const isInitialized = SwiperEventProcessor.isSwiperInitialized("mapId");
 const swiperState = SwiperEventProcessor.getSwiperState("mapId");
 ```
 
-**See Also:** [SwiperEventProcessor](./event-processors.md#9-swipereventprocessor)
+**See Also:** [SwiperEventProcessor](app/doc-new/event-processors.md#9-swipereventprocessor)
 
 ---
 
@@ -504,7 +504,7 @@ DrawerEventProcessor.clearDrawings("mapId");
 const geojson = DrawerEventProcessor.exportAsGeoJSON("mapId");
 ```
 
-**See Also:** [DrawerEventProcessor](./event-processors.md#10-drawereventprocessor)
+**See Also:** [DrawerEventProcessor](app/doc-new/event-processors.md#10-drawereventprocessor)
 
 ---
 
@@ -772,7 +772,7 @@ rush add -p lodash --caret
 
 ## See Also
 
-- [Event Processors](./event-processors.md) - State management for plugins
-- [Configuration Reference](./configuration-reference.md) - Plugin configuration options
-- [API Reference](./api.md) - Core API methods
-- [State Management](./state-management.md) - Zustand store architecture
+- [Event Processors](app/doc-new/event-processors.md) - State management for plugins
+- [Configuration Reference](app/doc-new/configuration-reference.md) - Plugin configuration options
+- [API Reference](app/doc-new/api.md) - Core API methods
+- [State Management](app/doc-new/state-management.md) - Zustand store architecture

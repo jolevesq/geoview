@@ -1,8 +1,8 @@
-# Layer Set Architecture
+﻿# Layer Set Architecture
 
 > **👥 Audience:** Core GeoView developers
 >
-> **For API Users:** See [Layer Sets Guide](../../app/doc-new/layersets.md) for using Layer Sets in your applications
+> **For API Users:** See [Layer Sets Guide](app/doc-new/layersets.md) for using Layer Sets in your applications
 
 This document describes the internal architecture and implementation details of the Layer Set system in GeoView.
 
@@ -677,10 +677,10 @@ describe("Layer Set Store Integration", () => {
 
 **For API Users:**
 
-- [Layer Sets Guide](../../app/doc-new/layersets.md) - Using Layer Sets in applications
+- [Layer Sets Guide](app/doc-new/layersets.md) - Using Layer Sets in applications
 
 **For Core Developers:**
 
-- [Event Processor Architecture](./event-processor-architecture.md) - Store and event system
-- [Layer Architecture](./layer-architecture.md) - Layer implementation details
-- [Adding Layer Types](./adding-layer-types.md) - Implementing new layer types
+- [Event Processor Architecture](programming/event-processor-architecture.md) - Store and event system
+- [Layer Architecture](programming/layer-architecture.md) - Layer implementation details
+- [Adding Layer Types](programming/adding-layer-types.md) - Implementing new layer types

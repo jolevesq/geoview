@@ -8,6 +8,7 @@
   - [Overview](app/doc-new/README.md)
   - [API Reference](app/doc-new/api.md)
   - [Create a Map](app/doc-new/create-map.md)
+  - [Configuration Reference](app/doc-new/configuration-reference.md)
   - [Event Processors](app/doc-new/event-processors.md)
   - [Events](app/doc-new/event.md)
   - [Layer API](app/doc-new/layer-api.md)

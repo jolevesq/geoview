@@ -1,4 +1,4 @@
-# Layer API Reference
+﻿# Layer API Reference
 
 The `LayerApi` class provides comprehensive methods for managing map layers in GeoView. It handles layer creation, removal, configuration, visibility, and interaction with various layer types including WMS, ESRI services, GeoJSON, and more.
 
@@ -39,7 +39,7 @@ addGeoviewLayer(
 
 **Parameters:**
 
-- `geoviewLayerConfig` - Layer configuration object (see [Configuration Reference](./configuration-reference.md))
+- `geoviewLayerConfig` - Layer configuration object (see [Configuration Reference](app/doc-new/configuration-reference.md))
 - `abortSignal` - Optional AbortSignal to cancel the layer addition
 
 **Returns:** `GeoViewLayerAddedResult` object containing:
@@ -1110,7 +1110,7 @@ Access geometry manipulation functions:
 mapViewer.layer.geometry;
 ```
 
-See [Geometry API Documentation](./geometry-api.md) for details.
+See [Geometry API Documentation](app/doc-new/geometry-api.md) for details.
 
 ---
 
@@ -1312,14 +1312,14 @@ mapViewer.onMapSingleClick((sender, payload) => {
 
 **For complete Layer Sets documentation, examples, and patterns, see:**
 
-→ **[Layer Sets Guide](./layersets.md)**
+→ **[Layer Sets Guide](app/doc-new/layersets.md)**
 
 ---
 
 ## See Also
 
-- **[Layer Sets](./layersets.md)** - Working with layer sets for legends, features, and hover info
-- [Event Processors](./event-processors.md) - State management and event handling
-- [Configuration Reference](./configuration-reference.md) - Layer configuration options
-- [API Reference](./api.md) - Main API entry points
-- [Map Viewer API](./map-viewer-api-doc.md) - MapViewer instance methods
+- **[Layer Sets](app/doc-new/layersets.md)** - Working with layer sets for legends, features, and hover info
+- [Event Processors](app/doc-new/event-processors.md) - State management and event handling
+- [Configuration Reference](app/doc-new/configuration-reference.md) - Layer configuration options
+- [API Reference](app/doc-new/api.md) - Main API entry points
+- [Map Viewer API](app/doc-new/map-viewer-api-doc.md) - MapViewer instance methods

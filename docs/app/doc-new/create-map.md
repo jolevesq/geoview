@@ -1,4 +1,4 @@
-### Creating Maps in GeoView
+﻿### Creating Maps in GeoView
 
 There are two main approaches to create maps in GeoView:
 

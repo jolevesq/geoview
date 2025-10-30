@@ -1,8 +1,8 @@
-# GeoView API Documentation
+﻿# GeoView API Documentation
 
 > **👥 Audience:** Developers using GeoView in their applications
 >
-> **For Core Contributors:** See [Programming Documentation](../../../programming/) for internal development guides
+> **For Core Contributors:** See [Programming Documentation](programming/) for internal development guides
 
 This folder contains the **official API documentation** for using GeoView in your applications.
 
@@ -10,11 +10,11 @@ This folder contains the **official API documentation** for using GeoView in you
 
 ## Quick Start
 
-1. **[Creating Maps](./create-map.md)** - Initialize and configure maps
-2. **[API Reference](./api.md)** - Main API entry points
-3. **[GeoView Layers](./layers.md)** - Layer concepts and configuration
-4. **[Layer API](./layer-api.md)** - Add and manage layers
-5. **[Event Processors](./event-processors.md)** - Perform actions and manage state
+1. **[Creating Maps](app/doc-new/create-map.md)** - Initialize and configure maps
+2. **[API Reference](app/doc-new/api.md)** - Main API entry points
+3. **[GeoView Layers](app/doc-new/layers.md)** - Layer concepts and configuration
+4. **[Layer API](app/doc-new/layer-api.md)** - Add and manage layers
+5. **[Event Processors](app/doc-new/event-processors.md)** - Perform actions and manage state
 
 ## Key Concepts
 
@@ -27,31 +27,32 @@ This folder contains the **official API documentation** for using GeoView in you
 
 ### Core API
 
-- **[API Reference](./api.md)** - cgpv.api methods (createMapFromConfig, getMapViewer, etc.)
-- **[CGPV Global Object](./cgpv.md)** - Global cgpv object and initialization
-- **[API Utilities](./api-utilities.md)** - Utility functions (core, geo, projection, date)
+- **[API Reference](app/doc-new/api.md)** - cgpv.api methods (createMapFromConfig, getMapViewer, etc.)
+- **[CGPV Global Object](app/doc-new/cgpv.md)** - Global cgpv object and initialization
+- **[API Utilities](app/doc-new/api-utilities.md)** - Utility functions (core, geo, projection, date)
 
 ### Map & Layer Management
 
-- **[Creating Maps](./create-map.md)** - Map creation and configuration
-- **[MapViewer API](./map-viewer-api-doc.md)** - MapViewer instance methods
-- **[MapViewer Functions](./map-viewer-api-functions.md)** - Additional MapViewer utilities
-- **[GeoView Layers](./layers.md)** - Layer types, configuration, and concepts
-- **[Layer API](./layer-api.md)** - Complete layer management reference
+- **[Creating Maps](app/doc-new/create-map.md)** - Map creation and configuration
+- **[Configuration Reference](app/doc-new/configuration-reference.md)** - Complete config options reference
+- **[MapViewer API](app/doc-new/map-viewer-api-doc.md)** - MapViewer instance methods
+- **[MapViewer Functions](app/doc-new/map-viewer-api-functions.md)** - Additional MapViewer utilities
+- **[GeoView Layers](app/doc-new/layers.md)** - Layer types, configuration, and concepts
+- **[Layer API](app/doc-new/layer-api.md)** - Complete layer management reference
 
 ### State & Events
 
-- **[Event Processors](./event-processors.md)** - Modern event handling and state management
-- **[Layer Sets](./layersets.md)** - Working with layer sets (legends, features, hover info)
-- **[Event Creation](./event-creation.md)** - Creating custom events
-- **[Event System](./event.md)** - Event system overview
-- **[Map Events](./event-map.md)** - Map-specific events
-- **[Layer Events](./event-layer.md)** - Layer-specific events
-- **[LayerSet Events](./event-layerset.md)** - LayerSet event handling (internal)
+- **[Event Processors](app/doc-new/event-processors.md)** - Modern event handling and state management
+- **[Layer Sets](app/doc-new/layersets.md)** - Working with layer sets (legends, features, hover info)
+- **[Event Creation](app/doc-new/event-creation.md)** - Creating custom events
+- **[Event System](app/doc-new/event.md)** - Event system overview
+- **[Map Events](app/doc-new/event-map.md)** - Map-specific events
+- **[Layer Events](app/doc-new/event-layer.md)** - Layer-specific events
+- **[LayerSet Events](app/doc-new/event-layerset.md)** - LayerSet event handling (internal)
 
 ### Plugins & Extensions
 
-- **[Packages & Plugins](./packages.md)** - Plugin system and development guide
+- **[Packages & Plugins](app/doc-new/packages.md)** - Plugin system and development guide
 
 ## Documentation by Use Case
 
@@ -59,43 +60,43 @@ This folder contains the **official API documentation** for using GeoView in you
 
 #### ...create a map
 
-→ [Creating Maps](./create-map.md) and [API Reference](./api.md#createMapFromConfig)
+→ [Creating Maps](app/doc-new/create-map.md) and [API Reference](app/doc-new/api.md#createMapFromConfig)
 
 #### ...add layers
 
-→ [Layer API - Adding Layers](./layer-api.md#adding-layers)
+→ [Layer API - Adding Layers](app/doc-new/layer-api.md#adding-layers)
 
 #### ...handle map events
 
-→ [Event Processors](./event-processors.md#2-mapeventprocessor) - Use MapEventProcessor
+→ [Event Processors](app/doc-new/event-processors.md#2-mapeventprocessor) - Use MapEventProcessor
 
 #### ...work with layer visibility
 
-→ [Layer API - Visibility](./layer-api.md#visibility)
+→ [Layer API - Visibility](app/doc-new/layer-api.md#visibility)
 
 #### ...create a plugin
 
-→ [Packages & Plugins - Plugin Development](./packages.md#plugin-development)
+→ [Packages & Plugins - Plugin Development](app/doc-new/packages.md#plugin-development)
 
 #### ...use coordinate transformations
 
-→ [API Utilities - Projection](./api-utilities.md#projection-utilities)
+→ [API Utilities - Projection](app/doc-new/api-utilities.md#projection-utilities)
 
 #### ...format dates for temporal layers
 
-→ [API Utilities - Date Management](./api-utilities.md#date-management-utilities)
+→ [API Utilities - Date Management](app/doc-new/api-utilities.md#date-management-utilities)
 
 #### ...manage state in my plugin
 
-→ [Event Processors](./event-processors.md) - Create a custom Event Processor
+→ [Event Processors](app/doc-new/event-processors.md) - Create a custom Event Processor
 
 #### ...access legend or feature data
 
-→ [Layer Sets](./layersets.md) - Using Layer Sets for legends, features, and hover info
+→ [Layer Sets](app/doc-new/layersets.md) - Using Layer Sets for legends, features, and hover info
 
 #### ...build a data table or export features
 
-→ [Layer Sets - AllFeatureInfoLayerSet](./layersets.md#3-allfeatureinfolayerset)
+→ [Layer Sets - AllFeatureInfoLayerSet](app/doc-new/layersets.md#3-allfeatureinfolayerset)
 
 ## Architecture Overview
 
@@ -128,11 +129,11 @@ cgpv (global object)
 
 ### For Core Contributors
 
-- [Programming Best Practices](../../../programming/best-practices.md)
-- [Using Zustand Store](../../../programming/using-store.md)
-- [Event Processor Architecture](../../../programming/event-processor-architecture.md)
-- [TypeScript Patterns](../../../programming/using-type.md)
-- [Logging Standards](../../../programming/logging.md)
+- [Programming Best Practices](programming/best-practices.md)
+- [Using Zustand Store](programming/using-store.md)
+- [Event Processor Architecture](programming/event-processor-architecture.md)
+- [TypeScript Patterns](programming/using-type.md)
+- [Logging Standards](programming/logging.md)
 
 ## TypeScript Support
 

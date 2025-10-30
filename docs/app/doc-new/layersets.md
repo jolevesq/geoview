@@ -1,4 +1,4 @@
-# Layer Sets
+﻿# Layer Sets
 
 Layer Sets are a core feature of GeoView that automatically manage and organize layer-specific data across your map. They provide real-time access to legends, feature information, and layer data that updates automatically as layers are added, removed, or queried.
 
@@ -861,9 +861,9 @@ import type {
 
 ## See Also
 
-- [Layer API](./layer-api.md) - Complete Layer API reference with all methods
-- [Event Processors](./event-processors.md) - State management and event handling patterns
-- [API Reference](./api.md) - Main GeoView API entry points
+- [Layer API](app/doc-new/layer-api.md) - Complete Layer API reference with all methods
+- [Event Processors](app/doc-new/event-processors.md) - State management and event handling patterns
+- [API Reference](app/doc-new/api.md) - Main GeoView API entry points
 - [TypeDoc Reference](../../../public/typeDocAPI/) - Auto-generated API documentation
 
 **For Core Developers:**

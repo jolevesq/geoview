@@ -1,8 +1,8 @@
-# Event Processor Architecture
+﻿# Event Processor Architecture
 
 > **👥 Audience:** Core developers contributing to GeoView
 >
-> **For API Users:** See [Event Processors API](../app/doc-new/event-processors.md) for usage documentation
+> **For API Users:** See [Event Processors API](app/doc-new/event-processors.md) for usage documentation
 
 This document explains the internal architecture of Event Processors, how they integrate with the Zustand store, and how to create custom processors.
 
@@ -560,7 +560,7 @@ describe("MapEventProcessor Integration", () => {
 
 ## See Also
 
-- **[Event Processors API](../app/doc-new/event-processors.md)** - Public API documentation
-- **[Using Zustand Store](./using-store.md)** - Store patterns and practices
-- **[Best Practices](./best-practices.md)** - General coding standards
-- **[TypeScript Patterns](./using-type.md)** - TypeScript conventions
+- **[Event Processors API](app/doc-new/event-processors.md)** - Public API documentation
+- **[Using Zustand Store](programming/using-store.md)** - Store patterns and practices
+- **[Best Practices](programming/best-practices.md)** - General coding standards
+- **[TypeScript Patterns](programming/using-type.md)** - TypeScript conventions
