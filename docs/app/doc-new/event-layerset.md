@@ -29,7 +29,7 @@ All Layer Sets in GeoView (`AllFeatureInfoLayerSet`, `FeatureInfoLayerSet`, `Leg
     - For `LegendsLayerSet`, the value is the legend/symbology info for that layer.
 
 **Example structure:**
-```js
+```ts
 {
   "layer1/path": { ...data for layer 1... },
   "layer2/path": { ...data for layer 2... }
