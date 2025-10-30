@@ -17,19 +17,12 @@
   <body>
     <div id="app"></div>
     <script>
-      // Detect the base path dynamically
-      const path = window.location.pathname;
-      const docsIndex = path.lastIndexOf("/docs/");
-      const basePath =
-        docsIndex >= 0 ? path.substring(0, docsIndex + 6) : "/docs/";
-
       window.$docsify = {
         name: "GeoView",
         repo: "https://github.com/Canadian-Geospatial-Platform/geoview",
-        basePath: basePath,
         loadSidebar: true,
         alias: {
-          "/.*/_sidebar.md": basePath + "_sidebar.md",
+          "/.*/_sidebar.md": "/_sidebar.md",
         },
         subMaxLevel: 3,
         auto2top: true,
@@ -41,22 +34,25 @@
       };
 
       // Debug helpers
-      console.log("Docsify basePath:", basePath);
-      console.log("Sidebar URL:", basePath + "_sidebar.md");
-      console.log("Full config:", window.$docsify);
+      console.log("Location:", window.location.href);
+      console.log("Pathname:", window.location.pathname);
+      console.log("Config:", window.$docsify);
 
-      // Test sidebar accessibility
-      fetch(basePath + "_sidebar.md")
-        .then((r) => {
-          console.log(
-            "Sidebar fetch status:",
-            r.status,
-            r.ok ? "✓ OK" : "✗ FAILED"
-          );
-          return r.text();
-        })
-        .then((text) => console.log("Sidebar loaded, length:", text.length))
-        .catch((err) => console.error("Sidebar fetch error:", err));
+      // Test different paths
+      const paths = [
+        "_sidebar.md",
+        "./_sidebar.md",
+        "/geoview/docs/_sidebar.md",
+        "docs/_sidebar.md",
+      ];
+
+      paths.forEach((path) => {
+        fetch(path)
+          .then((r) =>
+            console.log(`Testing ${path}:`, r.status, r.ok ? "✓" : "✗")
+          )
+          .catch((err) => console.log(`Testing ${path}: ✗ ERROR`));
+      });
     </script>
     <!-- Docsify v4 -->
     <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>

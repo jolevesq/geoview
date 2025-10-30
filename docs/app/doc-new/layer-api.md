@@ -39,7 +39,7 @@ addGeoviewLayer(
 
 **Parameters:**
 
-- `geoviewLayerConfig` - Layer configuration object (see [Configuration Reference](app/doc-new/configuration-reference.md))
+- `geoviewLayerConfig` - Layer configuration object (see [Configuration Reference](./configuration-reference.md))
 - `abortSignal` - Optional AbortSignal to cancel the layer addition
 
 **Returns:** `GeoViewLayerAddedResult` object containing:
@@ -52,19 +52,13 @@ addGeoviewLayer(
 ```typescript
 const result = mapViewer.layer.addGeoviewLayer({
   geoviewLayerId: "myLayer",
-  geoviewLayerName: {
-    en: "My WMS Layer",
-    fr: "Ma couche WMS",
-  },
+  geoviewLayerName: "My WMS Layer",
   geoviewLayerType: "ogcWms",
-  metadataAccessPath: {
-    en: "https://example.com/wms",
-    fr: "https://example.com/wms",
-  },
+  metadataAccessPath: "https://example.com/wms",
   listOfLayerEntryConfig: [
     {
       layerId: "layer1",
-      layerName: { en: "Layer 1", fr: "Couche 1" },
+      layerName: "Layer 1"
     },
   ],
 });
@@ -1110,7 +1104,7 @@ Access geometry manipulation functions:
 mapViewer.layer.geometry;
 ```
 
-See [Geometry API Documentation](app/doc-new/geometry-api.md) for details.
+See [Geometry API Documentation](./geometry-api.md) for details.
 
 ---
 
@@ -1217,13 +1211,13 @@ const olLayer = await mapViewer.layer.getOLLayerAsync(
 ```typescript
 mapViewer.layer.addGeoviewLayer({
   geoviewLayerId: "wmsLayer",
-  geoviewLayerName: { en: "WMS Layer" },
+  geoviewLayerName: "WMS Layer",
   geoviewLayerType: "ogcWms",
-  metadataAccessPath: { en: "https://example.com/wms" },
+  metadataAccessPath: "https://example.com/wms",
   listOfLayerEntryConfig: [
     {
       layerId: "layer1",
-      layerName: { en: "Layer 1" },
+      layerName: "Layer 1"},
     },
   ],
 });
@@ -1312,14 +1306,14 @@ mapViewer.onMapSingleClick((sender, payload) => {
 
 **For complete Layer Sets documentation, examples, and patterns, see:**
 
-→ **[Layer Sets Guide](app/doc-new/layersets.md)**
+→ **[Layer Sets Guide](./layersets.md)**
 
 ---
 
 ## See Also
 
-- **[Layer Sets](app/doc-new/layersets.md)** - Working with layer sets for legends, features, and hover info
-- [Event Processors](app/doc-new/event-processors.md) - State management and event handling
-- [Configuration Reference](app/doc-new/configuration-reference.md) - Layer configuration options
-- [API Reference](app/doc-new/api.md) - Main API entry points
-- [Map Viewer API](app/doc-new/map-viewer-api-doc.md) - MapViewer instance methods
+- **[Layer Sets](./layersets.md)** - Working with layer sets for legends, features, and hover info
+- [Event Processors](./event-processors.md) - State management and event handling
+- [Configuration Reference](./configuration-reference.md) - Layer configuration options
+- [API Reference](./api.md) - Main API entry points
+- [Map Viewer API](./map-viewer-api-doc.md) - MapViewer instance methods
