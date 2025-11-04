@@ -77,7 +77,7 @@
 
       .tableResults tr.expanded .test-title::before {
         transform: rotate(90deg);
-      }</style><script src="cgpv-main.js"></script></head><body><div><div class="page-header"><img class="header-logo" alt="logo" src="./img/Logo.png"/><div class="page-header-titles"><h1 class="index-header-title"><strong>Plateforme Géospatiale Canadienne (PGC) - Projet GeoView -</strong></h1><h1 class="index-header-title"><strong>Canadian Geospatial Platform (CGP) - GeoView Project -</strong></h1></div></div><hr/><hr/><div class="back-to-main"><a href="./index.html?tab=testing">← Back to Main</a></div><div class="demo-section"><h4>Functional Testing</h4><p>Quick links to test sections:</p><ul class="demo-list"><li><a href="#HEVNT1">1. Tests map 1 (EPSG: 3978)</a></li><li><a href="#HEVNT2">2. Tests map 2 (EPSG: 3978)</a></li><li><a href="#HEVNT3">3. Tests map 3 (EPSG: 3857)</a></li><li><a href="#HEVNT4">4. Tests map 4 (EPSG: 3978)</a></li><li><a href="#HEVNT5">5. Tests map 5 (EPSG: 3978)</a></li></ul></div></div><div style="text-align: right"><span id="allSuitesCheck"></span></div><div style="text-align: right">Suites: <span id="allSuitesCompleted">0</span>/<span id="allSuitesTotal">0</span></div><div style="text-align: right">Running: <span id="allSuitesTestsRunning">0</span> | Done success: <span id="allSuitesTestsDoneSuccess" style="color: green">0</span> | Done failed: <span id="allSuitesTestsDoneFailed" style="color: red">0</span> | Done: <span id="allSuitesTestsDone">0</span>/<span id="allSuitesTestsTotal">0</span></div><button class="btnLaunchTests" onclick="launchTestsAll()">LAUNCH TESTS ALL MAPS!</button><div class="map-title-holder"><h4 id="HEVNT1">1. Tests on map 1 (EPSG: 3978)</h4><a class="ref-link" href="#top">Top</a></div><div id="testSuiteTable-map1"></div><br/><div id="map1" class="geoview-map" data-lang="en" data-config="{
+      }</style><script src="cgpv-main.js"></script></head><body><div><div id="page-header"></div><div class="back-to-main"><a href="./index.html?tab=testing">← Back to Main</a></div><div class="demo-section"><h4>Functional Testing</h4><p>Quick links to test sections:</p><ul class="demo-list"><li><a href="#HEVNT1">1. Tests map 1 (EPSG: 3978)</a></li><li><a href="#HEVNT2">2. Tests map 2 (EPSG: 3978)</a></li><li><a href="#HEVNT3">3. Tests map 3 (EPSG: 3857)</a></li><li><a href="#HEVNT4">4. Tests map 4 (EPSG: 3978)</a></li><li><a href="#HEVNT5">5. Tests map 5 (EPSG: 3978)</a></li></ul></div></div><div style="text-align: right"><span id="allSuitesCheck"></span></div><div style="text-align: right">Suites: <span id="allSuitesCompleted">0</span>/<span id="allSuitesTotal">0</span></div><div style="text-align: right">Running: <span id="allSuitesTestsRunning">0</span> | Done success: <span id="allSuitesTestsDoneSuccess" style="color: green">0</span> | Done failed: <span id="allSuitesTestsDoneFailed" style="color: red">0</span> | Done: <span id="allSuitesTestsDone">0</span>/<span id="allSuitesTestsTotal">0</span></div><button class="btnLaunchTests" onclick="launchTestsAll()">LAUNCH TESTS ALL MAPS!</button><div class="map-title-holder"><h4 id="HEVNT1">1. Tests on map 1 (EPSG: 3978)</h4><a class="ref-link" href="#top">Top</a></div><div id="testSuiteTable-map1"></div><br/><div id="map1" class="geoview-map" data-lang="en" data-config="{
           'map': {
             'interaction': 'dynamic',
             'viewSettings': {
@@ -318,7 +318,9 @@
               ]
             }
           }
-        }"></div><script>// The test suites plugins (1 plugin per map)
+        }"></div><script>insertPageHeader();
+
+      // The test suites plugins (1 plugin per map)
       const testSuitesPlugins = {};
 
       // Register a handler when a map viewer is initialized
