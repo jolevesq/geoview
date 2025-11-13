@@ -10,30 +10,45 @@
       "labeled": false
     },
     "listOfGeoviewLayerConfig": [
-      {
-        "geoviewLayerId": "gtLYR1",
-        "geoviewLayerName": "no-overviews",
-        "metadataAccessPath": "https://openlayers.org/data/raster/",
+     {
+        "geoviewLayerId": "sentinel2-montreal-tci",
+        "geoviewLayerName": "Montreal - True Color (July 2020)",
+        "metadataAccessPath": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/18/T/YR/2020/7/S2A_18TYR_20200706_0_L2A/",
         "geoviewLayerType": "GeoTIFF",
         "listOfLayerEntryConfig": [
           {
-            "layerId": "no-overviews.tif",
+            "layerId": "TCI.tif",
             "source": {
-              "overviews": [
-                "https://openlayers.org/data/raster/no-overviews.tif.ovr"
-              ]
+              "dataAccessPath": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/18/T/YR/2020/7/S2A_18TYR_20200706_0_L2A/TCI.tif"
             }
           }
         ]
       },
       {
-        "geoviewLayerId": "gtLYR2",
-        "geoviewLayerName": "Lightning - 30/10/2025",
-        "metadataAccessPath": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/36/Q/WD/2020/7/S2A_36QWD_20200701_0_L2A/",
+        "geoviewLayerId": "sentinel2-montreal-nir",
+        "geoviewLayerName": "Montreal - NIR Band (B08)",
+        "metadataAccessPath": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/18/T/YR/2020/7/S2A_18TYR_20200706_0_L2A/",
         "geoviewLayerType": "GeoTIFF",
         "listOfLayerEntryConfig": [
           {
-            "layerId": "TCI.tif"
+            "layerId": "B08.tif",
+            "source": {
+              "dataAccessPath": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/18/T/YR/2020/7/S2A_18TYR_20200706_0_L2A/B08.tif"
+            }
+          }
+        ]
+      },
+      {
+        "geoviewLayerId": "sentinel2-montreal-red",
+        "geoviewLayerName": "Montreal - Red Band (B04)",
+        "metadataAccessPath": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/18/T/YR/2020/7/S2A_18TYR_20200706_0_L2A/",
+        "geoviewLayerType": "GeoTIFF",
+        "listOfLayerEntryConfig": [
+          {
+            "layerId": "B04.tif",
+            "source": {
+              "dataAccessPath": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/18/T/YR/2020/7/S2A_18TYR_20200706_0_L2A/B04.tif"
+            }
           }
         ]
       }

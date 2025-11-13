@@ -1,3 +1,4 @@
+import WebGLTile from 'ol/layer/WebGLTile';
 import TileLayer from 'ol/layer/Tile';
 import type { Options as TileOptions } from 'ol/layer/BaseTile';
 import type GeoTIFFSource from 'ol/source/GeoTIFF';
@@ -19,36 +20,34 @@ import { Projection } from '@/geo/utils/projection';
 export class GVGeoTIFF extends AbstractGVTile {
   /**
    * Constructs a GVGeoTIFF layer to manage an OpenLayer layer.
-   * @param {GeoTIFFSource} olSource - The OpenLayer source.
+   * @param {WebGLTile | TileLayer<GeoTIFFSource>} olLayer - The OpenLayer WebGLTile or TileLayer.
    * @param {GeoTIFFLayerEntryConfig} layerConfig - The layer configuration.
    */
-  constructor(olSource: GeoTIFFSource, layerConfig: GeoTIFFLayerEntryConfig) {
+  constructor(olLayer: WebGLTile | TileLayer<GeoTIFFSource>, layerConfig: GeoTIFFLayerEntryConfig) {
+    // Get the source from the layer
+    const olSource = olLayer.getSource() as GeoTIFFSource;
+    
+    // Call parent constructor with source
     super(olSource, layerConfig);
 
-    // Create the tile layer options.
-    const tileLayerOptions: TileOptions<GeoTIFFSource> = { source: olSource };
-
-    // Init the layer options with initial settings
-    AbstractGVTile.initOptionsWithInitialSettings(tileLayerOptions, layerConfig);
-
-    // Create and set the OpenLayer layer
-    this.setOLLayer(new TileLayer(tileLayerOptions));
+    // Set the OpenLayer layer (WebGLTile or TileLayer)
+    this.setOLLayer(olLayer);
   }
 
   /**
    * Overrides the parent method to return a more specific OpenLayers layer type (covariant return).
    * @override
-   * @returns {TileLayer<GeoTIFFSource>} The strongly-typed OpenLayers type.
+   * @returns {WebGLTile | TileLayer<GeoTIFFSource>} The strongly-typed OpenLayers type.
    */
-  override getOLLayer(): TileLayer<GeoTIFFSource> {
+  override getOLLayer(): WebGLTile | TileLayer<GeoTIFFSource> {
     // Call parent and cast
-    return super.getOLLayer() as TileLayer<GeoTIFFSource>;
+    return super.getOLLayer() as WebGLTile | TileLayer<GeoTIFFSource>;
   }
 
   /**
    * Overrides the parent class's method to return a more specific OpenLayers source type (covariant return).
    * @override
-   * @returns {XYZ} The XYZ source instance associated with this layer.
+   * @returns {GeoTIFFSource} The GeoTIFF source instance associated with this layer.
    */
   override getOLSource(): GeoTIFFSource {
     // Get source from OL
@@ -82,14 +81,14 @@ export class GVGeoTIFF extends AbstractGVTile {
    * @returns {Extent | undefined} The layer bounding box.
    */
   override onGetBounds(projection: OLProjection, stops: number): Extent | undefined {
-    // Get the layer
-    const layer = this.getOLLayer() as TileLayer<GeoTIFFSource> | undefined;
+    // Get the source
+    const source = this.getOLSource();
 
     // Get the source projection
-    const sourceProjection = this.getOLSource()?.getProjection() || undefined;
+    const sourceProjection = source?.getProjection() || undefined;
 
     // Get the layer bounds
-    let sourceExtent = layer?.getSource()?.getTileGrid()?.getExtent();
+    let sourceExtent = source?.getTileGrid()?.getExtent();
 
     // If both found
     if (sourceExtent && sourceProjection) {

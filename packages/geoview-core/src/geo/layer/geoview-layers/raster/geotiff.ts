@@ -1,3 +1,4 @@
+import WebGLTile from 'ol/layer/WebGLTile';
 import type { Options as SourceOptions } from 'ol/source/GeoTIFF';
 import GeoTIFFSource from 'ol/source/GeoTIFF';
 
@@ -11,6 +12,7 @@ import { GeoTIFFLayerEntryConfig } from '@/api/config/validation-classes/raster-
 
 import { LayerDataAccessPathMandatoryError } from '@/core/exceptions/layer-exceptions';
 import { GVGeoTIFF } from '@/geo/layer/gv-layers/tile/gv-geotiff';
+import { logger } from '@/core/utils/logger';
 
 export interface TypeGeoTIFFLayerConfig extends Omit<TypeGeoviewLayerConfig, 'listOfLayerEntryConfig'> {
   geoviewLayerType: typeof CONST_LAYER_TYPES.GEOTIFF;
@@ -66,20 +68,133 @@ export class GeoTIFF extends AbstractGeoViewRaster {
   }
 
   /**
+   * Creates a GeoTIFF source from a layer config.
+   * @param {GeoTIFFLayerEntryConfig} layerConfig - The configuration for the GeoTIFF layer.
+   * @returns A fully configured GeoTIFF source.
+   * @throws If required config fields like dataAccessPath are missing.
+   */
+  static createGeoTIFFSource(layerConfig: GeoTIFFLayerEntryConfig): GeoTIFFSource {
+    const { source, layerId } = layerConfig;
+
+    if (!source?.dataAccessPath) {
+      throw new LayerDataAccessPathMandatoryError(layerConfig.layerPath, layerConfig.getLayerNameCascade());
+    }
+
+    // Detect if this is a multi-band RGB file (TCI) or single band
+    const isTCI = layerId.toLowerCase().includes('tci');
+    const isSingleBand = layerId.toLowerCase().match(/b\d{2}/i); // Matches B01, B08, etc.
+
+    const sourceOptions: SourceOptions = {
+      sources: [{ url: source.dataAccessPath, overviews: source.overviews }],
+    };
+
+    // Don't use convertToRGB or normalize - let WebGL handle it
+    // These options cause issues with Canvas renderer
+
+    logger.logWarning('Creating GeoTIFF source with options:', {
+      layerId,
+      isTCI,
+      isSingleBand,
+      url: source.dataAccessPath,
+    });
+
+    return new GeoTIFFSource(sourceOptions);
+  }
+
+  /**
    * Overrides the creation of the GV Layer
    * @param {GeoTIFFLayerEntryConfig} layerConfig - The layer entry configuration.
    * @returns {GVGeoTIFF} The GV Layer
    */
   protected override onCreateGVLayer(layerConfig: GeoTIFFLayerEntryConfig): GVGeoTIFF {
+    logger.logWarning('Creating GeoTIFF layer with config:', {
+      layerId: layerConfig.layerId,
+      dataAccessPath: layerConfig.source?.dataAccessPath,
+      overviews: layerConfig.source?.overviews,
+    });
+
     // Create the source
     const source = GeoTIFF.createGeoTIFFSource(layerConfig);
 
-    // Create the GV Layer
-    const gvLayer = new GVGeoTIFF(source, layerConfig);
+    logger.logWarning('GeoTIFF source created with internal config:', {
+      layerId: layerConfig.layerId,
+      state: source.getState(),
+    });
 
-    // Return it
+    // Create WebGLTile layer instead of regular GeoTIFF layer
+    const olLayer = new WebGLTile({
+      source,
+      properties: { layerConfig },
+      className: `ol-layer-${layerConfig.layerId}`,
+    });
+
+    logger.logWarning('WebGLTile layer created:', {
+      layerId: layerConfig.layerId,
+    });
+
+    // Create the GV Layer with WebGL layer
+    const gvLayer = new GVGeoTIFF(olLayer, layerConfig);
+
+    // Setup async initialization monitoring (don't await here)
+    void this.#initializeSourceMonitoring(source, layerConfig, gvLayer);
+
+    // Return the layer immediately
     return gvLayer;
   }
+
+  /**
+   * Initializes monitoring for the GeoTIFF source (async)
+   * @param {GeoTIFFSource} source - The GeoTIFF source
+   * @param {GeoTIFFLayerEntryConfig} layerConfig - The layer config
+   * @param {GVGeoTIFF} gvLayer - The GV layer
+   * @private
+   */
+  async #initializeSourceMonitoring(source: GeoTIFFSource, layerConfig: GeoTIFFLayerEntryConfig, gvLayer: GVGeoTIFF): Promise<void> {
+    logger.logWarning('Waiting for GeoTIFF source to be ready...', layerConfig.layerId);
+
+    try {
+      const srcView = await source.getView();
+
+      logger.logWarning('GeoTIFF source loaded successfully', {
+        layerId: layerConfig.layerId,
+        projection: srcView.projection.getCode(),
+        extent: srcView.extent,
+        resolutions: srcView.resolutions?.length,
+        center: srcView.center,
+      });
+
+      const layer = gvLayer.getOLLayer();
+      logger.logWarning('GeoTIFF layer ready with diagnostics', {
+        layerId: layerConfig.layerId,
+        sourceState: source.getState(),
+        sourceReady: (layer as any).sourceReady_,
+        projection: source.getProjection()?.getCode(),
+        tileGrid: source.getTileGrid() !== null,
+        bandCount: (source as any).bandCount,
+        visible: layer.getVisible(),
+        opacity: layer.getOpacity(),
+      });
+    } catch (error) {
+      logger.logError('Failed to initialize GeoTIFF source:', {
+        layerId: layerConfig.layerId,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+    }
+
+    // Add event monitoring
+    source.on('change', () => {
+      const state = source.getState();
+      if (state === 'error') {
+        logger.logError('Source entered error state', {
+          error: (source as any).error_,
+          layerId: layerConfig.layerId,
+        });
+      }
+    });
+  }
+
+  // ...existing code...
 
   /**
    * Initializes a GeoView layer configuration for a GeoTIFF layer.
