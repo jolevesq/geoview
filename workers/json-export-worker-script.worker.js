@@ -1,4 +1,4 @@
-/*! Package:json-export-worker-script: 2.0.2 - "74a8462e55d62a08decec19503f98ebaf8d4346a" - 2025-11-13T17:16:47.146Z */(()=>{"use strict";
+/*! Package:json-export-worker-script: 2.0.2 - "c4ccbfcbbec4e8413b04d49cbf154bde3a9c4deb" - 2025-11-14T21:43:10.214Z */(()=>{"use strict";
 /**
  * @license
  * Copyright 2019 Google LLC
