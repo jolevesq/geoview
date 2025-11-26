@@ -30,7 +30,7 @@ const geometryApi = mapViewer.layer.geometry;
 Geometry groups allow you to organize and manage multiple geometries together. Each group has its own vector layer and can be shown/hidden and z-index set independently.
 
 ```typescript
-// Create a geometry group (by deafult z-index is infinity)
+// Create a geometry group (by default z-index is 9999)
 const group = mapViewer.layer.geometry.createGeometryGroup("myGroup");
 
 // Set as active (new geometries will be added to this group)
@@ -512,24 +512,55 @@ console.log("Active group:", activeGroup.geometryGroupId);
 
 ### getGeometryGroup()
 
-Gets a specific geometry group by ID.
+Gets a specific geometry group by ID. Throws an error if the group doesn't exist.
 
 ```typescript
-getGeometryGroup(geometryGroupId?: string): FeatureCollection | undefined
+getGeometryGroup(geometryGroupId: string): FeatureCollection
 ```
 
 **Parameters:**
 
-- `geometryGroupId` - Optional group ID (returns active group if not specified)
+- `geometryGroupId` - The group ID
 
-**Returns:** FeatureCollection or undefined if not found
+**Returns:** FeatureCollection
+
+**Throws:** `InvaliGeometryGroupIdError` if the group is not found
 
 **Example:**
 
 ```typescript
-const group = mapViewer.layer.geometry.getGeometryGroup("annotations");
-if (group) {
+try {
+  const group = mapViewer.layer.geometry.getGeometryGroup("annotations");
   console.log("Group found:", group.geometryGroupId);
+} catch (error) {
+  console.error("Group not found");
+}
+```
+
+---
+
+#### hasGeometryGroup()
+
+Checks if a geometry group exists.
+
+```typescript
+hasGeometryGroup(geometryGroupId: string): boolean
+```
+
+**Parameters:**
+
+- `geometryGroupId` - The group ID to check
+
+**Returns:** `true` if the group exists, `false` otherwise
+
+**Example:**
+
+```typescript
+if (mapViewer.layer.geometry.hasGeometryGroup("annotations")) {
+  console.log("Annotations group exists");
+} else {
+  // Create the group
+  mapViewer.layer.geometry.createGeometryGroup("annotations");
 }
 ```
 
@@ -590,12 +621,12 @@ groups.forEach((group) => {
 Shows a geometry group on the map.
 
 ```typescript
-setGeometryGroupAsVisible(geometryGroupId?: string): void
+setGeometryGroupAsVisible(geometryGroupId: string): void
 ```
 
 **Parameters:**
 
-- `geometryGroupId` - Optional group ID (uses active group if not specified)
+- `geometryGroupId` - The group ID
 
 **Example:**
 
@@ -608,12 +639,12 @@ mapViewer.layer.geometry.setGeometryGroupAsVisible("annotations");
 Hides a geometry group from the map.
 
 ```typescript
-setGeometryGroupAsInvisible(geometryGroupId?: string): void
+setGeometryGroupAsInvisible(geometryGroupId: string): void
 ```
 
 **Parameters:**
 
-- `geometryGroupId` - Optional group ID (uses active group if not specified)
+- `geometryGroupId` - The group ID
 
 **Example:**
 
@@ -623,17 +654,17 @@ mapViewer.layer.geometry.setGeometryGroupAsInvisible("annotations");
 
 #### getGeometryGroupZIndex()
 
-Gets the z-index of a geometry group's vector layer.
+Gets the z-index of a geometry group's vector layer. Returns `Infinity` if the layer has no explicit z-index set.
 
 ```typescript
-getGeometryGroupZIndex(geometryGroupId?: string): number | undefined
+getGeometryGroupZIndex(geometryGroupId: string): number
 ```
 
 **Parameters:**
 
 - `geometryGroupId` - The group ID
 
-**Returns:** The z-index value, or `undefined` if the group doesn't exist
+**Returns:** The z-index value, or `Infinity` if no z-index is set
 
 **Example:**
 
@@ -644,7 +675,7 @@ console.log(`Current z-index: ${zIndex}`);
 
 #### setGeometryGroupZIndex()
 
-Sets the z-index of a geometry group's vector layer to control rendering order.
+Sets the z-index of a geometry group's vector layer to control rendering order. Higher values render on top.
 
 ```typescript
 setGeometryGroupZIndex(geometryGroupId: string, zIndex: number): void
@@ -664,6 +695,8 @@ mapViewer.layer.geometry.setGeometryGroupZIndex("annotations", 100);
 // Set highlights to render below other geometries
 mapViewer.layer.geometry.setGeometryGroupZIndex("highlights", 50);
 ```
+
+**Note:** When creating geometry groups, they are initialized with a z-index of 9999 to ensure they render above base map layers.
 
 ---
 
@@ -694,13 +727,13 @@ mapViewer.layer.geometry.addToGeometryGroup(marker, "importantPoints");
 Removes a geometry from a specific group.
 
 ```typescript
-deleteGeometryFromGroup(featureId: string, geometryGroupId?: string): void
+deleteGeometryFromGroup(featureId: string, geometryGroupId: string): void
 ```
 
 **Parameters:**
 
 - `featureId` - The geometry's unique identifier
-- `geometryGroupId` - Optional group ID (uses active group if not specified)
+- `geometryGroupId` - The group ID
 
 **Example:**
 
@@ -713,12 +746,12 @@ mapViewer.layer.geometry.deleteGeometryFromGroup("myMarker", "annotations");
 Removes all geometries from a group but keeps the group itself.
 
 ```typescript
-deleteGeometriesFromGroup(geometryGroupId?: string): FeatureCollection
+deleteGeometriesFromGroup(geometryGroupId: string): FeatureCollection
 ```
 
 **Parameters:**
 
-- `geometryGroupId` - Optional group ID (uses active group if not specified)
+- `geometryGroupId` - The group ID
 
 **Returns:** The cleared FeatureCollection
 
@@ -734,12 +767,12 @@ mapViewer.layer.geometry.deleteGeometriesFromGroup("annotations");
 Deletes a geometry group and all its geometries from the map. The default group cannot be deleted.
 
 ```typescript
-deleteGeometryGroup(geometryGroupId?: string): void
+deleteGeometryGroup(geometryGroupId: string): void
 ```
 
 **Parameters:**
 
-- `geometryGroupId` - Optional group ID (uses active group if not specified)
+- `geometryGroupId` - The group ID
 
 **Example:**
 
