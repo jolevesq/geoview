@@ -45,8 +45,6 @@
   },
   "mapctrl": {
     "rotation": {
-      "resetRotation": "Reset map rotation",
-      "fixedNorth": "Fix North",
       "rotation": "Map rotation",
       "projection": "Projection"
     },
@@ -96,7 +94,8 @@
     "itemsCount": "{count} of {totalCount} classes",
     "legendInstructions": "Legend Instructions",
     "noLayersAdded": "No layers added to the map",
-    "noLayersAddedDescription": "Add layers to the map by clicking on the 'Layers' button and adding the layers you want to display."
+    "noLayersAddedDescription": "Add layers to the map by clicking on the 'Layers' button and adding the layers you want to display.",
+    "selectLayerAndScroll": "Access the layers panel"
   },
   "layers": {
     "title": "Layers",
@@ -203,6 +202,7 @@
     "closeSelection": "Close selection",
     "externalLink": "External Link",
     "feature": "feature",
+    "selected": "selected",
     "clickOnMap": "Click on map",
     "nextFeatureBtn": "Next feature",
     "previousFeatureBtn": "Previous feature",
