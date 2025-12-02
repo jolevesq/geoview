@@ -98,7 +98,7 @@
     "legendInstructions": "Legend Instructions",
     "noLayersAdded": "No layers added to the map",
     "noLayersAddedDescription": "Add layers to the map by clicking on the 'Layers' button and adding the layers you want to display.",
-    "selectLayerAndScroll": "View in layers panel"
+    "selectLayerAndScroll": "View in Layers panel"
   },
   "layers": {
     "title": "Layers",
@@ -196,7 +196,8 @@
     "tableViewNone": "Table (unavailable)",
     "moveLayerUp": "Move layer up",
     "moveLayerDown": "Move layer down",
-    "layerControls": "Layers controls"
+    "layerControls": "Layers controls",
+    "selectLayerAndScrollTimeSlider": "Show Time Slider panel"
   },
   "details": {
     "title": "Details",
@@ -343,8 +344,8 @@
     "noFeatures": "unknown...",
     "showing": "showing",
     "total": "total",
-    "selectLayerAndScroll": "Access the data table panel",
-    "accessAdvancedFunctions": "Access data table panel for advanced functions",
+    "selectLayerAndScroll": "Show Data Table panel",
+    "accessAdvancedFunctions": "Access Data Table panel for advanced functions",
     "filterToggle": "column filters"
   },
   "geoChart": {
