@@ -49,7 +49,8 @@
   "mapctrl": {
     "rotation": {
       "rotation": "Rotation de la carte",
-      "projection": "Projection"
+      "projection": "Projection",
+      "fixedNorth": "Fixer le Nord"
     },
     "mouseposition": {
       "east": "E",
@@ -197,7 +198,7 @@
     "moveLayerUp": "Déplacer la couche vers le haut",
     "moveLayerDown": "Déplacer la couche vers le bas",
     "layerControls": "Commandes des couches",
-    "selectLayerAndScrollTimeSlider": "Voir panneau Curseur Temporel"
+    "selectLayerAndScrollTimeSlider": "Voir dans le panneau Curseur Temporel"
   },
   "details": {
     "title": "Détails",
@@ -231,7 +232,8 @@
     "northing": "Northing",
     "ntsMapsheet": "Carte SNRC",
     "elevation": "Élévation",
-    "guideControls": "Commandes du guide"
+    "guideControls": "Commandes du guide",
+    "selectLayerAndScrollChart": "Voir dans le panneau Graphique"
   },
   "lightbox": {
     "next": "Prochaine",
