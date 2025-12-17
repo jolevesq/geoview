@@ -77,7 +77,7 @@
 
       .tableResults tr.expanded .test-title::before {
         transform: rotate(90deg);
-      }</style><script src="cgpv-main.js"></script></head><body><div><div id="page-header"></div><div class="back-to-main"><a href="./index.html?tab=testing">← Back to Main</a></div></div><div class="tabs"><button class="tab-button active" onclick="openTab(event, 'run-all')">Run All Tests</button> <button class="tab-button" onclick="openTab(event, 'map1-test')">Map 1 (EPSG: 3978)</button> <button class="tab-button" onclick="openTab(event, 'map2-test')">Map 2 (EPSG: 3978)</button> <button class="tab-button" onclick="openTab(event, 'map3-test')">Map 3 (EPSG: 3857)</button> <button class="tab-button" onclick="openTab(event, 'map4-test')">Map 4 (EPSG: 3978)</button> <button class="tab-button" onclick="openTab(event, 'map5-test')">Map 5 (EPSG: 3978)</button> <button class="tab-button" onclick="openTab(event, 'map6-test')">Map 6 (EPSG: 3978)</button></div><div id="run-all" class="tab-content active"><h3>Overall Test Summary</h3><div style="text-align: right"><span id="allSuitesCheck"></span></div><div style="text-align: right">Suites: <span id="allSuitesCompleted">0</span>/<span id="allSuitesTotal">0</span></div><div style="text-align: right">Running: <span id="allSuitesTestsRunning">0</span> | Done success: <span id="allSuitesTestsDoneSuccess" style="color: green">0</span> | Done failed: <span id="allSuitesTestsDoneFailed" style="color: red">0</span> | Done: <span id="allSuitesTestsDone">0</span>/<span id="allSuitesTestsTotal">0</span></div><button class="btnLaunchTests" onclick="launchTestsAll()">LAUNCH TESTS ALL MAPS!</button><h3 style="margin-top: 30px">Test Results by Map</h3><button id="collapsibleMap1" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 1 - Config Tests (EPSG: 3978)</span> <span id="statsMap1" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap1Results"></div></div><button id="collapsibleMap2" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 2 - Layer Tests (EPSG: 3978)</span> <span id="statsMap2" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap2Results"></div></div><button id="collapsibleMap3" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 3 - Layer Tests (EPSG: 3857)</span> <span id="statsMap3" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap3Results"></div></div><button id="collapsibleMap4" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 4 - Map Tests (EPSG: 3978)</span> <span id="statsMap4" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap4Results"></div></div><button id="collapsibleMap5" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 5 - Geochart Tests (EPSG: 3978)</span> <span id="statsMap5" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap5Results"></div></div><button id="collapsibleMap6" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 6 - Map Config Tests (EPSG: 3978)</span> <span id="statsMap6" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap6Results"></div></div></div><div id="map1-test" class="tab-content"><div class="map-title-holder"><h4 id="HEVNT1">1. Tests on map 1 (EPSG: 3978)</h4><a class="ref-link" href="#top">Top</a></div><div id="testSuiteTable-map1"></div><br/><div id="map1" class="geoview-map" data-lang="en" data-config="{
+      }</style><script src="cgpv-main.js"></script></head><body><div><div id="page-header"></div><div class="back-to-main"><a href="./index.html?tab=testing">← Back to Main</a></div></div><div class="tabs"><button class="tab-button active" onclick="openTab(event, 'run-all')">Run All Tests</button> <button class="tab-button" onclick="openTab(event, 'map1-test')">Map 1 (EPSG: 3978)</button> <button class="tab-button" onclick="openTab(event, 'map2-test')">Map 2 (EPSG: 3978)</button> <button class="tab-button" onclick="openTab(event, 'map3-test')">Map 3 (EPSG: 3857)</button> <button class="tab-button" onclick="openTab(event, 'map4-test')">Map Functions</button> <button class="tab-button" onclick="openTab(event, 'map5-test')">Map 5 (EPSG: 3978)</button> <button class="tab-button" onclick="openTab(event, 'map6-test')">Map Config</button> <button class="tab-button" onclick="openTab(event, 'map7-test')">Map 7 (EPSG: 3978)</button></div><div id="run-all" class="tab-content active"><h3>Overall Test Summary</h3><div style="text-align: right"><span id="allSuitesCheck"></span></div><div style="text-align: right">Suites: <span id="allSuitesCompleted">0</span>/<span id="allSuitesTotal">0</span></div><div style="text-align: right">Running: <span id="allSuitesTestsRunning">0</span> | Done success: <span id="allSuitesTestsDoneSuccess" style="color: green">0</span> | Done failed: <span id="allSuitesTestsDoneFailed" style="color: red">0</span> | Done: <span id="allSuitesTestsDone">0</span>/<span id="allSuitesTestsTotal">0</span></div><button class="btnLaunchTests" onclick="launchTestsAll()">LAUNCH TESTS ALL MAPS!</button><h3 style="margin-top: 30px">Test Results by Map</h3><button id="collapsibleMap1" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 1 - Config Tests (EPSG: 3978)</span> <span id="statsMap1" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap1Results"></div></div><button id="collapsibleMap2" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 2 - Layer Tests (EPSG: 3978)</span> <span id="statsMap2" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap2Results"></div></div><button id="collapsibleMap3" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 3 - Layer Tests (EPSG: 3857)</span> <span id="statsMap3" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap3Results"></div></div><button id="collapsibleMap4" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 4 - Map Functions Tests</span> <span id="statsMap4" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap4Results"></div></div><button id="collapsibleMap5" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 5 - Geochart Tests (EPSG: 3978)</span> <span id="statsMap5" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap5Results"></div></div><button id="collapsibleMap6" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 6 - Map Config Tests</span> <span id="statsMap6" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap6Results"></div></div><button id="collapsibleMap7" class="collapsible" onclick="toggleCollapsible(this)"><span style="font-weight: bold">Map 7 - UI Tests (EPSG: 3978)</span> <span id="statsMap7" style="font-size: 0.9em; margin-left: 20px">Running: 0 | Done success: 0 | Done failed: 0 | Done: 0/0</span></button><div class="panel"><div id="runAllMap7Results"></div></div></div><div id="map1-test" class="tab-content"><div class="map-title-holder"><h4 id="HEVNT1">1. Tests on map 1 (EPSG: 3978)</h4><a class="ref-link" href="#top">Top</a></div><div id="testSuiteTable-map1"></div><br/><div id="map1" class="geoview-map" data-lang="en" data-config="{
           'map': {
             'interaction': 'dynamic',
             'viewSettings': {
@@ -166,7 +166,7 @@
               ]
             }
           }
-        }"></div></div><div id="map4-test" class="tab-content"><div class="map-title-holder"><h4 id="HEVNT4">4. Tests on map 4 (EPSG: 3978)</h4><a class="ref-link" href="#top">Top</a></div><div id="testSuiteTable-map4"></div><br/><div id="map4" style="width: 1000px; margin: auto" class="geoview-map" data-lang="en" data-config="{
+        }"></div></div><div id="map4-test" class="tab-content"><div class="map-title-holder"><h4 id="HEVNT4">4. Tests on map functions</h4><a class="ref-link" href="#top">Top</a></div><div id="testSuiteTable-map4"></div><br/><div id="map4" style="width: 1000px; margin: auto" class="geoview-map" data-lang="en" data-config="{
           'map': {
             'interaction': 'dynamic',
             'viewSettings': {
@@ -189,6 +189,17 @@
                     'layerName': 'Polygons'
                   }
                 ]
+              },
+              {
+                'geoviewLayerId': 'esriFeatureLYR5',
+                'geoviewLayerName': 'Top Projects',
+                'metadataAccessPath': 'https://maps-cartes.services.geo.ca/server_serveur/rest/services/NRCan/900A_and_top_100_en/MapServer/',
+                'geoviewLayerType': 'esriFeature',
+                'listOfLayerEntryConfig': [
+                  {
+                    'layerId': '0'
+                  }
+                ]
               }
             ]
           },
@@ -203,9 +214,8 @@
           'footerBar': {
             'tabs': {
               'core': [
-                'legend',
                 'layers',
-                'details'
+                'data-table'
               ]
             }
           }
@@ -318,7 +328,7 @@
               ]
             }
           }
-        }"></div></div><div id="map6-test" class="tab-content"><div class="map-title-holder"><h4 id="HEVNT6">6. Tests on map 6 (EPSG: 3857)</h4><a class="ref-link" href="#top">Top</a></div><div id="testSuiteTable-map6"></div><br/><div id="map6" class="geoview-map" data-lang="en" data-config="{
+        }"></div></div><div id="map6-test" class="tab-content"><div class="map-title-holder"><h4 id="HEVNT6">6. Tests on map config</h4><a class="ref-link" href="#top">Top</a></div><div id="testSuiteTable-map6"></div><br/><div id="map6" class="geoview-map" data-lang="en" data-config="{
           'map': {
             'interaction': 'dynamic',
             'viewSettings': {
@@ -342,6 +352,36 @@
           'footerBar': {
             'tabs': {
               'core': []
+            }
+          }
+        }"></div></div><div id="map7-test" class="tab-content"><div class="map-title-holder"><h4 id="HEVNT7">7. Tests on map 7 (EPSG: 3978)</h4><a class="ref-link" href="#top">Top</a></div><div id="testSuiteTable-map7"></div><br/><div id="map7" class="geoview-map" data-lang="en" data-config="{
+          'map': {
+            'interaction': 'dynamic',
+            'viewSettings': {
+              'projection': 3978
+            },
+            'basemapOptions': {
+              'basemapId': 'transport',
+              'shaded': true,
+              'labeled': true
+            },
+            'listOfGeoviewLayerConfig': []
+          },
+          'components': [],
+          'corePackages': ['test-suite'],
+          'corePackagesConfig': [
+            {
+              'test-suite': { 'suites': ['suite-ui'] }
+            }
+          ],
+          'theme': 'geo.ca',
+          'footerBar': {
+            'tabs': {
+              'core': [
+                'legend',
+                'layers',
+                'details'
+              ]
             }
           }
         }"></div></div><script>insertPageHeader();
