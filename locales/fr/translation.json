@@ -21,7 +21,9 @@
     "show": "Afficher",
     "hide": "Masquer",
     "none": "Aucun",
-    "clearSearch": "Effacer la recherche"
+    "clearSearch": "Effacer la recherche",
+    "enable": "Activer",
+    "disable": "Désactiver"
   },
   "mapnav": {
     "arianavbar": "Groupe de buttons vertical pour navigation sur la carte",
@@ -33,12 +35,20 @@
     "coordinates": "Basculer le format des coordonnées",
     "scale": "Basculer entre l'échelle et la résolution",
     "location": "Zoom sur ma position",
+    "measurement": "Mesurer sur la carte",
     "projection": "Changer la projection de la carte",
     "rotation": {
       "title": "Rotation de la carte",
       "degrees": "Degrés",
       "reset": "Réinitialiser"
     }
+  },
+  "measurement": {
+    "title": "Mesurer",
+    "line": "Distance",
+    "area": "Surface",
+    "clear": "Effacer",
+    "segmentLabels": "Afficher les étiquettes de segment"
   },
   "basemaps": {
     "select": "Choisir une carte de base",
@@ -321,6 +331,7 @@
   },
   "geolocator": {
     "title": "Géolocalisation",
+    "panelTitle": "Panneau de géolocalisation",
     "searchFormLabel": "Recherche de géolocalisation",
     "searchInputLabel": "Entrer le(s) mot(s)-clé(s) (au moins trois caractères)",
     "search": "Texte à rechercher",
@@ -384,7 +395,8 @@
   },
   "footerBar": {
     "resizeTooltip": "Redimensionner",
-    "noTab": "Pas d'onglet"
+    "noTab": "Pas d'onglet",
+    "tabsLabel": "Onglets du panneau de pied de page"
   },
   "toggleAll": {
     "show": "Afficher tout",
