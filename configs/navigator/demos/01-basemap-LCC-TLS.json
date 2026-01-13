@@ -15,7 +15,6 @@
       "labelZIndex": 20
     }
   },
-  "navBar": ["measurement"],
   "components": ["overview-map", "north-arrow"],
   "overviewMap": {
     "hideOnZoom": 7

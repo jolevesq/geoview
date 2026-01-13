@@ -7,7 +7,6 @@
     "name": "Name",
     "open": "Open",
     "remove": "Remove",
-    "removeAll": "Remove all",
     "view": "View",
     "failed": "failed",
     "started": "started",
@@ -20,10 +19,7 @@
     "clickEnlarge": "Click to enlarge",
     "show": "Show",
     "hide": "Hide",
-    "none": "No",
-    "clearSearch": "Clear search",
-    "enable": "Enable",
-    "disable": "Disable"
+    "none": "No"
   },
   "mapnav": {
     "arianavbar": "Vertical button group for map navigation",
@@ -35,20 +31,12 @@
     "coordinates": "Toggle coordinates format",
     "scale": "Toggle between scale and resolution",
     "location": "Zoom to my location",
-    "measurement": "Measure on map",
     "projection": "Change map projection",
     "rotation": {
       "title": "Map Rotation",
       "degrees": "Degrees",
       "reset": "Reset"
     }
-  },
-  "measurement": {
-    "title": "Measure",
-    "line": "Distance",
-    "area": "Area",
-    "clear": "Clear",
-    "segmentLabels": "Show segment labels"
   },
   "basemaps": {
     "select": "Select a basemap",
@@ -85,17 +73,13 @@
   },
   "appbar": {
     "export": "Download map",
-    "notifications": "Notifications",
+    "notifications": "Notification",
     "noNotificationsAvailable": "No notifications available",
     "layers": "Layers",
     "share": "Share",
     "version": "About GeoView",
-    "closeVersionsDialog": "Close About GeoView dialog",
     "repoLink": "Github",
-    "removeNotification": "Remove notification",
-    "removeAllNotifications": "Remove all notifications",
-    "repeatedNotificationTimes": "repeated {{count}} times",
-    "closeNotificationsDialog": "Close notifications dialog",
+    "removeAllNotifications": "Remove all",
     "navLabel": "Main map controls"
   },
   "legend": {
@@ -292,7 +276,7 @@
       "invalidLayerFilter": "Layer '__param__' has an invalid layer filter.\nfilter = '__param__'\ninternal filter = '__param__'.",
       "failedToCreateLayer": "Failed to create the layer '__param__'.",
       "noCapabilitiesOrEmpty": "No capabilities (or empty) found for layer '__param__'.",
-      "wmsServiceFormatParameter": "Parameter format(s) '__param__' of GetFeatureInfo are not supported for WMS services, '__param__'.",
+      "wmsServiceFormatParameter": "Parameter 'Format' of GetFeatureInfo not supported for WMS services, '__param__'.",
       "wmsSubLayerNotfound": "The sublayer __param__ of the layer __param__ does not exist on the server.",
       "csvNoGeographicData": "Could not find geographic data in the CSV '__param__'.",
       "invalidMetadata": "Invalid metadata (listOfLayerEntryConfig) preventing load of layer '__param__'.",
@@ -331,15 +315,8 @@
   },
   "geolocator": {
     "title": "Geolocator",
-    "panelTitle": "Geolocator panel",
-    "searchFormLabel": "Geolocator search",
-    "searchInputLabel": "Enter keyword(s) (minimum 3 characters)",
     "search": "Search",
-    "searchClose": "Close search",
-    "searchSubmit": "Submit search",
-    "searchResults": "Search results",
     "noResult": "No matches found for",
-    "resultsFound": "{{count}} result(s) found for '{{searchTerm}}'",
     "province": "Province",
     "category": "Category",
     "clearFilters": "Clear filters",
@@ -373,10 +350,7 @@
     "total": "total",
     "selectLayerAndScroll": "Show in Data Table panel",
     "accessAdvancedFunctions": "Access Data Table panel for advanced functions",
-    "filterToggle": "filters",
-    "searchInputLabel": "Search data table columns",
-    "tableControls": "Data table controls",
-    "tableAriaLabelWithLayer": "{{layerName}} data table"
+    "filterToggle": "filters"
   },
   "geoChart": {
     "noChartAvailable": "Click on the map on a layer with chart"
@@ -387,16 +361,13 @@
   "guide": {
     "title": "Guide",
     "search": "Search guide...",
-    "searchFormLabel": "Search guide",
-    "searchInputLabel": "Search keyword(s)",
     "errorMessage": "Sorry, unable to find the help document!",
     "arrowUp": "Previous match",
     "arrowDown": "Next match"
   },
   "footerBar": {
     "resizeTooltip": "Resize",
-    "noTab": "No tab",
-    "tabsLabel": "Footer panel tabs"
+    "noTab": "No tab"
   },
   "toggleAll": {
     "show": "Show All",
@@ -428,7 +399,6 @@
       "statusWasError": "Layer '__param__' status was 'error'.",
       "notAGeoJsonLayer": "Not a GeoJson layer for layer '__param__'.",
       "notAnEsriDynamicLayer": "Not an Esri Dynamic Layer for layer '__param__'.",
-      "notSupportingDynamicLayers": "Layer '__param__' does not technically support dynamic layers per its metadata.",
       "notAFeatureLayer": "Layer id not a Feature Layer for layer '__param__'.",
       "notQueryableLayer": "Layer '__param__' is not queryable.",
       "notAbleToQuery": "Not able to download records for '__param__'"

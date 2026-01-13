@@ -48,7 +48,7 @@
       },
       {
         "geoviewLayerId": "LYR13-qgis",
-        "geoviewLayerName": "BC Wells (known issue, have to zoom to BC for the style to kick in and features to get loaded)",
+        "geoviewLayerName": "OpenMaps Water Management (not working)",
         "metadataAccessPath": "https://openmaps.gov.bc.ca/geo/ows",
         "geoviewLayerType": "ogcWfs",
         "listOfLayerEntryConfig": [

@@ -7,7 +7,6 @@
     "exit": "Sortir",
     "open": "Ouvrir",
     "remove": "Retirer",
-    "removeAll": "Retirer tout",
     "view": "Vue",
     "failed": "a échoué",
     "started": "démarré",
@@ -20,10 +19,7 @@
     "clickEnlarge": "Cliquer pour agrandir",
     "show": "Afficher",
     "hide": "Masquer",
-    "none": "Aucun",
-    "clearSearch": "Effacer la recherche",
-    "enable": "Activer",
-    "disable": "Désactiver"
+    "none": "Aucun"
   },
   "mapnav": {
     "arianavbar": "Groupe de buttons vertical pour navigation sur la carte",
@@ -35,20 +31,12 @@
     "coordinates": "Basculer le format des coordonnées",
     "scale": "Basculer entre l'échelle et la résolution",
     "location": "Zoom sur ma position",
-    "measurement": "Mesurer sur la carte",
     "projection": "Changer la projection de la carte",
     "rotation": {
       "title": "Rotation de la carte",
       "degrees": "Degrés",
       "reset": "Réinitialiser"
     }
-  },
-  "measurement": {
-    "title": "Mesurer",
-    "line": "Distance",
-    "area": "Surface",
-    "clear": "Effacer",
-    "segmentLabels": "Afficher les étiquettes des segments"
   },
   "basemaps": {
     "select": "Choisir une carte de base",
@@ -85,17 +73,13 @@
   },
   "appbar": {
     "export": "Télécharger la carte",
-    "notifications": "Notifications",
+    "notifications": "Notification",
     "noNotificationsAvailable": "Aucune notification disponible",
     "layers": "Couches",
     "share": "Partager",
     "version": "À propos de GéoView",
-    "closeVersionsDialog": "Fermer la boîte de dialogue À propos de GéoView",
     "repoLink": "Github",
-    "removeNotification": "Supprimer la notification",
-    "removeAllNotifications": "Effacer toutes les notifications",
-    "repeatedNotificationTimes": "répété {{count}} fois",
-    "closeNotificationsDialog": "Fermer la boîte de dialogue des notifications",
+    "removeAllNotifications": "Effacer tout",
     "navLabel": "Contrôles principaux de la carte"
   },
   "legend": {
@@ -292,7 +276,7 @@
       "invalidLayerFilter": "La couche '__param__' contient un filtre invalide.\nfiltre = '__param__'\nfiltre interne = '__param__'.",
       "failedToCreateLayer": "Échec de la création de la couche '__param__'.",
       "noCapabilitiesOrEmpty": "Aucune capacité trouvée (ou vide) pour la couche '__param__'.",
-      "wmsServiceFormatParameter": "Le(s) paramètre(s) format '__param__' de GetFeatureInfo ne sont pas supportés pour les services WMS, '__param__'.",
+      "wmsServiceFormatParameter": "Le paramètre 'Format' de GetFeatureInfo n'est pas supporté pour les services WMS, '__param__'.",
       "wmsSubLayerNotfound": "La sous-couche '__param__' de la couche '__param__' n'existe pas sur le serveur.",
       "csvNoGeographicData": "Aucune donnée géographique trouvée dans le fichier CSV '__param__'.",
       "invalidMetadata": "Métadonnées invalides (listOfLayerEntryConfig) empêchant le chargement de la couche '__param__'.",
@@ -331,15 +315,8 @@
   },
   "geolocator": {
     "title": "Géolocalisation",
-    "panelTitle": "Panneau de géolocalisation",
-    "searchFormLabel": "Recherche de géolocalisation",
-    "searchInputLabel": "Entrer le(s) mot(s)-clé(s) (au moins trois caractères)",
     "search": "Texte à rechercher",
-    "searchClose": "Fermer la recherche",
-    "searchSubmit": "Soumettre la recherche",
-    "searchResults": "Résultats de la recherche",
     "noResult": "Aucun résultat correspondant à",
-    "resultsFound": "{{count}} résultat(s) trouvé(s) pour '{{searchTerm}}'",
     "province": "Province",
     "category": "Catégorie",
     "clearFilters": "Effacer les filtres",
@@ -373,10 +350,7 @@
     "total": "total",
     "selectLayerAndScroll": "Voir dans le panneau Données",
     "accessAdvancedFunctions": "Accéder au panneau Données pour les fonctions avancées",
-    "filterToggle": "les filtres",
-    "searchInputLabel": "Rechercher dans les colonnes du tableau",
-    "tableControls": "Contrôles du tableau de données",
-    "tableAriaLabelWithLayer": "Tableau de données {{layerName}}"
+    "filterToggle": "les filtres"
   },
   "geochart": {
     "noChartAvailable": "Cliquer sur une couche de la carte qui contient un graphique"
@@ -387,16 +361,13 @@
   "guide": {
     "title": "Guide",
     "search": "Rechercher dans le guide...",
-    "searchFormLabel": "Rechercher dans le guide",
-    "searchInputLabel": "Entrer le(s) mot(s)-clé(s)",
     "errorMessage": "Désolé, impossible de trouver le document d'aide!",
     "arrowUp": "Correspondance précédente",
     "arrowDown": "Correspondance suivante"
   },
   "footerBar": {
     "resizeTooltip": "Redimensionner",
-    "noTab": "Pas d'onglet",
-    "tabsLabel": "Onglets du panneau de pied de page"
+    "noTab": "Pas d'onglet"
   },
   "toggleAll": {
     "show": "Afficher tout",
@@ -428,7 +399,6 @@
       "statusWasError": "Le statut de la couche '__param__' était en 'erreur'.",
       "notAGeoJsonLayer": "Ce n'est pas une couche GeoJSON pour la couche '__param__'.",
       "notAnEsriDynamicLayer": "Ce n'est pas une couche dynamique Esri pour la couche '__param__'.",
-      "notSupportingDynamicLayers": "La couche '__param__' ne prend techniquement pas en charge les couches dynamiques selon ses métadonnées.",
       "notAFeatureLayer": "L'identifiant de couche n'est pas une couche d'entités pour la couche '__param__'.",
       "notQueryableLayer": "La couche '__param__' n'est pas interrogeable.",
       "notAbleToQuery": "Impossible de téléchager les données pour '__param__'."

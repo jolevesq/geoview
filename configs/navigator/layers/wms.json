@@ -20,7 +20,6 @@
           {
             "layerId": "cities",
             "wfsLayerId": "ms:cities",
-            "layerFilter": "POPULATION >= 250000",
             "source": {
               "featureInfo": {
                 "nameField": "NAME"
@@ -195,7 +194,7 @@
       },
       {
         "geoviewLayerId": "LYR13-qgis",
-        "geoviewLayerName": "BC Kelowna Wells (WFS exists, but no GetStyles)",
+        "geoviewLayerName": "OpenMaps Water Management (WFS exists, but no GetStyles support)",
         "metadataAccessPath": "https://openmaps.gov.bc.ca/geo/ows",
         "geoviewLayerType": "ogcWms",
         "listOfLayerEntryConfig": [
@@ -232,8 +231,5 @@
     "tabs": {
       "core": ["geolocator", "legend", "details", "export"]
     }
-  },
-  "globalSettings": {
-    "showUnsymbolizedFeatures": true
   }
 }
