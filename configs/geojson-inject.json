@@ -16,7 +16,7 @@
       {
         "geoviewLayerId": "geojsonLYR1",
         "geoviewLayerName": "GeoJSON Sample",
-        "metadataAccessPath": "https://canadian-geospatial-platform.github.io/geoview/public/datasets/geojson/metadata_genericBlank_featureInfo5_20250217.meta",
+        "metadataAccessPath": "./datasets/geojson/metadata_genericBlank_featureInfo5_20250217.meta",
         "geoviewLayerType": "GeoJSON",
         "listOfLayerEntryConfig": [
           {
@@ -46,7 +46,8 @@
           "contentHTML": "<div><ul><li>How to export map coordinate data to: GeoJSON, or CSV.</li></ul></div>"
         }
       ]
-    }
+    },
+    "collapsed": true
   },
   "corePackages": [],
   "theme": "geo.ca"
