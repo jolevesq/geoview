@@ -10,22 +10,7 @@
       "labeled": true
     },
     "listOfGeoviewLayerConfig": [
-      {
-        "geoviewLayerId": "7f835844-3774-4323-b20e-a898c9f20136",
-        "geoviewLayerType": "geoCore"
-      },
-      {
-        "geoviewLayerId": "napl",
-        "geoviewLayerName": "NAPL",
-        "metadataAccessPath": "https://datacube.services.geo.ca/web/napl-ontario-ring-of-fire.xml",
-        "geoviewLayerType": "ogcWms",
-        "listOfLayerEntryConfig": [
-          {
-            "layerId": "ontario-ring-of-fire",
-            "layerName": "Ontario ring of fire"
-          }
-        ]
-      },
+
       {
         "geoviewLayerId": "historical-flood-dynamic",
         "geoviewLayerName": "Hist. Flood Events - EsriDynamic",
@@ -52,32 +37,6 @@
         "listOfLayerEntryConfig": [
           {
             "layerId": "0"
-          }
-        ]
-      },
-      {
-        "geoviewLayerId": "wmsLYR1-spatiotemporel",
-        "geoviewLayerName": "Spatiotemporel",
-        "metadataAccessPath": "https://geo.weather.gc.ca/geomet",
-        "geoviewLayerType": "ogcWms",
-        "listOfLayerEntryConfig": [
-          {
-            "layerId": "RADAR_1KM_RSNO",
-            "layerName": "Test Spatiotemporel"
-          }
-        ]
-      },
-      {
-        "geoviewLayerId": "MSI",
-        "geoviewLayerName": "MSI",
-        "metadataAccessPath": "https://datacube.services.geo.ca/ows/msi",
-        "geoviewLayerType": "ogcWms",
-        "listOfLayerEntryConfig": [
-          {
-            "layerId": "msi-94-or-more",
-            "source": {
-              "wmsStyle": ["msi-binary"]
-            }
           }
         ]
       }
