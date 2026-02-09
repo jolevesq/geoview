@@ -2,6 +2,7 @@
   "general": {
     "add": "Add",
     "close": "Close",
+    "closeSelection": "Close selection",
     "cancel": "Cancel",
     "exit": "Exit",
     "layers": "Layers",
@@ -228,7 +229,6 @@
     "title": "Details",
     "zoomTo": "Zoom to feature",
     "select": "Highlight feature on map",
-    "closeSelection": "Close selection",
     "externalLink": "External Link",
     "feature": "feature",
     "selected": "selected",
@@ -373,7 +373,6 @@
     "features": "feature(s)",
     "featureFiltered": "features filtered",
     "images": "Images",
-    "close": "Close",
     "noFeatures": "unknown...",
     "showing": "showing",
     "total": "total",
