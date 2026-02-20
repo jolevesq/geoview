@@ -1,0 +1,132 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Release Navigator - Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link rel="stylesheet" href="css/style.css"/></head><body><div id="page-header"></div><div><div class="back-to-main back-to-main-flex"><a href="./index.html?tab=navigators" class="btn btn-primary">← Back to Main</a></div><div class="demo-section"><h4>Release Navigator</h4><p>Interactive navigator to explore and test different GeoView release configurations. Select a release from the dropdown to load its configuration and visualize it on the map.</p></div></div><div class="demo-section"><h4>Select Release</h4><div class="selector-container navigator-selector-row"><label for="configLoader" class="navigator-label-nowrap">Release to load:</label> <select id="configLoader" class="navigator-select"><option value="">--select--</option></select></div></div><div class="demo-section"><h4>Display Options</h4><div class="selector-container navigator-selector-wrap"><div class="navigator-option-group"><label for="switchLang" class="navigator-label">Language:</label> <select id="switchLang" class="navigator-select"><option value="en">English</option><option value="fr">French</option></select></div><div class="navigator-option-group"><label for="switchProjection" class="navigator-label">Projection:</label> <select id="switchProjection" class="navigator-select"><option value="3978">LCC (3978)</option><option value="3857">Web Mercator (3857)</option><option value="unsupported">Not Supported</option></select></div></div></div><div class="demo-section"><h4>Map Viewer</h4><button type="button" class="collapsible">Layers Status</button><pre id="sandboxMap-state" class="panel map-title-holder"></pre><div id="mapSection" class="navigator-map-section"><div id="map1"></div></div></div><script src="codedoc.js"></script><script>insertPageHeader();
+
+      const configLoader = document.getElementById('configLoader');
+      const switchLang = document.getElementById('switchLang');
+      const switchProjectioneElem = document.getElementById('switchProjection');
+      const urlParams = new URLSearchParams(window.location.search);
+      const config = urlParams.get('config');
+      const mapId = 'map1';
+
+      let currentScript = null;
+
+      // Define available versions (update this list when adding new builds)
+      const versions = ['2.0.0', '2.1.0', '2.1.2'];
+
+      // Populate dropdown with builds from public/builds folder
+      function populateReleaseOptions() {
+        versions.forEach((version) => {
+          const option = document.createElement('option');
+          option.value = `./builds/cgpv-main-${version}.js`;
+          option.textContent = version;
+          configLoader.appendChild(option);
+        });
+
+        // Add local development option
+        const localOption = document.createElement('option');
+        localOption.value = './cgpv-main.js';
+        localOption.textContent = 'Local Build (current)';
+        configLoader.appendChild(localOption);
+      }
+
+      // Populate options on page load
+      populateReleaseOptions();
+
+      // Function to dynamically load cgpv-main.js from selected release
+      function loadCgpvScript(scriptUrl) {
+        return new Promise((resolve, reject) => {
+          // Remove previous cgpv script if exists
+          if (currentScript) {
+            currentScript.remove();
+            // Clean up cgpv global if it exists
+            if (window.cgpv) {
+              delete window.cgpv;
+            }
+          }
+
+          // Clear map container
+          const mapContainer = document.getElementById(mapId);
+          if (mapContainer) {
+            mapContainer.innerHTML = '';
+          }
+
+          // Create and load new script
+          const script = document.createElement('script');
+          script.src = scriptUrl;
+          script.onload = () => {
+            currentScript = script;
+            resolve();
+          };
+          script.onerror = () => {
+            reject(new Error(`Failed to load script: ${scriptUrl}`));
+          };
+          document.head.appendChild(script);
+        });
+      }
+
+      // ------------------ CONFIG SELECTOR SECTION START -----------------------------------------
+      configLoader.addEventListener('change', async (e) => {
+        const selectedUrl = e.target.value;
+        if (!selectedUrl) return;
+
+        try {
+          // Load the selected cgpv version
+          await loadCgpvScript(selectedUrl);
+
+          // Wait for cgpv to be available, then initialize
+          setTimeout(() => {
+            if (window.cgpv) {
+              // Create map div with default config
+              const mapContainer = document.getElementById(mapId);
+              mapContainer.className = 'geoview-map';
+              mapContainer.setAttribute('data-lang', switchLang.value);
+              mapContainer.setAttribute(
+                'data-config',
+                JSON.stringify({
+                  map: {
+                    interaction: 'dynamic',
+                    viewSettings: {
+                      projection: 3978,
+                      center: [-100, 60],
+                      zoom: 4,
+                    },
+                  },
+                })
+              );
+
+              // Initialize cgpv
+              cgpv.init();
+            }
+          }, 100);
+        } catch (error) {
+          console.error('Error loading cgpv script:', error);
+          alert('Failed to load the selected release. Please try again.');
+        }
+      });
+      // ------------------ CONFIG SELECTOR SECTION END -----------------------------------------
+
+      // If there's a config
+      if (config) {
+        configLoader.value = config;
+        configLoader.dispatchEvent(new Event('change'));
+      }
+
+      // ------------------ SWITCHER SECTION START -----------------------------------------
+      switchLang.addEventListener('change', (e) => {
+        if (window.cgpv) {
+          cgpv.api.getMapViewer(mapId).setLanguage(e.target.value, resetLayer.checked);
+        }
+      });
+
+      switchProjectioneElem.addEventListener('change', (e) => {
+        if (window.cgpv) {
+          cgpv.api.getMapViewer(mapId).setProjection(e.target.value);
+        }
+      });
+
+      // ------------------ SWITCHER SECTION END -----------------------------------------
+
+      // create snippets
+      window.addEventListener('load', () => {
+        createCodeSnippet();
+        createConfigSnippet();
+      });</script></body></html>
