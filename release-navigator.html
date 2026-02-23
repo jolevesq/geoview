@@ -78,14 +78,14 @@
       function populateReleaseOptions() {
         versions.forEach((version) => {
           const option = document.createElement('option');
-          option.value = `./builds/cgpv-main-${version}.js`;
+          option.value = version; // Use version number as value
           option.textContent = version;
           configLoader.appendChild(option);
         });
 
         // Add local/host development option
         const localOption = document.createElement('option');
-        localOption.value = './cgpv-main.js';
+        localOption.value = 'local';
         localOption.textContent = 'Local/ Host Build (current)';
         configLoader.appendChild(localOption);
       }
@@ -96,8 +96,19 @@
 
       //#region ------------------ LOAD CGPV SCRIPT SECTION START -----------------------------------------
       // Function to dynamically load cgpv-main.js from selected release
-      function loadCgpvScript(scriptUrl) {
+      function loadCgpvScript(versionOrLocal) {
         return new Promise((resolve, reject) => {
+          // Build script URL from whitelist - never use user input directly
+          let scriptUrl;
+          if (versionOrLocal === 'local') {
+            scriptUrl = './cgpv-main.js';
+          } else if (versions.includes(versionOrLocal)) {
+            scriptUrl = `./builds/cgpv-main-${versionOrLocal}.js`;
+          } else {
+            reject(new Error(`Invalid version: ${versionOrLocal}`));
+            return;
+          }
+
           // Remove previous cgpv script if exists
           if (currentScript) {
             currentScript.remove();
@@ -128,12 +139,12 @@
       }
 
       configLoader.addEventListener('change', async (e) => {
-        const selectedUrl = e.target.value;
-        if (!selectedUrl) return;
+        const selectedVersion = e.target.value;
+        if (!selectedVersion) return;
 
         try {
           // Load the selected cgpv version
-          await loadCgpvScript(selectedUrl);
+          await loadCgpvScript(selectedVersion);
 
           // Wait for cgpv to be available, then initialize
           setTimeout(async () => {
@@ -241,9 +252,7 @@
           // Set class and message
           validationMessage.classList.add('config-error');
           validationMessage.classList.remove('config-json-valid');
-          validationMessage.innerHTML = window.cgpv?.api?.utilities?.core?.escapeRegExp
-            ? cgpv.api.utilities.core.escapeRegExp(error.message)
-            : error.message;
+          validationMessage.textContent = error.message;
           applyConfigBtn.disabled = false; // Still allow apply even if validation fails
         }
       });
