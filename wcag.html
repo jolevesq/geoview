@@ -1,0 +1,152 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>WCAG Demo - Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div id="page-header"></div><div><div class="back-to-main"><a href="./index.html?tab=specific-demos">← Back to Main</a></div><div class="demo-section"><h4>WCAG Demo - Bilingual Maps</h4><p>Accessibility-focused demo showing English and French maps. Edit the JSON configuration below and click "Reload Maps" to see your changes applied to both maps.</p></div></div><div class="demo-section"><h4>Map Viewers</h4></div><div style="border-bottom: 3px solid #515ba5; margin: 20px 0"></div><div id="mapSectionEN"></div><div style="border-bottom: 3px solid #515ba5; margin: 20px 0"></div><div id="mapSectionFR"></div><div class="demo-section"><h4>Map Configuration</h4><p>Edit the JSON configuration below to customize both map viewers and click "Create Maps" to apply changes.</p></div><div class="navigator-toolbar"><button id="validateConfig" class="btn btn-success btn-large">Validate</button> <button id="reloadMaps" class="btn btn-primary btn-large">Create Maps</button> <span id="validationMessage" class="sandbox-validation-msg">File not validated...</span></div><div class="editor"><div class="line-numbers"><span></span></div><textarea id="mapConfig" name="configuration" rows="15" cols="150">
+{
+  "map": {
+    "interaction": "dynamic",
+    "viewSettings": {
+      "projection": 3978
+    },
+    "basemapOptions": {
+      "basemapId": "transport",
+      "shaded": true,
+      "labeled": true
+    },
+    "listOfGeoviewLayerConfig": [
+        {
+          "geoviewLayerType": "geoCore",
+          "geoviewLayerId": "fe83a604-aa5a-4e46-903c-685f8b0cc33c"
+        },
+        {
+          "geoviewLayerType": "geoCore",
+          "geoviewLayerId": "21b821cf-0f1c-40ee-8925-eab12d357668"
+        },
+        {
+          "geoviewLayerType": "geoCore",
+          "geoviewLayerId": "03ccfb5c-a06e-43e3-80fd-09d4f8f69703"
+        }
+    ]
+  },
+  "navBar": ["zoom", "rotation","fullscreen", "home", "location", "measurement", "basemap-select", "projection"],
+  "appBar": {
+    "tabs": {
+      "core": ["geolocator", "legend", "details", "export", "aoi-panel", "about-panel"]
+    },
+    "selectedTab": "legend"
+  },
+  "footerBar": {
+    "tabs": {
+      "core": ["layers", "data-table", "geochart", "time-slider"]
+    }
+  },
+  "components": ["north-arrow", "overview-map"],
+  "theme": "geo.ca",
+  "corePackages": ["swiper"],
+  "corePackagesConfig": [
+     {
+      "swiper": {
+        "orientation": "vertical",
+        "keyboardOffset": 10,
+        "layers": ["fe83a604-aa5a-4e46-903c-685f8b0cc33c/0"]
+      }
+    },
+    {
+      "aoi-panel": {
+        "isOpen": true,
+        "aoiList": [
+          {
+            "imageUrl": "https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcSbleN5tjC2Dilx77SCBJD9f3CxlnDEEGx5qY786BpVlu4JLzUd1ixjIOfO1WX5mJjUQLmSSg4JFuNWgqGZJZDV7LBH8y3QBz3KrjuHdg",
+            "aoiTitle": "CN Tower",
+            "extent": [-79.3881, 43.6416, -79.3861, 43.6436]
+          },
+          {
+            "imageUrl": "https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcTCSU8D4pV4fY9MfYa6NZvpcMrCDhxE-ySOSzbxqSCC67_loNeJ9WI-2Ki7zCfU36M0Iwt7-4aw0y3_Vg8t_8sxo86xS6HVewQdYjOOXA",
+            "aoiTitle": "Parliament Hill",
+            "extent": [-75.7019, 45.4226, -75.6999, 45.4246]
+          }
+        ],
+        "version": "1.0"
+      }
+    },
+    {
+      "about-panel": {
+        "isOpen": true,
+        "mdContent": [
+          "# Atlas of Canada\n\n![Atlas Banner](./img/atlas_banner.png)",
+          "## Discover Canada through geography\n\nThe Atlas of Canada provides interactive and static maps of Canada, from past to present.",
+          "## Key Features\n\n- **Interactive Maps** - Dynamic maps with multiple thematic layers\n- **Historical Archive** - Digitized atlas editions from 1906 onwards\n- **Educational Resources** - Teaching materials and data for geography curriculum",
+          "## Learn More\n\nExplore the full Atlas of Canada:\n\n[Visit the Atlas of Canada →](https://natural-resources.canada.ca/maps-tools-publications/maps/atlas-canada)"
+        ]
+      }
+    }
+  ],
+  "externalPackages": []
+}
+      </textarea></div><script src="codedoc.js"></script><script>insertPageHeader();
+
+      const mapConfigTextarea = document.getElementById('mapConfig');
+      const reloadMapsBtn = document.getElementById('reloadMaps');
+      const mapIdEN = 'MapEN';
+      const mapIdFR = 'MapFR';
+
+      // Initialize config editor utilities (line numbers + validation)
+      const configUtils = initializeConfigEditor({
+        textareaSelector: '#mapConfig',
+        lineNumbersSelector: '.line-numbers',
+        validationMessageSelector: '#validationMessage',
+        reloadButtonSelector: '#reloadMaps',
+      });
+
+      // Create maps using createMapFromConfig API (sandbox approach)
+      // Replicates sandbox.html pattern exactly for two maps
+      async function createMaps() {
+        try {
+          const configText = mapConfigTextarea.value.replace(getSingleQuoteRegex(), '"');
+
+          // Delete previous maps if existing
+          if (cgpv.api.hasMapViewer(mapIdEN)) {
+            await cgpv.api.deleteMapViewer(mapIdEN, true);
+          }
+          if (cgpv.api.hasMapViewer(mapIdFR)) {
+            await cgpv.api.deleteMapViewer(mapIdFR, true);
+          }
+
+          // Get map section containers
+          const mapSectionEN = document.getElementById('mapSectionEN');
+          const mapSectionFR = document.getElementById('mapSectionFR');
+
+          // Create English map div
+          const newDivEN = document.createElement('div');
+          const attrEN = document.createAttribute('id');
+          attrEN.value = mapIdEN;
+          newDivEN.setAttributeNode(attrEN);
+          newDivEN.style.height = '800px';
+          mapSectionEN.appendChild(newDivEN);
+
+          // Create French map div
+          const newDivFR = document.createElement('div');
+          const attrFR = document.createAttribute('id');
+          attrFR.value = mapIdFR;
+          newDivFR.setAttributeNode(attrFR);
+          newDivFR.style.height = '800px';
+          mapSectionFR.appendChild(newDivFR);
+
+          // Create maps from config
+          try {
+            await cgpv.api.createMapFromConfig(mapIdEN, configText, 'en');
+          } catch (error) {
+            console.error('Failed to create English map from config', error);
+          }
+
+          try {
+            await cgpv.api.createMapFromConfig(mapIdFR, configText, 'fr');
+          } catch (error) {
+            console.error('Failed to create French map from config', error);
+          }
+        } catch (error) {
+          console.error('Error in createMaps:', error);
+        }
+      }
+
+      // Reload maps button handler
+      reloadMapsBtn.addEventListener('click', async function (e) {
+        await createMaps();
+      });</script></body></html>
