@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>WCAG Demo - Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div id="page-header"></div><div><div class="back-to-main"><a href="./index.html?tab=specific-demos">← Back to Main</a></div><div class="demo-section"><h4>WCAG Demo - Bilingual Maps</h4><p>Accessibility-focused demo showing English and French maps. Edit the JSON configuration below and click "Reload Maps" to see your changes applied to both maps.</p></div></div><div class="demo-section"><h4>Map Viewers</h4></div><div style="border-bottom: 3px solid #515ba5; margin: 20px 0"></div><div id="mapSectionEN"></div><div style="border-bottom: 3px solid #515ba5; margin: 20px 0"></div><div id="mapSectionFR"></div><div class="demo-section"><h4>Map Configuration</h4><p>Edit the JSON configuration below to customize both map viewers and click "Create Maps" to apply changes.</p></div><div class="navigator-toolbar"><button id="validateConfig" class="btn btn-success btn-large">Validate</button> <button id="reloadMaps" class="btn btn-primary btn-large">Create Maps</button> <span id="validationMessage" class="sandbox-validation-msg">File not validated...</span></div><div class="editor"><div class="line-numbers"><span></span></div><textarea id="mapConfig" name="configuration" rows="15" cols="150">
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>WCAG Demo - Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div id="page-header"></div><div><div class="back-to-main"><a href="./index.html?tab=specific-demos">← Back to Main</a></div><div class="demo-section"><h4>WCAG Demo - Bilingual Maps</h4><p>Accessibility-focused demo showing English and French maps. Edit the JSON configuration below and click "Reload Maps" to see your changes applied to both maps.</p></div></div><div class="demo-section"><h4>Map Viewers</h4></div><div style="border-bottom: 3px solid #515ba5; margin: 20px 0"></div><div id="mapSectionEN"></div><div style="border-bottom: 3px solid #515ba5; margin: 20px 0"></div><div id="mapSectionFR"></div><div class="demo-section"><h4>Map Configuration</h4><p>Edit the JSON configuration below to customize both map viewers and click "Create Maps" to apply changes.</p></div><div class="navigator-toolbar"><button id="validateConfig" class="btn btn-success btn-large">Validate</button> <button id="reloadMaps" class="btn btn-primary btn-large">Create Maps</button> <span id="validationMessage" class="sandbox-validation-msg">File not validated...</span></div><div class="editor"><div class="line-numbers"></div><textarea id="mapConfig" name="configuration" rows="15" cols="150">
 {
   "map": {
     "interaction": "dynamic",
@@ -79,8 +79,7 @@
     }
   ],
   "externalPackages": []
-}
-      </textarea></div><script src="codedoc.js"></script><script>insertPageHeader();
+}</textarea></div><script src="codedoc.js"></script><script>insertPageHeader();
 
       const mapConfigTextarea = document.getElementById('mapConfig');
       const reloadMapsBtn = document.getElementById('reloadMaps');
@@ -95,54 +94,61 @@
         reloadButtonSelector: '#reloadMaps',
       });
 
-      // Create maps using createMapFromConfig API (sandbox approach)
-      // Replicates sandbox.html pattern exactly for two maps
+      // Create maps using release-navigator approach (cgpv.init with data attributes)
       async function createMaps() {
         try {
-          const configText = mapConfigTextarea.value.replace(getSingleQuoteRegex(), '"');
+          // Parse config from textarea using centralized parser
+          const configJson = parseConfigJSON(mapConfigTextarea.value);
 
-          // Delete previous maps if existing
-          if (cgpv.api.hasMapViewer(mapIdEN)) {
-            await cgpv.api.deleteMapViewer(mapIdEN, true);
-          }
-          if (cgpv.api.hasMapViewer(mapIdFR)) {
-            await cgpv.api.deleteMapViewer(mapIdFR, true);
-          }
-
-          // Get map section containers
+          // Get container elements
           const mapSectionEN = document.getElementById('mapSectionEN');
           const mapSectionFR = document.getElementById('mapSectionFR');
 
-          // Create English map div
-          const newDivEN = document.createElement('div');
-          const attrEN = document.createAttribute('id');
-          attrEN.value = mapIdEN;
-          newDivEN.setAttributeNode(attrEN);
-          newDivEN.style.height = '800px';
-          mapSectionEN.appendChild(newDivEN);
+          // === English Map (following release-navigator pattern exactly) ===
+          // Delete previous map if existing
+          await cgpv.api.deleteMapViewer(mapIdEN, true);
 
-          // Create French map div
-          const newDivFR = document.createElement('div');
-          const attrFR = document.createAttribute('id');
-          attrFR.value = mapIdFR;
-          newDivFR.setAttributeNode(attrFR);
-          newDivFR.style.height = '800px';
-          mapSectionFR.appendChild(newDivFR);
-
-          // Create maps from config
-          try {
-            await cgpv.api.createMapFromConfig(mapIdEN, configText, 'en');
-          } catch (error) {
-            console.error('Failed to create English map from config', error);
+          // Get or create map container (reuse if exists)
+          let mapContainerEN = document.getElementById(mapIdEN);
+          if (!mapContainerEN) {
+            mapContainerEN = document.createElement('div');
+            mapContainerEN.id = mapIdEN;
+            mapSectionEN.appendChild(mapContainerEN);
+          } else {
+            mapContainerEN.innerHTML = '';
           }
 
-          try {
-            await cgpv.api.createMapFromConfig(mapIdFR, configText, 'fr');
-          } catch (error) {
-            console.error('Failed to create French map from config', error);
+          // Set up map container attributes
+          mapContainerEN.className = 'geoview-map';
+          mapContainerEN.setAttribute('data-lang', 'en');
+          mapContainerEN.setAttribute('data-config', JSON.stringify(configJson));
+
+          // === French Map (following release-navigator pattern exactly) ===
+          // Delete previous map if existing
+          await cgpv.api.deleteMapViewer(mapIdFR, true);
+
+          // Get or create map container (reuse if exists)
+          let mapContainerFR = document.getElementById(mapIdFR);
+          if (!mapContainerFR) {
+            mapContainerFR = document.createElement('div');
+            mapContainerFR.id = mapIdFR;
+            mapSectionFR.appendChild(mapContainerFR);
+          } else {
+            mapContainerFR.innerHTML = '';
+          }
+
+          // Set up map container attributes
+          mapContainerFR.className = 'geoview-map';
+          mapContainerFR.setAttribute('data-lang', 'fr');
+          mapContainerFR.setAttribute('data-config', JSON.stringify(configJson));
+
+          // Initialize cgpv (like release-navigator)
+          if (window.cgpv) {
+            cgpv.init();
           }
         } catch (error) {
-          console.error('Error in createMaps:', error);
+          console.error('Invalid JSON configuration:', error);
+          alert('Invalid JSON configuration. Please check your syntax and try again.');
         }
       }
 
