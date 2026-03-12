@@ -15,11 +15,7 @@
   "overviewMap": {
     "hideOnZoom": 7
   },
-<<<<<<< HEAD
   "navBar": ["zoom", "rotation", "location", "basemap-select"],
-=======
-  "navBar": ["zoom", "rotation"],
->>>>>>> e1cf197386 (fix(core): Fix many small issues and new demo for Arctic SDI)
   "appBar": {
     "tabs": {
       "core": ["geolocator"]
