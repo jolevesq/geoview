@@ -96,6 +96,22 @@
                   }
                 }
               ]
+            },
+            {
+              'geoviewLayerId':'nan-geometry',
+              'geoviewLayerName':'NaN Geometry',
+              'metadataAccessPath':'https://maps-cartes.services.geo.ca/server_serveur/rest/services/NRCan/Low_Head_Hydro_Database_en/MapServer',
+              'geoviewLayerType':'esriFeature',
+              'listOfLayerEntryConfig': [
+                {
+                  'layerId':'1',
+                  'initialSettings': {
+                      'states': {
+                          'visible': true
+                      }
+                  }
+                }
+              ]
             }
           ]
         },
@@ -107,18 +123,18 @@
         },
         'corePackages': [],
         'theme': 'geo.ca'
-      }"></div><hr/><div class="demo-section"><h4>Known Outlier Geometry Layers</h4><ul class="demo-list"><li><strong>CSRS Layer</strong> - EPSG: 4617 - Issue #1798</li><li><strong>Multi Polygon Layer</strong> - Ensure multi polygon is working - Issue #550</li><li><strong>Coral Sponge</strong> - Had issues with get feature info - Issue #1996</li><li><strong>Protected and Conserved Area</strong> - Esri dynamic data table not fetching because of geometry in URL - Issue #2200</li><li><strong>Impact Assessment Agency of Canada – Environmental and Impact Assessments (French)</strong> - Esri layer definition character in French - Issue #2413</li></ul></div><script src="codedoc.js"></script><script>insertPageHeader();
+      }"></div><hr/><div class="demo-section"><h4>Known Outlier Geometry Layers</h4><ul class="demo-list"><li><strong>CSRS Layer</strong> - EPSG: 4617 - Issue #1798</li><li><strong>Multi Polygon Layer</strong> - Ensure multi polygon is working - Issue #550</li><li><strong>Coral Sponge</strong> - Had issues with get feature info - Issue #1996</li><li><strong>Protected and Conserved Area</strong> - Esri dynamic data table not fetching because of geometry in URL - Issue #2200</li><li><strong>Impact Assessment Agency of Canada – Environmental and Impact Assessments (French)</strong> - Esri layer definition character in French - Issue #2413</li><li><strong>ESRI Feature with Invalid Geometry</strong> - ESRI Feature features with invalid geom crash the layer - Currently remove invalid features</li></ul></div><script src="codedoc.js"></script><script>insertPageHeader();
 
-      // Register handler when map has been initialized
-      cgpv.onMapInit((mapViewer) => {
-        listenToLegendLayerSetChanges(`H${mapViewer.mapId}-state`, mapViewer);
-      });
+    // Register handler when map has been initialized
+    cgpv.onMapInit((mapViewer) => {
+      listenToLegendLayerSetChanges(`H${mapViewer.mapId}-state`, mapViewer);
+    });
 
-      // initialize cgpv
-      cgpv.init();
+    // initialize cgpv
+    cgpv.init();
 
-      // create snippets
-      window.addEventListener('load', () => {
-        createCodeSnippet();
-        createConfigSnippet();
-      });</script></body></html>
+    // create snippets
+    window.addEventListener('load', () => {
+      createCodeSnippet();
+      createConfigSnippet();
+    });</script></body></html>
