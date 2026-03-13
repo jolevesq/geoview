@@ -209,6 +209,11 @@
     "instructionsNoLayersBody": "Add visible layers on the map.",
     "moreInfo": "More Information",
     "lessInfo": "Less Information",
+    "layerInfoServiceInfo": "Service Information",
+    "layerInfoActiveFilters": "Active Filters",
+    "layerInfoTemporalSettings": "Temporal Settings",
+    "layerInfoTemporalDimension": "Temporal Dimension (Time Slider)",
+    "layerInfoInteraction": "Interaction",
     "layerType": "Type: ",
     "layerBounds": "Bounds (__param__)",
     "layerBounds4326": "Bounds (EPSG:4326)",
@@ -266,7 +271,9 @@
       "mosaicOperationBlend": "Blend",
       "mosaicOperationSum": "Sum",
       "orderAscending": "Oldest to Newest",
-      "orderDescending": "Newest to Oldest"
+      "orderDescending": "Newest to Oldest",
+      "selectWmsStyle": "Select WMS style",
+      "back": "Back to layer details"
     }
   },
   "details": {

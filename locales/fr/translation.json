@@ -209,6 +209,11 @@
     "instructionsNoLayersBody": "Ajoutez des couches visibles sur la carte.",
     "moreInfo": "Plus d'informations",
     "lessInfo": "Moins d'informations",
+    "layerInfoServiceInfo": "Informations du service",
+    "layerInfoActiveFilters": "Filtres actifs",
+    "layerInfoTemporalSettings": "Paramètres temporels",
+    "layerInfoTemporalDimension": "Dimension temporelle (curseur temporel)",
+    "layerInfoInteraction": "Interaction",
     "layerType": "Type : ",
     "layerBounds": "Étendu (__param__)",
     "layerBounds4326": "Étendu (EPSG:4326)",
@@ -266,7 +271,9 @@
       "mosaicOperationBlend": "Mélange",
       "mosaicOperationSum": "Somme",
       "orderAscending": "Plus ancien au plus récent",
-      "orderDescending": "Plus récent au plus ancien"
+      "orderDescending": "Plus récent au plus ancien",
+      "selectWmsStyle": "Sélectionner le style WMS",
+      "back": "Retour aux détails de la couche"
     }
   },
   "details": {
