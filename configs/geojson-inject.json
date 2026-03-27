@@ -2,9 +2,6 @@
   "map": {
     "interaction": "dynamic",
     "viewSettings": {
-      "initialView": {
-        "layerIds": ["geojsonLYR1/blank.json"]
-      },
       "projection": 3978
     },
     "basemapOptions": {
@@ -32,13 +29,13 @@
   },
   "appBar": {
     "tabs": {
-      "core": ["geolocator", "export", "layers", "legend", "details", "guide"]
+      "core": ["geolocator", "export", "legend", "details"]
     }
   },
-  "navBar": ["zoom", "fullscreen", "home"],
+  "navBar": ["zoom", "fullscreen", "home","basemap-select", "drawer"],
   "footerBar": {
     "tabs": {
-      "core": ["data-table"],
+      "core": ["layers", "data-table"],
       "custom": [
         {
           "id": "download-map-data",
