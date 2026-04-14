@@ -40,7 +40,7 @@
     // initialize cgpv
     cgpv.init();
 
-    // GeoMetButton============================================================================================================
+    // #region GeoMetButton
     // find the button element by ID
     var addGeoJSONButton = document.getElementById('Add-GeoMet-Button');
 
@@ -80,7 +80,9 @@
       await addResult.promiseLayer;
     });
 
-    // HydroButton============================================================================================================
+    // #endregion GeoMetButton
+
+    // #region HydroButton
     // find the button element by ID
     var addGeoJSONButton = document.getElementById('Add-Hydro-Button');
 
@@ -119,6 +121,8 @@
       // Wait for the full response
       await addResult.promiseLayer;
     });
+
+    // #endregion HydroButton
 
     // create snippets
     window.addEventListener('load', () => {
