@@ -14,16 +14,14 @@
           'map': {
             'interaction': 'dynamic',
             'viewSettings': {
-              'zoom': 4,
-              'center': [-100, 'x'],
+              'zoomAndCenter': [4, [-100, 'x']],
               'projection': 1111
             }}
-          }"></div><p>This map will load with bad configuration (<strong>'center': [-100, 'x']</strong>) replaced with default.</p><div class="demo-section"><h4 id="HLCONF3">3. Load with bad config values</h4><a class="ref-link" href="#top">Top</a></div><div id="map3" class="geoview-map" data-lang="test_sp-CA" data-config="{
+          }"></div><p>This map will load with bad configuration (<strong>'zoomAndCenter': [4, [-100, 'x']]</strong>) replaced with default.</p><div class="demo-section"><h4 id="HLCONF3">3. Load with bad config values</h4><a class="ref-link" href="#top">Top</a></div><div id="map3" class="geoview-map" data-lang="test_sp-CA" data-config="{
           'map': {
             'interaction': 'dynamic',
             'viewSettings': {
-              'zoom': 40,
-              'center': ['Last', -1000],
+              'zoomAndCenter': [40, ['Last', -1000]],
               'projection': 3857
             },
             'basemapOptions': {
@@ -36,12 +34,11 @@
           'components': ['overview-map', 'nav-bar'],
           'corePackages': [],
           'theme': 'geo.ca'
-        }"></div><p>This map will load with bad configuration replaced with default.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="map3CS" class="panel"></pre><div class="demo-section"><h4 id="HLCONF4">4. Load layers with bad config values</h4><a class="ref-link" href="#top">Top</a></div><div id="map4" class="geoview-map" data-lang="test_sp-CA" data-config="{
+        }"></div><p>This map will load with bad configuration replaced with default. It also notifies the user of the issues for configuration basemapOptions bad property.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="map3CS" class="panel"></pre><div class="demo-section"><h4 id="HLCONF4">4. Load layers with bad config values</h4><a class="ref-link" href="#top">Top</a></div><div id="map4" class="geoview-map" data-lang="test_sp-CA" data-config="{
         'map': {
           'interaction': 'dynamic',
           'viewSettings': {
-            'zoom': 40,
-            'center': ['Last', -1000],
+            'zoomAndCenter': [40, ['Last', -1000]],
             'projection': 3857
           },
           'basemapOptions': {
@@ -67,12 +64,13 @@
         'components': ['overview-map'],
         'corePackages': [],
         'theme': 'geo.ca'
-      }"></div><p>This map will not load layers with bad configuration and inform the user.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="map4CS" class="panel"></pre><div class="demo-section"><h4 id="HLCONF5A">5.A. Load config from URL params</h4><a class="ref-link" href="#top">Top</a></div><div id="map5A" class="geoview-map" data-lang="en" data-shared></div><p>This map loads its configurations from the URL parameters by providing a <strong>data-shared</strong> attribute. If a <strong>data-config</strong> or <strong>data-config-url</strong> attribute is also provided, the base configuration is preserved and URL parameters selectively update specific properties (projection, zoom, center, basemap options). Layers from URL parameters are appended to existing config layers, not replaced.</p><div class="demo-section"><h4 id="HLCONF5B">5.B. Load config from div params</h4><a class="ref-link" href="#top">Top</a></div><div id="map5B" class="geoview-map" data-config="{
+      }"></div><p>This map will not load layers with bad configuration and inform the user, basemapId is not defined.</p><button type="button" class="collapsible">Configuration Snippet</button><pre id="map4CS" class="panel"></pre><div class="demo-section"><h4 id="HLCONF5A">5.A. Load config from URL params</h4><a class="ref-link" href="#top">Top</a></div><div id="map5A" class="geoview-map" data-lang="en" data-shared></div><p>This map loads its configurations from the URL parameters by providing a <strong>data-shared</strong> attribute. If a <strong>data-config</strong> or <strong>data-config-url</strong> attribute is also provided, the base configuration is preserved and URL parameters selectively update specific properties (projection, zoom, center, basemap options). Layers from URL parameters are appended to existing config layers, not replaced.</p><div class="demo-section"><h4 id="HLCONF5B">5.B. Load config from div params</h4><a class="ref-link" href="#top">Top</a></div><div id="map5B" class="geoview-map" data-config="{
       'map': {
         'interaction': 'dynamic',
         'viewSettings': {
-          'zoom': 4,
-          'center': [-100, 40],
+          'initialView': {
+            'zoomAndCenter': [4, [-100, 40]]
+          },
           'projection': 3857
         },
         'basemapOptions': {
@@ -87,14 +85,15 @@
     }" data-lang="en" data-geocore-keys="12acd145-626a-49eb-b850-0a59c9bc7506,ccc75c12-5acc-4a6a-959f-ef6f621147b9" data-geocore-endpoint="https://geocore.api.geo.ca"></div><p>This map loads its configurations from the div parameters by providing a <strong>data-geocore-keys</strong> and optionally a <strong>data-geocore-endpoint</strong>.</p><div class="demo-section"><h4 id="HLCONF6">6. Load config from file</h4><a class="ref-link" href="#top">Top</a></div><div id="map6" class="geoview-map" data-lang="en" data-config-url="./configs/my-config.json"></div><p>This map loads its configurations from a file by providing <strong>data-config-url</strong>, the map is static!</p><div class="demo-section"><h4 id="HLCONF7">7. Load config from function call</h4><a class="ref-link" href="#top">Top</a></div><div id="map7" class="" data-lang="fr"></div><p>This map loads its configurations from a function call (after 10 seconds). Configuration error with double layer id.</p><hr/><button type="button" class="collapsible">Code Snippet</button><pre id="codeSnippet" class="panel"></pre><script src="codedoc.js"></script><script>insertPageHeader();
 
       cgpv.api
-        .createMapFromConfig(
+        .createMapFromConfigFast(
           'map7',
           JSON.stringify({
             map: {
               interaction: 'dynamic',
               viewSettings: {
-                zoom: 10,
-                center: [-110, 70],
+                initialView: {
+                  zoomAndCenter: [10, [-110, 70]],
+                },
                 projection: 3978,
               },
               basemapOptions: {
