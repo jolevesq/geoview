@@ -33,7 +33,8 @@ Layer types, configuration, and management:
 Event system and event handling:
 
 - **[Event System](app/events/event-system.md)** - Core event concepts and architecture
-- **[Event Processors](app/events/event-processors.md)** - State management and event handling
+- **[Controllers API](app/events/controllers.md)** - Controllers for performing actions
+- **[Event Creation](app/events/event-creation.md)** - Creating custom events using the delegate pattern
 - **[Map Events](app/events/map-events.md)** - Map-specific events
 - **[Layer Events](app/events/layer-events.md)** - Layer-specific events
 - **[Layer Set Events](app/events/layerset-events.md)** - Layer set events
@@ -58,11 +59,10 @@ Package system and development:
 
 ### Testing
 
-- **[Test Suite Guide](app/testing/README.md)** - Overview of the GeoView Test Suite
-- **[Using the Test Suite](app/testing/using-test-suite.md)** - How to configure and run tests
-- **[Available Test Suites](app/testing/available-suites.md)** - Built-in test suites
-- **[Understanding Results](app/testing/understanding-results.md)** - Interpreting test outcomes
-- **[Creating Custom Tests](app/testing/creating-tests.md)** - Developer guide for custom tests
+- **[Test Suite Guide](app/testing/README.md)** — Overview, available suites, architecture
+- **[Using the Test Suite](app/testing/using-test-suite.md)** — Configuration, running tests, interpreting results
+- **[Creating Custom Tests](app/testing/creating-tests.md)** — Adding new suites and testers
+- **[API Reference](app/testing/api-reference.md)** — Assertion methods and helpers
 
 ### TypeScript API Reference (TypeDoc)
 
@@ -91,9 +91,8 @@ Package system and development:
 Best practices and patterns for contributing to GeoView core:
 
 - **[Best Practices](programming/best-practices.md)** - Coding standards and conventions
-- **[Using TypeScript](programming/using-type.md)** - TypeScript patterns and types
+- **[Event Helper](programming/event-helper.md)** - Delegate event system
 - **[Using Zustand Store](programming/using-store.md)** - State management internals
-- **[Event Processor Architecture](programming/event-processor-architecture.md)** - Creating custom event processors
 - **[Layer Set Architecture](programming/layerset-architecture.md)** - Layer Set system internals
 - **[Adding Layer Types](programming/adding-layer-types.md)** - Implementing new layer types
 - **[Logging](programming/logging.md)** - Logging standards and practices
@@ -110,8 +109,7 @@ Guides for extending GeoView functionality:
 - **[Packages](app/packages/)** - Overview, core packages, and development guides
 - **[Core Package Reference](app/packages/geoview-core-packages.md)** - Complete package reference
 - **[Core Package Development](app/packages/core-packages.md)** - Creating TypeScript packages (Rush.js)
-- **[JavaScript Package Development](app/packages/javascript-packages.md)** - Creating vanilla JS packages
-- **[Package Overview](app/packages/overview.md)** - Architecture and package types
+- **[JavaScript Package Development](app/packages/javascript-packages.md)** - Creating vanilla JS packages (legacy)
 
 ### Documentation Organization
 
@@ -129,7 +127,7 @@ Guides for extending GeoView functionality:
 
 ### Configuration
 
-- **[Loading Maps](./app/loading-maps.md)** - Map initialization methods
+- **[Creating Maps](./app/config/create-map.md)** - Map initialization methods
 - **[Accessing Types](./app/accessing-types.md)** - TypeScript type definitions
 
 ## 🗺️ Documentation Quick Navigation
@@ -141,7 +139,7 @@ Guides for extending GeoView functionality:
 | Create a map     | [Creating Maps](app/config/create-map.md)                 |
 | Add a layer      | [Layer API](app/api/layer-api.md#adding-layers)           |
 | Create a package | [Core Package Development](app/packages/core-packages.md) |
-| Handle events    | [Event Processors](app/events/event-processors.md)        |
+| Handle events    | [Event System](app/events/event-system.md)                |
 | Use utilities    | [API Utilities](app/api/utilities.md)                     |
 | Draw geometry    | [Geometry API](app/api/geometry-api.md)                   |
 | Run tests        | [Test Suite Guide](app/testing/using-test-suite.md)       |
@@ -190,10 +188,10 @@ GeoView uses a clear separation between **listening to events** and **performing
 
 - **Events (Listening):** Use MapViewer/Layer event handlers
   - Example: `cgpv.api.getMapViewer('map1').onMapMoveEnd((payload) => { ... })`
-- **Actions (Modifying State):** Use Event Processor static methods
-  - Example: `MapEventProcessor.setView('map1', center, zoom)`
+- **Actions (Modifying State):** Use controller methods
+  - Example: `mapController.zoomToExtent(extent)`
 
-See [Event Processors Guide](app/events/event-processors.md) for details on the architecture.
+See [Using Zustand Store](programming/using-store.md) for details on the architecture.
 
 ### Package Development
 

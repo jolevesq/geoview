@@ -83,16 +83,20 @@ The time slider is typically included in the GeoView build. To use it:
 **Programmatic:**
 
 ```typescript
-// Access via MapViewer
-const mapViewer = cgpv.api.getMapViewer("mapId");
+// Access time slider state via store getter functions
+import {
+  isStoreTimeSliderInitialized,
+  getStoreTimeSliderLayers,
+  getStoreTimeSliderFilters,
+} from "geoview-core";
 
-// Check if time slider is available
-if (TimeSliderEventProcessor.isTimeSliderInitialized("mapId")) {
+// Check if time slider is initialized
+if (isStoreTimeSliderInitialized("mapId")) {
   // Get time-enabled layers
-  const timeLayers = TimeSliderEventProcessor.getTimeSliderLayers("mapId");
+  const timeLayers = getStoreTimeSliderLayers("mapId");
 
   // Get current filters
-  const filters = TimeSliderEventProcessor.getTimeSliderFilters("mapId");
+  const filters = getStoreTimeSliderFilters("mapId");
 }
 ```
 
@@ -103,12 +107,14 @@ The time slider supports two distinct modes for handling temporal data:
 #### Discrete Mode (`nearestValues: 'discrete'`)
 
 **Use When:**
+
 - Data has distinct, predefined time points (e.g., yearly, monthly, specific dates)
 - Satellite imagery with specific collection dates
 - Model outputs at scheduled intervals
 - Census data for specific years
 
 **Behavior:**
+
 - Slider handle snaps only to values in the `range` array
 - No in-between positions allowed
 - Step selector is hidden (not applicable)
@@ -146,6 +152,7 @@ The time slider supports two distinct modes for handling temporal data:
 ```
 
 **Generated Filter:**
+
 ```sql
 Year >= date '2010-01-01T00:00:00Z' AND Year < date '2015-01-01T00:00:00Z'
 ```
@@ -155,12 +162,14 @@ Year >= date '2010-01-01T00:00:00Z' AND Year < date '2015-01-01T00:00:00Z'
 #### Continuous Mode (`nearestValues: 'continuous'`)
 
 **Use When:**
+
 - Data has dense temporal coverage (hourly, daily measurements)
 - Streaming or real-time data
 - Weather data with frequent updates
 - Sensor data with continuous readings
 
 **Behavior:**
+
 - Slider allows free movement between min and max
 - Step selector visible to control filter range
 - User can position handle anywhere on timeline
@@ -182,10 +191,7 @@ Year >= date '2010-01-01T00:00:00Z' AND Year < date '2015-01-01T00:00:00Z'
           "singleHandle": true,
           "rangeItems": {
             "type": "relative",
-            "range": [
-              "2024-01-01T00:00:00Z",
-              "2024-01-31T23:59:59Z"
-            ]
+            "range": ["2024-01-01T00:00:00Z", "2024-01-31T23:59:59Z"]
           }
         }
       }
@@ -195,11 +201,13 @@ Year >= date '2010-01-01T00:00:00Z' AND Year < date '2015-01-01T00:00:00Z'
 ```
 
 **Generated Filter (with 1-hour step):**
+
 ```sql
 timestamp >= date '2024-01-15T14:30:00Z' AND timestamp < date '2024-01-15T15:30:00Z'
 ```
 
 **Step Options (Continuous Mode Only):**
+
 - 1 hour (`3600000` ms)
 - 1 day (`86400000` ms)
 - 1 week (`604800000` ms)
@@ -249,9 +257,7 @@ timestamp >= date '2024-01-15T14:30:00Z' AND timestamp < date '2024-01-15T15:30:
               "field": "AcquisitionDate",
               "nearestValues": "discrete",
               "singleHandle": true,
-              "displayPattern": [
-                { "datePrecision": "year" }
-              ],
+              "displayPattern": [{ "datePrecision": "year" }],
               "rangeItems": {
                 "type": "discrete",
                 "range": [
@@ -326,10 +332,7 @@ timestamp >= date '2024-01-15T14:30:00Z' AND timestamp < date '2024-01-15T15:30:
               ],
               "rangeItems": {
                 "type": "relative",
-                "range": [
-                  "2024-01-01T00:00:00Z",
-                  "2024-01-07T23:00:00Z"
-                ]
+                "range": ["2024-01-01T00:00:00Z", "2024-01-07T23:00:00Z"]
               }
             }
           }
@@ -363,9 +366,7 @@ timestamp >= date '2024-01-15T14:30:00Z' AND timestamp < date '2024-01-15T15:30:
             "timeDimension": {
               "nearestValues": "discrete",
               "singleHandle": false,
-              "displayPattern": [
-                { "datePrecision": "month" }
-              ],
+              "displayPattern": [{ "datePrecision": "month" }],
               "rangeItems": {
                 "type": "discrete",
                 "range": [
@@ -394,37 +395,16 @@ timestamp >= date '2024-01-15T14:30:00Z' AND timestamp < date '2024-01-15T15:30:
 
 ### API Methods
 
+The time slider state is managed through the `TimeSliderController` and Zustand store hooks. Configuration is the primary way to set up time slider behavior:
+
 ```typescript
-import { TimeSliderEventProcessor } from "@/api/event-processors/event-processor-children/time-slider-event-processor";
+const mapViewer = cgpv.api.getMapViewer("mapId");
 
-// Check initialization
-const isInitialized = TimeSliderEventProcessor.isTimeSliderInitialized("mapId");
+// Access time slider controller
+const timeSliderController = mapViewer.controllers.timeSliderController;
 
-// Get time-enabled layers
-const timeLayers = TimeSliderEventProcessor.getTimeSliderLayers("mapId");
-// Returns: { [layerPath: string]: TypeTimeSliderValues }
-
-// Get selected layer
-const selectedLayer = TimeSliderEventProcessor.getTimeSliderSelectedLayer("mapId");
-// Returns: string (layer path)
-
-// Get all filters
-const filters = TimeSliderEventProcessor.getTimeSliderFilters("mapId");
-// Returns: { [layerPath: string]: string } (CQL filter strings)
-
-// Get filter for specific layer
-const layerFilter = TimeSliderEventProcessor.getTimeSliderFilter("mapId", "layerPath");
-// Returns: string (CQL filter)
-
-// Update filters (called automatically by UI, but can be called programmatically)
-TimeSliderEventProcessor.updateFilters(
-  "mapId",
-  "layerPath",
-  "field",
-  true,  // filtering enabled
-  [minTimestamp, maxTimestamp],  // minAndMax
-  [currentTimestamp]  // values
-);
+// Time slider filtering is managed automatically by the UI
+// Configuration-driven setup is the recommended approach
 ```
 
 ### TypeTimeSliderValues Interface
@@ -432,23 +412,23 @@ TimeSliderEventProcessor.updateFilters(
 ```typescript
 interface TypeTimeSliderValues {
   // Configuration
-  additionalLayerpaths?: string[];  // Linked layers
-  delay: number;                    // Animation delay (ms)
-  description?: string;             // Display description
-  discreteValues: boolean;          // true = discrete mode, false = continuous mode
-  step?: number;                    // Step size for continuous mode (ms)
-  field: string;                    // Field name for filtering
-  fieldAlias: string;               // Display name for field
-  filtering: boolean;               // Is filtering active
-  isMainLayerPath: boolean;         // Is this the primary layer
-  locked?: boolean;                 // Are handles locked together
-  reversed?: boolean;               // Is animation reversed
-  singleHandle: boolean;            // Single vs range selection
-  title?: string;                   // Display title
+  additionalLayerpaths?: string[]; // Linked layers
+  delay: number; // Animation delay (ms)
+  description?: string; // Display description
+  discreteValues: boolean; // true = discrete mode, false = continuous mode
+  step?: number; // Step size for continuous mode (ms)
+  field: string; // Field name for filtering
+  fieldAlias: string; // Display name for field
+  filtering: boolean; // Is filtering active
+  isMainLayerPath: boolean; // Is this the primary layer
+  locked?: boolean; // Are handles locked together
+  reversed?: boolean; // Is animation reversed
+  singleHandle: boolean; // Single vs range selection
+  title?: string; // Display title
   // Data
-  minAndMax: number[];              // [min, max] timestamps (ms)
-  range: string[];                  // Array of ISO date strings
-  values: number[];                 // Current position(s) (ms)
+  minAndMax: number[]; // [min, max] timestamps (ms)
+  range: string[]; // Array of ISO date strings
+  values: number[]; // Current position(s) (ms)
   displayPattern: [DatePrecision, TimePrecision]; // Display format
 }
 ```
@@ -457,15 +437,15 @@ interface TypeTimeSliderValues {
 
 **Choosing the Right Mode:**
 
-| Data Characteristic | Recommended Mode |
-|---------------------|------------------|
-| Yearly, quarterly, monthly data | Discrete |
-| Specific collection dates | Discrete |
-| Model outputs at scheduled intervals | Discrete |
-| Hourly, minute-level data | Continuous |
-| Real-time/streaming data | Continuous |
-| Dense temporal coverage | Continuous |
-| Sparse, irregular intervals | Discrete |
+| Data Characteristic                  | Recommended Mode |
+| ------------------------------------ | ---------------- |
+| Yearly, quarterly, monthly data      | Discrete         |
+| Specific collection dates            | Discrete         |
+| Model outputs at scheduled intervals | Discrete         |
+| Hourly, minute-level data            | Continuous       |
+| Real-time/streaming data             | Continuous       |
+| Dense temporal coverage              | Continuous       |
+| Sparse, irregular intervals          | Discrete         |
 
 **Performance Considerations:**
 
@@ -527,12 +507,12 @@ interface TypeTimeSliderValues {
 **Programmatic:**
 
 ```typescript
-import { GeochartEventProcessor } from "@/api/event-processors/event-processor-children/geochart-event-processor";
+const mapViewer = cgpv.api.getMapViewer("mapId");
+const geochartPlugin = mapViewer.plugins["geochart"];
 
-// Check if geochart is initialized
-if (GeochartEventProcessor.isGeochartInitialized("mapId")) {
-  // Get chart configurations
-  const charts = GeochartEventProcessor.getGeochartCharts("mapId");
+if (geochartPlugin) {
+  // Geochart state is managed via Zustand store
+  // Configure via corePackagesConfig in map config
 }
 ```
 
@@ -564,19 +544,14 @@ if (GeochartEventProcessor.isGeochartInitialized("mapId")) {
 ### API Methods
 
 ```typescript
-import { GeochartEventProcessor } from "@/api/event-processors/event-processor-children/geochart-event-processor";
+const mapViewer = cgpv.api.getMapViewer("mapId");
+const geochartPlugin = mapViewer.plugins["geochart"];
 
-// Check initialization
-const isInitialized = GeochartEventProcessor.isGeochartInitialized("mapId");
-
-// Get all charts
-const charts = GeochartEventProcessor.getGeochartCharts("mapId");
-
-// Propagate chart data
-GeochartEventProcessor.propagateGeochartToStore("mapId", layerPath, chartData);
+// Geochart state is managed through Zustand store hooks
+// Configure charts via corePackagesConfig in map configuration
 ```
 
-**See Also:** [GeochartEventProcessor](app/events/event-processors.md#8-geocharteventprocessor)
+**See Also:** [Controllers API](../events/controllers.md)
 
 ---
 
@@ -625,12 +600,12 @@ GeochartEventProcessor.propagateGeochartToStore("mapId", layerPath, chartData);
 **Programmatic:**
 
 ```typescript
-import { SwiperEventProcessor } from "@/api/event-processors/event-processor-children/swiper-event-processor";
+const mapViewer = cgpv.api.getMapViewer("mapId");
+const swiperPlugin = mapViewer.plugins["swiper"];
 
-// Check if swiper is initialized
-if (SwiperEventProcessor.isSwiperInitialized("mapId")) {
-  // Get swiper state
-  const swiperState = SwiperEventProcessor.getSwiperState("mapId");
+if (swiperPlugin) {
+  swiperPlugin.activateForLayer("layerPath");
+  swiperPlugin.setOrientation("vertical");
 }
 ```
 
@@ -654,7 +629,7 @@ if (SwiperEventProcessor.isSwiperInitialized("mapId")) {
       }
     ]
   },
-  "corePackage": ["swiper"],
+  "corePackages": ["swiper"],
   "corePackagesConfig": [
     {
       "swiper": {
@@ -670,16 +645,25 @@ if (SwiperEventProcessor.isSwiperInitialized("mapId")) {
 ### API Methods
 
 ```typescript
-import { SwiperEventProcessor } from "@/api/event-processors/event-processor-children/swiper-event-processor";
+const mapViewer = cgpv.api.getMapViewer("mapId");
+const swiperPlugin = mapViewer.plugins["swiper"];
 
-// Check initialization
-const isInitialized = SwiperEventProcessor.isSwiperInitialized("mapId");
+if (swiperPlugin) {
+  // Activate swiper for a layer
+  swiperPlugin.activateForLayer("layerPath");
 
-// Get swiper state
-const swiperState = SwiperEventProcessor.getSwiperState("mapId");
+  // Deactivate for a layer
+  swiperPlugin.deActivateForLayer("layerPath");
+
+  // Set orientation
+  swiperPlugin.setOrientation("vertical");
+
+  // Deactivate all
+  swiperPlugin.deActivateAll();
+}
 ```
 
-**See Also:** [SwiperEventProcessor](app/events/event-processors.md#9-swipereventprocessor)
+**See Also:** [Controllers API](../events/controllers.md)
 
 ---
 
@@ -687,7 +671,7 @@ const swiperState = SwiperEventProcessor.getSwiperState("mapId");
 
 **Description:** A drawing and geometry editing package that allows users to create, modify, and manage geometries on the map.
 
-**Version:** 2.0.x
+**Version:** 1.0.0
 
 **Repository:** `packages/geoview-drawer/`
 
@@ -720,13 +704,9 @@ const swiperState = SwiperEventProcessor.getSwiperState("mapId");
 **Programmatic:**
 
 ```typescript
-import { DrawerEventProcessor } from "@/api/event-processors/event-processor-children/drawer-event-processor";
-
-// Check if drawer is initialized
-if (DrawerEventProcessor.isDrawerInitialized("mapId")) {
-  // Start drawing
-  DrawerEventProcessor.startDrawing("mapId", "Polygon");
-}
+const mapViewer = cgpv.api.getMapViewer("mapId");
+// The drawer plugin wraps the DrawerController
+// Drawing operations are managed via the controller
 ```
 
 ### Configuration Example
@@ -761,29 +741,22 @@ if (DrawerEventProcessor.isDrawerInitialized("mapId")) {
 
 ### API Methods
 
+The drawer functionality is managed through the `DrawerController`. The drawer plugin wraps the controller and provides the UI.
+
 ```typescript
-import { DrawerEventProcessor } from "@/api/event-processors/event-processor-children/drawer-event-processor";
-
-// Check initialization
-const isInitialized = DrawerEventProcessor.isDrawerInitialized("mapId");
-
-// Get drawer state
-const drawerState = DrawerEventProcessor.getDrawerState("mapId");
-
-// Start drawing
-DrawerEventProcessor.startDrawing("mapId", "Polygon");
-
-// Stop drawing
-DrawerEventProcessor.stopDrawing("mapId");
-
-// Clear all drawings
-DrawerEventProcessor.clearDrawings("mapId");
-
-// Export as GeoJSON
-const geojson = DrawerEventProcessor.exportAsGeoJSON("mapId");
+// Drawing operations are managed internally by the DrawerController
+// The controller provides methods like:
+// - startDrawing(geomType)
+// - stopDrawing()
+// - toggleDrawing()
+// - startEditing() / stopEditing()
+// - undo() / redo()
+// - clearDrawings()
+// - downloadDrawings() (exports as GeoJSON)
+// - uploadDrawings(file) (imports GeoJSON)
 ```
 
-**See Also:** [DrawerEventProcessor](app/events/event-processors.md#10-drawereventprocessor)
+**See Also:** [Controllers API](../events/controllers.md)
 
 ---
 
@@ -1234,8 +1207,9 @@ interface TypeDescription {
 }
 ```
 
-**See Also:** 
-- [Configuration Reference - Custom Legend](app/config/configuration-reference.md#custom-legend-package)
+**See Also:**
+
+- [Configuration Reference](../config/configuration-reference.md) - Package configuration options
 
 ---
 
@@ -1285,7 +1259,7 @@ interface TypeDescription {
 ```typescript
 // About Panel is automatically loaded when included in appBar.tabs.core
 // Access via AppBar tabs
-const appBarApi = cgpv.api.maps['mapId'].appBar;
+const appBarApi = cgpv.api.maps["mapId"].appBar;
 ```
 
 ### Content Formats
@@ -1463,7 +1437,7 @@ Visit the full Atlas of Canada and discover the stories told through maps:
 
 ---
 
-*Mapping Canada's past, present, and future since 1906*
+_Mapping Canada's past, present, and future since 1906_
 ```
 
 ### Usage Notes
@@ -1557,8 +1531,8 @@ The panel gracefully handles:
 - **Empty Configuration:** Displays empty panel (not an error)
 
 **See Also:**
-- [Configuration Reference - About Panel](app/config/configuration-reference.md#about-panel-package)
-- [AppBar Plugins](app/ui/appbar.md)
+
+- [Configuration Reference](../config/configuration-reference.md) - Package configuration options
 
 ---
 
@@ -1604,36 +1578,17 @@ packages/
 }
 ```
 
-3. **Create Event Processor:**
+3. **Create UI Component:**
 
-```typescript
-// my-package-event-processor.ts
-import { AbstractEventProcessor } from "@/api/event-processors/abstract-event-processor";
-import type { GeoviewStoreType } from "@/core/stores/geoview-store";
-
-export class MyPackageEventProcessor extends AbstractEventProcessor {
-  protected static getMyPackageState(mapId: string) {
-    return super.getState(mapId).myPackageState;
-  }
-
-  static doSomething(mapId: string, value: string): void {
-    this.getMyPackageState(mapId).setterActions.setSomething(value);
-  }
-}
-```
-
-4. **Create UI Component:**
+Create a React component for your package panel:
 
 ```typescript
 // my-package-panel.tsx
-import { useEffect } from "react";
-import { useGeoViewMapId } from "geoview-core";
+import { useEffect } from 'react';
 
-export function MyPackagePanel() {
-  const mapId = useGeoViewMapId();
-
+export function MyPackagePanel({ mapId }: { mapId: string }): JSX.Element {
   useEffect(() => {
-    console.log("Package initialized for map:", mapId);
+    console.log('Package initialized for map:', mapId);
   }, [mapId]);
 
   return (
@@ -1645,31 +1600,44 @@ export function MyPackagePanel() {
 }
 ```
 
-5. **Export Package:**
+4. **Create Plugin Entry Point:**
+
+For app bar packages, extend `AppBarPlugin`. For nav bar packages, extend `NavBarPlugin`:
 
 ```typescript
 // index.tsx
-export { MyPackagePanel } from "./my-package-panel";
-export { MyPackageEventProcessor } from "./my-package-event-processor";
+import { AppBarPlugin } from "geoview-core/api/plugin/appbar-plugin";
+import { MyPackagePanel } from "./my-package-panel";
+import schema from "../schema.json";
+import defaultConfig from "../default-config-my-package.json";
+
+class MyPackagePlugin extends AppBarPlugin {
+  override schema(): unknown {
+    return schema;
+  }
+
+  override defaultConfig(): unknown {
+    return defaultConfig;
+  }
+
+  override defaultTranslations(): Record<string, unknown> {
+    return {
+      en: { MyPackage: { title: "My Package" } },
+      fr: { MyPackage: { title: "Mon Paquet" } },
+    };
+  }
+}
+
+export default MyPackagePlugin;
 ```
 
-6. **Register with GeoView:**
+5. **Register in webpack and configuration:**
 
-In your main application:
-
-```typescript
-import { MyPackagePanel } from "geoview-my-package";
-
-cgpv.api.package.register({
-  packageId: "my-package",
-  component: MyPackagePanel,
-  configSchema: myPackageSchema,
-});
-```
+See [Core Packages Guide](./core-packages.md) for the full steps to register in `webpack.common.js`, `rush.json`, `schema.json`, and `map-schema-types.ts`.
 
 ### Package Best Practices
 
-1. **Use Event Processors:** All state management should go through event processors
+1. **Use Controllers:** State management should go through controllers
 2. **Type Safety:** Leverage TypeScript for all interfaces and types
 3. **Accessibility:** Ensure package UI is accessible (WCAG 2.1 AA)
 4. **Internationalization:** Support both English and French
@@ -1714,8 +1682,8 @@ rush add -p lodash --caret
 
 ## See Also
 
-- **[Event Processors](app/events/event-processors.md)** - State management for packages
-- **[Configuration Reference](app/config/configuration-reference.md)** - Package configuration options
-- **[API Reference](app/api/api.md)** - Core API methods
+- **[Controllers API](../events/controllers.md)** - Controllers for performing actions
+- **[Configuration Reference](../config/configuration-reference.md)** - Package configuration options
+- **[API Reference](../api/api.md)** - Core API methods
 - **[Core Package Development](./core-packages.md)** - Creating custom packages (detailed guide)
-- **[State Management](programming/using-store.md)** - Zustand store architecture
+- **[State Management](../../programming/using-store.md)** - Zustand store architecture
