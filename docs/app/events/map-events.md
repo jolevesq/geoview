@@ -19,7 +19,7 @@ cgpv.onMapInit((mapViewer) => {
     console.log("Zoom level:", event.zoom);
   });
 
-  mapViewer.onMapSingleClick((sender, event) => {
+  mapViewer.onMapClick((sender, event) => {
     console.log("Clicked at:", event.lonlat);
   });
 });
@@ -29,69 +29,52 @@ cgpv.init();
 
 ## Available Events
 
-### Lifecycle Events
-
-| Event                  | Fires When                                            |
-| ---------------------- | ----------------------------------------------------- |
-| `onMapInit`            | Map instance is created (layers may still be loading) |
-| `onMapReady`           | Map and UI are fully loaded                           |
-| `onMapLayersProcessed` | All initial layers have been processed                |
-| `onMapLayersLoaded`    | All initial layers have been loaded or errored        |
-
 ### View Events
 
-| Event              | Fires When                             |
-| ------------------ | -------------------------------------- |
-| `onMapMoveEnd`     | Map finishes panning                   |
-| `onMapZoomEnd`     | Zoom operation ends                    |
-| `onMapRotation`    | Map rotation changes                   |
-| `onMapChangeSize`  | Map container is resized               |
-| `onMapSingleClick` | Map is clicked                         |
-| `onMapPointerMove` | Mouse pointer moves over map           |
-| `onMapPointerStop` | Mouse pointer stops moving (debounced) |
+| Event                  | Fires When               |
+| ---------------------- | ------------------------ |
+| `onMapMoveStart`       | Map begins panning       |
+| `onMapMoveEnd`         | Map finishes panning     |
+| `onMapZoomStart`       | Zoom operation begins    |
+| `onMapZoomEnd`         | Zoom operation ends      |
+| `onMapRotationChanged` | Map rotation changes     |
+| `onMapResize`          | Map container is resized |
+| `onScaleChanged`       | Map scale changes        |
+| `onMapClick`           | Map is clicked           |
 
 ### State Events
 
-| Event                    | Fires When                  |
-| ------------------------ | --------------------------- |
-| `onMapProjectionChanged` | Projection is changed       |
-| `onMapLanguageChanged`   | Display language is changed |
+| Event                    | Fires When                           |
+| ------------------------ | ------------------------------------ |
+| `onMapProjectionChanged` | Projection is changed                |
+| `onMapLanguageChanged`   | Display language is changed          |
+| `onMapThemeChanged`      | Theme is changed (light/dark/geo.ca) |
+| `onBasemapChanged`       | Basemap is changed                   |
 
-### Component Events
+### Interaction Events
 
-| Event                   | Fires When               |
-| ----------------------- | ------------------------ |
-| `onMapComponentAdded`   | Map component is added   |
-| `onMapComponentRemoved` | Map component is removed |
+| Event                           | Fires When                            |
+| ------------------------------- | ------------------------------------- |
+| `onFeatureHighlight`            | Feature is highlighted                |
+| `onFeatureUnhighlight`          | Feature highlight is removed          |
+| `onFeatureSelect`               | Feature is selected                   |
+| `onFeatureUnselect`             | Feature is unselected                 |
+| `onCrosshairMoved`              | Crosshair moves (keyboard navigation) |
+| `onKeyboardNavigationActivated` | Keyboard navigation toggled           |
 
-### Sub-Object Events
+### UI Events
 
-Some events live on sub-objects of `mapViewer`, not on `mapViewer` directly:
-
-```typescript
-// Basemap events — on mapViewer.basemap
-mapViewer.basemap.onBasemapChanged((sender, event) => {
-  console.log("Basemap changed:", event.basemap);
-});
-
-mapViewer.basemap.onBasemapError((sender, event) => {
-  console.log("Basemap error:", event);
-});
-```
-
-| Object              | Event              | Fires When            |
-| ------------------- | ------------------ | --------------------- |
-| `mapViewer.basemap` | `onBasemapChanged` | Basemap is changed    |
-| `mapViewer.basemap` | `onBasemapError`   | Basemap fails to load |
-
-> **Note:** Layer events (`onLayerCreated`, `onLayerStatusChanged`, etc.) are on `mapViewer.layer` — see [Layer Events](./layer-events.md).
+| Event                      | Fires When               |
+| -------------------------- | ------------------------ |
+| `onOverviewMapToggle`      | Overview map toggled     |
+| `onPanelContentChanged`    | Panel content changes    |
+| `onPanelVisibilityChanged` | Panel visibility changes |
 
 ## Best Practices
 
 - **Register events inside `cgpv.onMapInit()`** — the mapViewer is guaranteed ready
 - **Performance**: Events like `onMapMoveEnd` and `onMapZoomEnd` fire frequently — keep handlers lightweight
 - **Cleanup**: Use `offEventName()` to remove handlers when no longer needed (automatic on map destroy)
-- **Pointer events**: `onMapPointerMove()`, `onMapPointerStop()`, and `onMapSingleClick()` return the callback for easy deregistration
 
 ## See Also
 
