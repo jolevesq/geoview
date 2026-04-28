@@ -5,7 +5,7 @@
       "projection": 3978
     },
     "basemapOptions": {
-      "basemapId": "nogeom",
+      "basemapId": "imagery",
       "shaded": false,
       "labeled": false
     },
