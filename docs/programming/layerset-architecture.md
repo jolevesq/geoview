@@ -25,11 +25,16 @@ All Layer Sets extend `AbstractLayerSet`, which provides:
 export abstract class AbstractLayerSet {
   protected resultSet: TypeResultSet = {};
 
-  protected onRegisterLayerConfigCheck(layerConfig: ConfigBaseClass): boolean;
+  protected abstract onRegisterLayerConfigCheck(
+    layerConfig: ConfigBaseClass,
+  ): boolean;
   protected abstract onPropagateToStore(
     resultSetEntry: TypeResultSetEntry,
     type: PropagationType,
   ): void;
+  protected abstract onGetDefaultResultSetEntry(
+    layerConfig: ConfigBaseClass,
+  ): TypeResultSetEntry;
 }
 ```
 
@@ -88,7 +93,7 @@ Layer Sets use an event-driven system to track layer state changes and propagate
  * @returns True when the layer should be registered to this legends-layer-set
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-protected override onRegisterLayerCheck(layer: AbstractBaseGVLayer): boolean {
+protected override onRegisterLayerCheck(layer: AbstractBaseLayer): boolean {
   // Always register layers for the legends-layer-set, because we want 'the box' in the UI to show the layer status progression
   return true;
 }
@@ -129,7 +134,7 @@ protected override onRegisterLayerCheck(layer: AbstractBaseGVLayer): boolean {
  * @param layer - The layer
  * @returns True when the layer should be registered to this feature-info-layer-set
  */
-protected override onRegisterLayerCheck(layer: AbstractBaseGVLayer): boolean {
+protected override onRegisterLayerCheck(layer: AbstractBaseLayer): boolean {
   // Return if the layer is of queryable type and source is queryable
   return super.onRegisterLayerCheck(layer) && AbstractLayerSet.isQueryableType(layer) && AbstractLayerSet.isSourceQueryable(layer);
 }
@@ -171,10 +176,7 @@ async queryLayers(location?: TypeLocation, extent?: Extent): Promise<void> {
  * @param layer - The layer
  * @returns True when the layer should be registered to this all-feature-info-layer-set
  */
-protected override onRegisterLayerCheck(layer: AbstractBaseGVLayer): boolean {
-  // Exclude raster image layers that don't support tabular feature queries
-  if (layer instanceof GVEsriImage) return false;
-
+protected override onRegisterLayerCheck(layer: AbstractBaseLayer): boolean {
   // Return if the layer is of queryable type and source is queryable
   return (
     super.onRegisterLayerCheck(layer) &&
@@ -227,7 +229,7 @@ async queryLayers(location?: undefined, extent?: Extent): Promise<void> {
  * @param layer - The layer
  * @returns True when the layer should be registered to this hover-feature-info-layer-set
  */
-protected override onRegisterLayerCheck(layer: AbstractBaseGVLayer): boolean {
+protected override onRegisterLayerCheck(layer: AbstractBaseLayer): boolean {
   // Return if the layer is of queryable type and source is queryable
   return (
     super.onRegisterLayerCheck(layer) &&
@@ -283,7 +285,7 @@ When a layer config is added:
 protected registerLayerConfig(layerConfig: ConfigBaseClass): void {
   if (this.onRegisterLayerConfigCheck(layerConfig) && !(layerConfig.layerPath in this.resultSet)) {
     // Create default entry
-    this.resultSet[layerConfig.layerPath] = { layerPath: layerConfig.layerPath, layerStatus: 'processing' };
+    this.resultSet[layerConfig.layerPath] = this.onGetDefaultResultSetEntry(layerConfig);
 
     // Propagate to store
     this.onPropagateToStore(this.resultSet[layerConfig.layerPath], 'config-registration');
@@ -299,7 +301,7 @@ protected registerLayerConfig(layerConfig: ConfigBaseClass): void {
 When actual layer is created (OpenLayers layer instantiated):
 
 ```typescript
-protected registerLayer(layer: AbstractBaseGVLayer): void {
+protected registerLayer(layer: AbstractBaseLayer): void {
   const layerPath = layer.getLayerPath();
 
   if (layerPath in this.resultSet) {
@@ -501,6 +503,19 @@ export class MyCustomLayerSet extends AbstractLayerSet {
   protected onRegisterLayerConfigCheck(layerConfig: ConfigBaseClass): boolean {
     // Return true to register this layer type
     return layerConfig.geoviewLayerType === "myCustomType";
+  }
+
+  // Default entry structure
+  protected onGetDefaultResultSetEntry(
+    layerConfig: ConfigBaseClass,
+  ): TypeResultSetEntry {
+    return {
+      layerPath: layerConfig.layerPath,
+      layerName: layerConfig.geoviewLayerName.en,
+      layerStatus: "processing",
+      // Custom properties
+      myCustomData: null,
+    };
   }
 
   // Store propagation
