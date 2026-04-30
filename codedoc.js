@@ -1,1 +1,673 @@
-function sleep(e){const t=Date.now();let n=null;do{n=Date.now()}while(n-t<e)}function createCodeSnippet(){sleep(500);const e=Array.prototype.filter.call(document.getElementsByTagName("script"),e=>null===e.getAttribute("id")),t=e[e.length-1];for(let e=0,n=!0;n;e++){const o=document.getElementById(`codeSnippet${e||""}`);null!==o?o.innerHTML=`<pre>${t.textContent.replace("//create snippets\n","").replace("createConfigSnippet();\n","").replace("createCodeSnippet();\n","")}</pre>`:n=!1}}function createCodeSnippetUsingIDs(){sleep(500);const e=Array.prototype.filter.call(document.getElementsByTagName("script"),e=>null!==e.getAttribute("id"));for(let t=0;t<e.length;t++){const n=e[t];document.querySelectorAll(`[id-script="${n.id}"]`).forEach(e=>{e.innerHTML=`<pre>${n.textContent}</pre>`})}}function createConfigSnippet(){sleep(500);let e=0;for(e=0;e<document.getElementsByClassName("geoview-map").length;e++){let t="";const n=document.getElementsByClassName("geoview-map")[e].id;t=document.getElementById(n).attributes["data-config"];const o=document.getElementById(`${n}CS`);try{if(void 0!==t&&null!==o){const e=t.value.split(/(?<!\\)'/gm).map((e,t)=>t%2?e.replaceAll(/\/\*/gm,String.fromCharCode(1)).replaceAll(/\*\//gm,String.fromCharCode(2)):e).join("'").replaceAll(/\/\*(?<=\/\*)((?:.|\n|\r)*?)(?=\*\/)\*\//gm,"").replaceAll(String.fromCharCode(1),"/*").replaceAll(String.fromCharCode(2),"*/");o.textContent=JSON.stringify(JSON.parse(e.replace(/(\r\n|\n|\r)/gm,"").replace(/(?<!\\)'/gm,'"').replace(/\\'/gm,"'")),void 0,2)}}catch(e){console.log("Error trapped in createConfigSnippet")}}createCollapsible()}function createCollapsible(){const e=document.getElementsByClassName("collapsible");let t;for(t=0;t<e.length;t++){const n=e[t].nextElementSibling;e[t].classList.contains("active")?n.style.display="block":n.style.display="none",e[t].addEventListener("click",function(){this.classList.toggle("active"),this.classList.contains("active")?n.style.display="block":n.style.display="none"})}}function addLog(e,t){const n=document.getElementById(e);n.innerText+=`${t}\n`,n.scrollTop=n.scrollHeight}function addDefaultShapes(e,t){e.layer.geometry.setActiveGeometryGroup(t),e.layer.geometry.addCircle([-98.94,57.94],{style:{strokeColor:"purple",strokeWidth:2}}),e.layer.geometry.addMarkerIcon([-105.78,57.52]),e.layer.geometry.addPolyline([[-106.17,63.99],[-104.46,62.55],[-102.26,56.44]],{style:{strokeColor:"blue",strokeWidth:2}}),e.layer.geometry.addPolygon([[[-96.71,64.41],[-93.1,62.86],[-94.36,56.67],[-96.71,64.41]]],{style:{strokeColor:"green",strokeWidth:2}})}function addSpecialShapes(e,t){e.layer.geometry.setActiveGeometryGroup(t),e.layer.geometry.addPolygon([[[-86.06,62.59],[-78.29,62.59],[-80.43,55.73],[-86.06,62.59]]],{style:{strokeColor:"red",strokeWidth:2}})}function addRectangle(e,t){e.layer.geometry.setActiveGeometryGroup(t),e.layer.geometry.addPolygon([[[-100,60],[-100,70],[-70,70],[-70,60],[-100,60]]],{style:{strokeColor:"Indigo",strokeWidth:2,fillColor:"Indigo",fillOpacity:.25}},"rectangle-outline")}function listenToLegendLayerSetChanges(e,t){const n=document.getElementById(e),o={};n.innerHTML="",t.layer.onLayerStatusChanged((e,t)=>{const s=t.config.layerPath,l=t.status;o[s]=l;const a='<table class="state"><tr class="state"><th class="state">Name</th><th class="state">Status</th></tr>',i=Object.keys(o).reduce((e,t)=>`${e}<tr class="state"><td class="state">${t}</td><td class="state">${o[t]}</td></tr>`,a);n.innerHTML=i&&i!==a?`${i}</table>`:""})}async function onConfigChange(e,t){let n=document.getElementById(e);null===n&&(n=document.createElement("div"),n.setAttribute("id",e),document.getElementById("mapSection").appendChild(n)),n.setAttribute("data-lang",switchLang.value),cgpv.api.hasMapViewer(e)&&await cgpv.api.deleteMapViewer(e);try{listenToLegendLayerSetChanges("sandboxMap-state",await cgpv.api.createMapFromConfigFast(e,t.target.value,800))}catch(e){console.error("Failed to create map from config",e)}try{const e=await fetch(t.target.value),n=await e.json();document.getElementById("configGeoview").textContent=JSON.stringify(n,null,4);const o=document.querySelector("textarea"),s=document.querySelector(".line-numbers"),l=o.value.split("\n").length;s.innerHTML=Array(l).fill("<span></span>").join(""),document.getElementById("switchTheme").value=n.theme,document.getElementById("switchProjection").value=n.map.viewSettings.projection;const a=document.getElementById("configLoader");window.history.replaceState(null,null,`?config=${a.value}`)}catch(e){console.error("Unable to fetch data:",e)}}function cleanURL(e){const[t,n]=e.split("://"),o=n.indexOf("/"),s=-1===o?n:n.substring(0,o);let l=-1===o?"":n.substring(o);return l=l.replace(/\/+/g,"/"),l.length>1&&l.endsWith("/")&&(l=l.slice(0,-1)),`${t}://${s}${l}`}function testSuiteCreateTable(e){const t=e.mapViewer.mapId,n=e.getDescriptionAsHtml(),o=document.createElement("div");return o.innerHTML=`\n    <div style="white-space: pre-line;">${n}</div>\n    <div style="text-align:right;">\n      <span id="suitesCheck-${t}"></span>\n    </div>\n    <div style="text-align:right;">\n      Suites: <span id="suitesCompleted-${t}">0</span>/<span id="suitesTotal-${t}">0</span>\n    </div>\n    <div style="text-align:right;">\n      Running: <span id="testsRunning-${t}">0</span> | Done success: <span id="testsDoneSuccess-${t}" style="color:green;">0</span> | Done failed: <span id="testsDoneFailed-${t}" style="color:green;">0</span> | Done: <span id="testsDone-${t}">0</span>/<span id="testsTotal-${t}">0</span>\n    </div>\n    <button class="btnLaunchTests" onclick="launchTests('${t}')">LAUNCH TESTS ${t} !</button>\n    <br/><br/>\n    <table id="tableResults-${t}" class="tableResults">\n      <colgroup>\n        <col>\n        <col style="width: 80px;">\n        <col>\n      </colgroup>\n      <thead>\n        <tr><td>TEST</td><td>RESULT</td><td>DETAILS</td></tr>\n      </thead>\n      <tbody id="tableBody-${t}"></tbody>\n    </table>\n  `,o}function testSuiteUpdateTotals(e,t=""){const n=t?t+"-":"",o=document.getElementById(n+"suitesCompleted-"+e.mapViewer.mapId);o&&(o.textContent=e.getSuitesCompleted());const s=document.getElementById(n+"suitesTotal-"+e.mapViewer.mapId);s&&(s.textContent=e.getSuitesTotal());const l=document.getElementById(n+"suitesCheck-"+e.mapViewer.mapId);if(l){const t=e.getTestsRunning()>0,n=e.getTestsDoneAllAndSuiteDone(),o=e.getTestsDoneAllSuccessAndSuiteDone();l.textContent=n?o?"✔":"✘":t?"⏳":"",l.style.color=n?o?"green":"red":"black"}const a=document.getElementById(n+"testsRunning-"+e.mapViewer.mapId);a&&(a.textContent=e.getTestsRunning());const i=document.getElementById(n+"testsDoneSuccess-"+e.mapViewer.mapId);i&&(i.textContent=e.getTestsDoneSuccess());const c=document.getElementById(n+"testsDoneFailed-"+e.mapViewer.mapId);c&&(c.textContent=e.getTestsDoneFailed(),c.style.color="green",e.getTestsDoneFailed()>0&&(c.style.color="red"));const r=document.getElementById(n+"testsDone-"+e.mapViewer.mapId);r&&(r.textContent=e.getTestsDone());const d=document.getElementById(n+"testsTotal-"+e.mapViewer.mapId);d&&(d.textContent=e.getTestsTotal())}function testSuiteUpdateGrandTotal(e){let t=0,n=0,o=0,s=0,l=0,a=0,i=0;const c=Object.values(e);c.forEach(e=>{t+=e.getSuitesCompleted(),n+=e.getSuitesTotal(),o+=e.getTestsRunning(),s+=e.getTestsDoneSuccess(),l+=e.getTestsDoneFailed(),a+=e.getTestsDone(),i+=e.getTestsTotal()});document.getElementById("allSuitesCompleted").textContent=t;document.getElementById("allSuitesTotal").textContent=n;const r=document.getElementById("allSuitesCheck"),d=o>0,g=c.every(e=>e.getTestsDoneAllAndSuiteDone()),u=c.every(e=>e.getTestsDoneAllSuccessAndSuiteDone());r.textContent=g?u?"✔":"✘":d?"⏳":"",r.style.color=g?u?"green":"red":"black";document.getElementById("allSuitesTestsRunning").textContent=o;document.getElementById("allSuitesTestsDoneSuccess").textContent=s;document.getElementById("allSuitesTestsDoneFailed").textContent=l;document.getElementById("allSuitesTestsDone").textContent=a;document.getElementById("allSuitesTestsTotal").textContent=i}function testSuiteAddOrUpdateTestResultRow(e,t,n,o,s,l=""){let a=null;"success"===o.getStatus()?a=!0:"failed"===o.getStatus()&&(a=!1);const i=l?l+"-":"",c=document.getElementById(i+"tableBody-"+e.mapViewer.mapId);if(!c)return;let r=document.getElementById(i+o.id);r||(r=document.createElement("tr"),r.id=i+o.id,r.classList.add("expanded"),r.appendChild(document.createElement("td")),r.appendChild(document.createElement("td")),r.appendChild(document.createElement("td")),c.appendChild(r));const d=r.cells?.[0];let g="#515ba5";"true-negative"===o.getType()&&(g="#97a0e5");let u='<font class="test-title" style="color:'+g+";\" onclick=\"event.stopPropagation(); this.closest('tr').classList.toggle('expanded'); this.closest('tr').classList.toggle('collapsed');\">"+o.getTitle()+"</font><br/>";u+='<div class="collapsible-content" style="margin-top: 5px;">',u+='<font style="font-size: x-small;"><i>['+t.getName()+" | "+n.getName()+"]</i></font>",u+=o.getStepsAsHtml(),d.innerHTML=u;const p=r.cells?.[1],m=r.cells?.[2];p&&(p.style.textAlign="center",!0===a?(r.classList.add("collapsed"),r.classList.remove("expanded"),p.style.color="green",p.textContent="✔"):!1===a?(r.classList.add("expanded"),r.classList.remove("collapsed"),p.style.color="red",p.textContent="✘",m.textContent=s,m.style.whiteSpace="pre-line"):(p.style.color="black",p.textContent="⏳")),u+="</div>"}function testSuiteEmptyTestResults(e){const t=document.getElementById("tableBody-"+e.mapViewer.mapId);for(;t.firstChild;)t.removeChild(t.firstChild)}function insertPageHeader(){const e=document.getElementById("page-header");e&&(e.innerHTML='\n    <div class="page-header">\n      <img class="header-logo" alt="logo" src="./img/Logo.png" />\n      <div class="page-header-titles">\n        <h1 class="index-header-title"><strong>Plateforme Géospatiale Canadienne (PGC) - Projet GeoView -</strong></h1>\n        <h1 class="index-header-title"><strong>Canadian Geospatial Platform (CGP) - GeoView Project -</strong></h1>\n      </div>\n    </div>\n    <div style="border-bottom: 3px solid #515ba5; margin: 20px 0;"></div>\n  ')}function getSingleQuoteRegex(){return/(?<!\\)'/g}function parseConfigJSON(e){const t=getSingleQuoteRegex();return JSON.parse(e.replace(t,'"'))}function initializeLineNumbers(e="#mapConfig",t=".line-numbers"){const n=document.querySelector(e),o=document.querySelector(t);if(!n||!o)return void console.warn("Textarea or line numbers container not found");const s=n.value.split("\n").length;o.innerHTML=Array(s).fill("<span></span>").join(""),n.addEventListener("keyup",e=>{const t=e.target.value.split("\n").length;o.innerHTML=Array(t).fill("<span></span>").join("")})}function setupConfigValidation(e="#mapConfig",t="#validationMessage",n=null,o=null){const s=document.querySelector(e),l=document.querySelector(t),a=document.getElementById("validateConfig"),i=n?document.querySelector(n):null;s&&l?(a&&a.addEventListener("click",async function(e){try{const e=parseConfigJSON(s.value);if(window.cgpv&&cgpv.api.config&&cgpv.api.config.validateMapConfig){cgpv.api.config.validateMapConfig(e,"en");l.classList.add("config-json-valid"),l.classList.remove("config-error"),l.textContent="File seems valid, see console for details..."}else l.classList.add("config-json-valid"),l.classList.remove("config-error"),l.textContent=window.cgpv?"JSON syntax is valid (validation API not available in this version)...":"JSON syntax is valid (cgpv not loaded yet)...";i&&(i.disabled=!1),o&&o(!0,null)}catch(e){l.classList.add("config-error"),l.classList.remove("config-json-valid"),l.textContent=e.message,i&&(i.disabled=!1),o&&o(!1,e.message)}}),s.addEventListener("input",e=>{l.classList.remove("config-json-valid","config-error"),l.textContent="File not validated...",o&&o(null,null)})):console.warn("Textarea or validation message element not found")}function initializeConfigEditor(e={}){const{textareaSelector:t="#mapConfig",lineNumbersSelector:n=".line-numbers",validationMessageSelector:o="#validationMessage",reloadButtonSelector:s=null,onValidationChange:l=null}=e;return initializeLineNumbers(t,n),setupConfigValidation(t,o,s,l),{parseConfigJSON,getSingleQuoteRegex}}
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// Many functions name needs the eslint escape no-unused-vars.
+// It is an utilities file for demo purpose. It is the reason why we keep it global...
+function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
+}
+
+function createCodeSnippet() {
+  sleep(500);
+
+  const scripts = Array.prototype.filter.call(document.getElementsByTagName('script'), (obj) => {
+    return obj.getAttribute('id') === null;
+  });
+
+  const script = scripts[scripts.length - 1];
+  for (let i = 0, loop = true; loop; i++) {
+    const el = document.getElementById(`codeSnippet${i || ''}`);
+    if (el !== null) {
+      el.innerHTML = `<pre>${script.textContent
+        .replace('//create snippets\n', '')
+        .replace('createConfigSnippet();\n', '')
+        .replace('createCodeSnippet();\n', '')}</pre>`;
+    } else loop = false;
+  }
+}
+
+function createCodeSnippetUsingIDs() {
+  sleep(500);
+
+  // Enhanced code snippet generator which allows to associate a script id with a code snippet script (og function is using indexes)
+  // and write down different code snippet spreaded in the dom tree (og function always reuses 'script' variable which is the last script tag found in the dom)
+  // Get all scripts on page which has an id
+  const scripts = Array.prototype.filter.call(document.getElementsByTagName('script'), (obj) => {
+    return obj.getAttribute('id') !== null;
+  });
+
+  // Loop on each script
+  for (let i = 0; i < scripts.length; i++) {
+    // Try to find a codeSnippet flag interested in that script
+    const script = scripts[i];
+    document.querySelectorAll(`[id-script="${script.id}"]`).forEach((el) => {
+      el.innerHTML = `<pre>${script.textContent}</pre>`;
+    });
+  }
+}
+
+function createConfigSnippet() {
+  sleep(500);
+
+  const maps = document.getElementsByClassName('geoview-map');
+  const fetchPromises = [];
+
+  // inject configuration snippet inside panel
+  for (let j = 0; j < maps.length; j++) {
+    const mapElement = maps[j];
+    const mapID = mapElement.id;
+    const el = document.getElementById(`${mapID}CS`);
+    if (el === null) continue;
+
+    const configSnippet = mapElement.attributes['data-config'];
+    const configUrl = mapElement.attributes['data-config-url'];
+
+    // check if JSON can be parsed, if not do nothing
+    try {
+      if (configSnippet !== undefined) {
+        // Erase comments in the configSnippet.
+        const uncommentedConfigSnippet = configSnippet.value
+          .split(/(?<!\\)'/gm)
+          .map((fragment, index) => {
+            if (index % 2) return fragment.replaceAll(/\/\*/gm, String.fromCharCode(1)).replaceAll(/\*\//gm, String.fromCharCode(2));
+            return fragment; // .replaceAll(/\/\*(?<=\/\*)((?:.|\n|\r)*?)(?=\*\/)\*\//gm, '');
+          })
+          .join("'")
+          .replaceAll(/\/\*(?<=\/\*)((?:.|\n|\r)*?)(?=\*\/)\*\//gm, '')
+          .replaceAll(String.fromCharCode(1), '/*')
+          .replaceAll(String.fromCharCode(2), '*/');
+
+        el.textContent = JSON.stringify(
+          JSON.parse(
+            uncommentedConfigSnippet
+              // remove CR and LF from the map config
+              .replace(/(\r\n|\n|\r)/gm, '')
+              // replace apostrophes not preceded by a backslash with quotes
+              .replace(/(?<!\\)'/gm, '"')
+              // replace apostrophes preceded by a backslash with a single apostrophe
+              .replace(/\\'/gm, "'")
+          ),
+          undefined,
+          2
+        );
+      } else if (configUrl !== undefined) {
+        // Fetch the config from the URL and display it
+        fetchPromises.push(
+          fetch(configUrl.value)
+            .then(function (response) {
+              return response.json();
+            })
+            .then(function (json) {
+              el.textContent = JSON.stringify(json, undefined, 2);
+            })
+            .catch(function (error) {
+              console.log(`Error fetching config from ${configUrl.value}`, error);
+            })
+        );
+      }
+    } catch (error) {
+      console.log('Error trapped in createConfigSnippet');
+    }
+  }
+
+  // Wait for all fetches to complete before creating collapsibles
+  if (fetchPromises.length > 0) {
+    Promise.all(fetchPromises).then(function () {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      createCollapsible();
+    });
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    createCollapsible();
+  }
+}
+
+function createCollapsible() {
+  const coll = document.getElementsByClassName('collapsible');
+  let i;
+
+  for (i = 0; i < coll.length; i++) {
+    const content = coll[i].nextElementSibling;
+    if (coll[i].classList.contains('active')) content.style.display = 'block';
+    else content.style.display = 'none';
+
+    coll[i].addEventListener('click', function () {
+      this.classList.toggle('active');
+      if (this.classList.contains('active')) content.style.display = 'block';
+      else content.style.display = 'none';
+    });
+  }
+}
+
+function addLog(logId, msg) {
+  const logs = document.getElementById(logId);
+  logs.innerText += `${msg}\n`;
+  logs.scrollTop = logs.scrollHeight;
+}
+
+function addDefaultShapes(map, groupKey) {
+  // Set active geometry group
+  map.layer.geometry.setActiveGeometryGroup(groupKey);
+
+  // Add dummy shapes
+  map.layer.geometry.addCircle([-98.94, 57.94], { style: { strokeColor: 'purple', strokeWidth: 2 } });
+
+  // Add dummy shapes
+  map.layer.geometry.addMarkerIcon([-105.78, 57.52]);
+
+  // Add dummy shapes
+  map.layer.geometry.addPolyline(
+    [
+      [-106.17, 63.99],
+      [-104.46, 62.55],
+      [-102.26, 56.44],
+    ],
+    { style: { strokeColor: 'blue', strokeWidth: 2 } }
+  );
+
+  // Add dummy shapes
+  map.layer.geometry.addPolygon(
+    [
+      [
+        [-96.71, 64.41],
+        [-93.1, 62.86],
+        [-94.36, 56.67],
+        [-96.71, 64.41],
+      ],
+    ],
+    { style: { strokeColor: 'green', strokeWidth: 2 } }
+  );
+}
+
+function addSpecialShapes(map, groupKey) {
+  // Set active geometry group
+  map.layer.geometry.setActiveGeometryGroup(groupKey);
+
+  // Add dummy shapes
+  map.layer.geometry.addPolygon(
+    [
+      [
+        [-86.06, 62.59],
+        [-78.29, 62.59],
+        [-80.43, 55.73],
+        [-86.06, 62.59],
+      ],
+    ],
+    { style: { strokeColor: 'red', strokeWidth: 2 } }
+  );
+}
+
+function addRectangle(map, groupKey) {
+  // Set active geometry group
+  map.layer.geometry.setActiveGeometryGroup(groupKey);
+
+  // Add dummy shapes
+  map.layer.geometry.addPolygon(
+    [
+      [
+        [-100, 60],
+        [-100, 70],
+        [-70, 70],
+        [-70, 60],
+        [-100, 60],
+      ],
+    ],
+    { style: { strokeColor: 'Indigo', strokeWidth: 2, fillColor: 'Indigo', fillOpacity: 0.25 } },
+    'rectangle-outline'
+  );
+}
+
+function listenToLegendLayerSetChanges(elementId, mapViewer) {
+  const displayField = document.getElementById(elementId);
+
+  // Listen on the layer status changes
+  const allResults = {};
+  displayField.innerHTML = '';
+  mapViewer.layer.onLayerStatusChanged((sender, payload) => {
+    const layerPath = payload.config.layerPath;
+    const layerStatus = payload.status;
+    allResults[layerPath] = layerStatus;
+
+    const outputHeader = '<table class="state"><tr class="state"><th class="state">Name</th><th class="state">Status</th></tr>';
+    const output = Object.keys(allResults).reduce((outputValue, layerPath) => {
+      return `${outputValue}<tr class="state"><td class="state">${layerPath}</td><td class="state">${allResults[layerPath]}</td></tr>`;
+    }, outputHeader);
+    displayField.innerHTML = output && output !== outputHeader ? `${output}</table>` : '';
+  });
+}
+
+async function onConfigChange(mapId, e) {
+  // create new map in a new dom node
+  let mapDiv = document.getElementById(mapId);
+  if (mapDiv === null) {
+    mapDiv = document.createElement('div');
+    mapDiv.setAttribute('id', mapId);
+    document.getElementById('mapSection').appendChild(mapDiv);
+  }
+
+  // Set the language to the switchLang value, always
+  mapDiv.setAttribute('data-lang', switchLang.value);
+
+  // Delete previous map if existing
+  if (cgpv.api.hasMapViewer(mapId)) {
+    await cgpv.api.deleteMapViewer(mapId);
+  }
+
+  // create map
+  try {
+    const mapViewer = await cgpv.api.createMapFromConfigFast(mapId, e.target.value, 800);
+    listenToLegendLayerSetChanges('sandboxMap-state', mapViewer);
+  } catch (error) {
+    console.error('Failed to create map from config', error);
+  }
+
+  try {
+    // Fetch the data
+    const res = await fetch(e.target.value);
+    const data = await res.json();
+
+    // fetch JSON config file to show in the text are section
+    document.getElementById('configGeoview').textContent = JSON.stringify(data, null, 4);
+
+    // set default number of lines
+    const textarea = document.querySelector('textarea');
+    const lineNumbers = document.querySelector('.line-numbers');
+    const numberOfLines = textarea.value.split('\n').length;
+    lineNumbers.innerHTML = Array(numberOfLines).fill('<span></span>').join('');
+
+    // pre-select theme and projection from config file
+    document.getElementById('switchTheme').value = data.theme;
+    document.getElementById('switchProjection').value = data.map.viewSettings.projection;
+
+    // update url to include selected file
+    const element = document.getElementById('configLoader');
+    window.history.replaceState(null, null, `?config=${element.value}`);
+  } catch (error) {
+    console.error('Unable to fetch data:', error);
+  }
+}
+
+function cleanURL(url) {
+  // Split the protocol and the rest
+  const [protocolPart, rest] = url.split('://');
+
+  // Split domain and path
+  const firstSlashIndex = rest.indexOf('/');
+  const domain = firstSlashIndex === -1 ? rest : rest.substring(0, firstSlashIndex);
+  let path = firstSlashIndex === -1 ? '' : rest.substring(firstSlashIndex);
+
+  // Replace multiple slashes with one in path
+  path = path.replace(/\/+/g, '/');
+
+  // Remove trailing slash if it's not the root "/"
+  if (path.length > 1 && path.endsWith('/')) {
+    path = path.slice(0, -1);
+  }
+
+  // Reconstruct the cleaned URL
+  return `${protocolPart}://${domain}${path}`;
+}
+
+function testSuiteCreateTable(plugin) {
+  // The map id
+  const mapId = plugin.mapViewer.mapId;
+  const description = plugin.getDescriptionAsHtml();
+  const wrapper = document.createElement('div');
+
+  wrapper.innerHTML = `
+    <div style="white-space: pre-line;">${description}</div>
+    <div style="text-align:right;">
+      <span id="suitesCheck-${mapId}"></span>
+    </div>
+    <div style="text-align:right;">
+      Suites: <span id="suitesCompleted-${mapId}">0</span>/<span id="suitesTotal-${mapId}">0</span>
+    </div>
+    <div style="text-align:right;">
+      Running: <span id="testsRunning-${mapId}">0</span> | Done success: <span id="testsDoneSuccess-${mapId}" style="color:green;">0</span> | Done failed: <span id="testsDoneFailed-${mapId}" style="color:green;">0</span> | Done: <span id="testsDone-${mapId}">0</span>/<span id="testsTotal-${mapId}">0</span>
+    </div>
+    <button class="btnLaunchTests" onclick="launchTests('${mapId}')">LAUNCH TESTS ${mapId} !</button>
+    <br/><br/>
+    <table id="tableResults-${mapId}" class="tableResults">
+      <colgroup>
+        <col>
+        <col style="width: 80px;">
+        <col>
+      </colgroup>
+      <thead>
+        <tr><td>TEST</td><td>RESULT</td><td>DETAILS</td></tr>
+      </thead>
+      <tbody id="tableBody-${mapId}"></tbody>
+    </table>
+  `;
+
+  return wrapper;
+}
+
+function testSuiteUpdateTotals(plugin, idPrefix = '') {
+  const prefix = idPrefix ? idPrefix + '-' : '';
+  const suitesCompleted = document.getElementById(prefix + 'suitesCompleted-' + plugin.mapViewer.mapId);
+  if (suitesCompleted) suitesCompleted.textContent = plugin.getSuitesCompleted();
+  const suitesTotal = document.getElementById(prefix + 'suitesTotal-' + plugin.mapViewer.mapId);
+  if (suitesTotal) suitesTotal.textContent = plugin.getSuitesTotal();
+  const suitesCheck = document.getElementById(prefix + 'suitesCheck-' + plugin.mapViewer.mapId);
+  if (suitesCheck) {
+    const suiteRunning = plugin.getTestsRunning() > 0;
+    const completedFully = plugin.getTestsDoneAllAndSuiteDone();
+    const allSuccess = plugin.getTestsDoneAllSuccessAndSuiteDone();
+    suitesCheck.textContent = completedFully ? (allSuccess ? '✔' : '✘') : suiteRunning ? '⏳' : '';
+    suitesCheck.style.color = completedFully ? (allSuccess ? 'green' : 'red') : 'black';
+  }
+  const testsRunning = document.getElementById(prefix + 'testsRunning-' + plugin.mapViewer.mapId);
+  if (testsRunning) testsRunning.textContent = plugin.getTestsRunning();
+  const testsDoneSuccess = document.getElementById(prefix + 'testsDoneSuccess-' + plugin.mapViewer.mapId);
+  if (testsDoneSuccess) testsDoneSuccess.textContent = plugin.getTestsDoneSuccess();
+  const testsDoneFailed = document.getElementById(prefix + 'testsDoneFailed-' + plugin.mapViewer.mapId);
+  if (testsDoneFailed) {
+    testsDoneFailed.textContent = plugin.getTestsDoneFailed();
+    testsDoneFailed.style.color = 'green';
+    if (plugin.getTestsDoneFailed() > 0) {
+      testsDoneFailed.style.color = 'red';
+    }
+  }
+  const testsDone = document.getElementById(prefix + 'testsDone-' + plugin.mapViewer.mapId);
+  if (testsDone) testsDone.textContent = plugin.getTestsDone();
+  const testsTotal = document.getElementById(prefix + 'testsTotal-' + plugin.mapViewer.mapId);
+  if (testsTotal) testsTotal.textContent = plugin.getTestsTotal();
+}
+
+function testSuiteUpdateGrandTotal(plugins) {
+  let totalSuitesCompleted = 0;
+  let totalSuitesTotal = 0;
+  let totalTestsRunning = 0;
+  let totalTestsDoneSuccess = 0;
+  let totalTestsDoneFailed = 0;
+  let totalTestsDone = 0;
+  let totalTestsTotal = 0;
+  const thePlugins = Object.values(plugins);
+  thePlugins.forEach((plugin) => {
+    totalSuitesCompleted += plugin.getSuitesCompleted();
+    totalSuitesTotal += plugin.getSuitesTotal();
+    totalTestsRunning += plugin.getTestsRunning();
+    totalTestsDoneSuccess += plugin.getTestsDoneSuccess();
+    totalTestsDoneFailed += plugin.getTestsDoneFailed();
+    totalTestsDone += plugin.getTestsDone();
+    totalTestsTotal += plugin.getTestsTotal();
+  });
+  const suitesCompleted = document.getElementById('allSuitesCompleted');
+  suitesCompleted.textContent = totalSuitesCompleted;
+  const suitesTotal = document.getElementById('allSuitesTotal');
+  suitesTotal.textContent = totalSuitesTotal;
+  const suitesCheck = document.getElementById('allSuitesCheck');
+  const suiteRunning = totalTestsRunning > 0;
+  const completedFully = thePlugins.every((plugin) => plugin.getTestsDoneAllAndSuiteDone());
+  const allSuccess = thePlugins.every((plugin) => plugin.getTestsDoneAllSuccessAndSuiteDone());
+  suitesCheck.textContent = completedFully ? (allSuccess ? '✔' : '✘') : suiteRunning ? '⏳' : '';
+  suitesCheck.style.color = completedFully ? (allSuccess ? 'green' : 'red') : 'black';
+  const testsRunning = document.getElementById('allSuitesTestsRunning');
+  testsRunning.textContent = totalTestsRunning;
+  const testsDoneSuccess = document.getElementById('allSuitesTestsDoneSuccess');
+  testsDoneSuccess.textContent = totalTestsDoneSuccess;
+  const testsDoneFailed = document.getElementById('allSuitesTestsDoneFailed');
+  testsDoneFailed.textContent = totalTestsDoneFailed;
+  const testsDone = document.getElementById('allSuitesTestsDone');
+  testsDone.textContent = totalTestsDone;
+  const testsTotal = document.getElementById('allSuitesTestsTotal');
+  testsTotal.textContent = totalTestsTotal;
+}
+
+function testSuiteAddOrUpdateTestResultRow(plugin, testSuite, testTester, test, details, idPrefix = '') {
+  let passed = null;
+  if (test.getStatus() === 'success') passed = true;
+  else if (test.getStatus() === 'failed') passed = false;
+
+  const prefix = idPrefix ? idPrefix + '-' : '';
+
+  // Find the table for the map id
+  const tableBody = document.getElementById(prefix + 'tableBody-' + plugin.mapViewer.mapId);
+  if (!tableBody) {
+    return;
+  }
+
+  // Try to find an existing row by ID
+  let row = document.getElementById(prefix + test.id);
+
+  if (!row) {
+    // If it doesn't exist, create a new row
+    row = document.createElement('tr');
+    row.id = prefix + test.id;
+    row.classList.add('expanded');
+
+    // Create and append the three cells
+    row.appendChild(document.createElement('td'));
+    row.appendChild(document.createElement('td'));
+    row.appendChild(document.createElement('td'));
+
+    tableBody.appendChild(row);
+  }
+
+  // Update result cells
+  const testCell = row.cells?.[0];
+  let color = '#515ba5';
+  if (test.getType() === 'true-negative') {
+    color = '#97a0e5';
+  }
+
+  // Title
+  let testMessage =
+    '<font class="test-title" style="color:' +
+    color +
+    ';" onclick="' +
+    `event.stopPropagation(); this.closest('tr').classList.toggle('expanded'); this.closest('tr').classList.toggle('collapsed');">` +
+    test.getTitle() +
+    '</font><br/>';
+
+  // Collapsible content
+  testMessage += '<div class="collapsible-content" style="margin-top: 5px;">';
+  testMessage += '<font style="font-size: x-small;">' + '<i>[' + testSuite.getName() + ' | ' + testTester.getName() + ']' + '</i></font>';
+  testMessage += test.getStepsAsHtml();
+  testCell.innerHTML = testMessage;
+
+  const resultCell = row.cells?.[1];
+  const detailsCell = row.cells?.[2];
+
+  if (resultCell) {
+    resultCell.style.textAlign = 'center';
+    if (passed === true) {
+      row.classList.add('collapsed');
+      row.classList.remove('expanded');
+      resultCell.style.color = 'green';
+      resultCell.textContent = '✔';
+    } else if (passed === false) {
+      // Expand the row
+      row.classList.add('expanded');
+      row.classList.remove('collapsed');
+      resultCell.style.color = 'red';
+      resultCell.textContent = '✘';
+      detailsCell.textContent = details;
+      detailsCell.style.whiteSpace = 'pre-line';
+    } else {
+      resultCell.style.color = 'black';
+      resultCell.textContent = '⏳';
+    }
+  }
+  testMessage += '</div>';
+}
+
+function testSuiteEmptyTestResults(plugin) {
+  // Empty the table
+  const tableBody = document.getElementById('tableBody-' + plugin.mapViewer.mapId);
+  while (tableBody.firstChild) {
+    tableBody.removeChild(tableBody.firstChild);
+  }
+}
+
+/**
+ * Insert the standard page header with logo and titles
+ * Call this function at the beginning of the body tag with an empty div: <div id="page-header"></div>
+ */
+function insertPageHeader() {
+  const headerHTML = `
+    <div class="page-header">
+      <img class="header-logo" alt="logo" src="./img/Logo.png" />
+      <div class="page-header-titles">
+        <h1 class="index-header-title"><strong>Plateforme Géospatiale Canadienne (PGC) - Projet GeoView -</strong></h1>
+        <h1 class="index-header-title"><strong>Canadian Geospatial Platform (CGP) - GeoView Project -</strong></h1>
+      </div>
+    </div>
+    <div style="border-bottom: 3px solid #515ba5; margin: 20px 0;"></div>
+  `;
+
+  const headerElement = document.getElementById('page-header');
+  if (headerElement) {
+    headerElement.innerHTML = headerHTML;
+  }
+}
+
+//#region ------------------ CONFIG EDITOR UTILITIES -----------------------------------------
+/**
+ * Returns the regex pattern to match single quotes not preceded by backslash
+ * Used to convert single quotes to double quotes for JSON parsing
+ * @returns The regex pattern
+ */
+function getSingleQuoteRegex() {
+  return /(?<!\\)'/g;
+}
+
+/**
+ * Parse config text by replacing single quotes with double quotes
+ * @param configText - The config text to parse
+ * @returns The parsed JSON object
+ * @throws {Error} If JSON is invalid
+ */
+function parseConfigJSON(configText) {
+  const regexExp = getSingleQuoteRegex();
+  return JSON.parse(configText.replace(regexExp, '"'));
+}
+
+/**
+ * Initialize line numbers for a textarea editor
+ * Updates line numbers when user types or initially loads
+ * @param {string} textareaSelector - CSS selector for the textarea element
+ * @param {string} lineNumbersSelector - CSS selector for the line numbers container
+ */
+function initializeLineNumbers(textareaSelector = '#mapConfig', lineNumbersSelector = '.line-numbers') {
+  const textarea = document.querySelector(textareaSelector);
+  const lineNumbers = document.querySelector(lineNumbersSelector);
+
+  if (!textarea || !lineNumbers) {
+    console.warn('Textarea or line numbers container not found');
+    return;
+  }
+
+  // Set default number of lines
+  const numberOfLines = textarea.value.split('\n').length;
+  lineNumbers.innerHTML = Array(numberOfLines).fill('<span></span>').join('');
+
+  // Update line numbers on keyup
+  textarea.addEventListener('keyup', (event) => {
+    const numberOfLines = event.target.value.split('\n').length;
+    lineNumbers.innerHTML = Array(numberOfLines).fill('<span></span>').join('');
+  });
+}
+
+/**
+ * Setup validation functionality for config textarea
+ * Validates JSON syntax and optionally validates against GeoView schema
+ * @param {string} textareaSelector - CSS selector for the textarea element
+ * @param {string} validationMessageSelector - CSS selector for validation message element
+ * @param {string} reloadButtonSelector - CSS selector for reload button (optional)
+ * @param {function} onValidationChange - Callback when validation message changes (optional)
+ */
+function setupConfigValidation(
+  textareaSelector = '#mapConfig',
+  validationMessageSelector = '#validationMessage',
+  reloadButtonSelector = null,
+  onValidationChange = null
+) {
+  const textarea = document.querySelector(textareaSelector);
+  const validationMessage = document.querySelector(validationMessageSelector);
+  const validateBtn = document.getElementById('validateConfig');
+  const reloadBtn = reloadButtonSelector ? document.querySelector(reloadButtonSelector) : null;
+
+  if (!textarea || !validationMessage) {
+    console.warn('Textarea or validation message element not found');
+    return;
+  }
+
+  // Validate config button handler
+  if (validateBtn) {
+    validateBtn.addEventListener('click', async function (e) {
+      try {
+        const configJSON = parseConfigJSON(textarea.value);
+
+        // Check if validation API exists (newer versions only)
+        if (window.cgpv && cgpv.api.config && cgpv.api.config.validateMapConfig) {
+          const validConfig = cgpv.api.config.validateMapConfig(configJSON, 'en');
+          validationMessage.classList.add('config-json-valid');
+          validationMessage.classList.remove('config-error');
+          validationMessage.textContent = 'File seems valid, see console for details...';
+        } else {
+          // Fallback for older versions or when cgpv not loaded - just check JSON is valid
+          validationMessage.classList.add('config-json-valid');
+          validationMessage.classList.remove('config-error');
+          validationMessage.textContent = window.cgpv
+            ? 'JSON syntax is valid (validation API not available in this version)...'
+            : 'JSON syntax is valid (cgpv not loaded yet)...';
+        }
+
+        if (reloadBtn) reloadBtn.disabled = false;
+        if (onValidationChange) onValidationChange(true, null);
+      } catch (error) {
+        validationMessage.classList.add('config-error');
+        validationMessage.classList.remove('config-json-valid');
+        validationMessage.textContent = error.message;
+
+        if (reloadBtn) reloadBtn.disabled = false; // Still allow reload even if validation fails
+        if (onValidationChange) onValidationChange(false, error.message);
+      }
+    });
+  }
+
+  // Reset validation message when config is modified
+  textarea.addEventListener('input', (event) => {
+    validationMessage.classList.remove('config-json-valid', 'config-error');
+    validationMessage.textContent = 'File not validated...';
+    if (onValidationChange) onValidationChange(null, null);
+  });
+}
+
+/**
+ * Initialize all config editor utilities in one call
+ * Sets up line numbers, validation, and returns utility functions
+ * @param options - Configuration options
+ * @param options.textareaSelector - CSS selector for textarea
+ * @param options.lineNumbersSelector - CSS selector for line numbers container
+ * @param options.validationMessageSelector - CSS selector for validation message
+ * @param options.reloadButtonSelector - CSS selector for reload button (optional)
+ * @param options.onValidationChange - Callback for validation changes (optional)
+ * @returns Object with utility functions (parseConfigJSON, getSingleQuoteRegex)
+ */
+function initializeConfigEditor(options = {}) {
+  const {
+    textareaSelector = '#mapConfig',
+    lineNumbersSelector = '.line-numbers',
+    validationMessageSelector = '#validationMessage',
+    reloadButtonSelector = null,
+    onValidationChange = null,
+  } = options;
+
+  // Initialize line numbers
+  initializeLineNumbers(textareaSelector, lineNumbersSelector);
+
+  // Setup validation
+  setupConfigValidation(textareaSelector, validationMessageSelector, reloadButtonSelector, onValidationChange);
+
+  // Return utility functions for parsing
+  return {
+    parseConfigJSON,
+    getSingleQuoteRegex,
+  };
+}
+//#endregion ------------------ CONFIG EDITOR UTILITIES END -----------------------------------------
