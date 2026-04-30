@@ -51,22 +51,17 @@ function createCodeSnippetUsingIDs() {
 function createConfigSnippet() {
   sleep(500);
 
-  const maps = document.getElementsByClassName('geoview-map');
-  const fetchPromises = [];
-
+  let j = 0;
   // inject configuration snippet inside panel
-  for (let j = 0; j < maps.length; j++) {
-    const mapElement = maps[j];
-    const mapID = mapElement.id;
+  for (j = 0; j < document.getElementsByClassName('geoview-map').length; j++) {
+    let configSnippet = '';
+    const mapID = document.getElementsByClassName('geoview-map')[j].id;
+    configSnippet = document.getElementById(mapID).attributes['data-config'];
     const el = document.getElementById(`${mapID}CS`);
-    if (el === null) continue;
-
-    const configSnippet = mapElement.attributes['data-config'];
-    const configUrl = mapElement.attributes['data-config-url'];
 
     // check if JSON can be parsed, if not do nothing
     try {
-      if (configSnippet !== undefined) {
+      if (configSnippet !== undefined && el !== null) {
         // Erase comments in the configSnippet.
         const uncommentedConfigSnippet = configSnippet.value
           .split(/(?<!\\)'/gm)
@@ -92,36 +87,14 @@ function createConfigSnippet() {
           undefined,
           2
         );
-      } else if (configUrl !== undefined) {
-        // Fetch the config from the URL and display it
-        fetchPromises.push(
-          fetch(configUrl.value)
-            .then(function (response) {
-              return response.json();
-            })
-            .then(function (json) {
-              el.textContent = JSON.stringify(json, undefined, 2);
-            })
-            .catch(function (error) {
-              console.log(`Error fetching config from ${configUrl.value}`, error);
-            })
-        );
       }
     } catch (error) {
       console.log('Error trapped in createConfigSnippet');
     }
   }
 
-  // Wait for all fetches to complete before creating collapsibles
-  if (fetchPromises.length > 0) {
-    Promise.all(fetchPromises).then(function () {
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      createCollapsible();
-    });
-  } else {
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    createCollapsible();
-  }
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  createCollapsible();
 }
 
 function createCollapsible() {
