@@ -62,7 +62,6 @@
     "area": "Area",
     "clear": "Clear",
     "segmentLabels": "Show segment labels",
-    "keyboardHint": "Enable keyboard navigation (Tab to map) to draw measurements with the keyboard. See the Guide for details.",
     "status": {
       "started": "{{type}} measurement started. Click on the map to begin.",
       "stopped": "Measurement mode disabled.",
@@ -237,6 +236,7 @@
     "layerInfoTemporalDimension": "Temporal Dimension (Time Slider)",
     "layerInfoInteraction": "Interaction",
     "layerType": "Type: ",
+    "layerOgcVersion": "OGC Version",
     "layerBounds": "Bounds ({{mapProjectionEPSG}})",
     "layerBounds4326": "Bounds (EPSG:4326)",
     "layerMaxScale": "Max Scale",
