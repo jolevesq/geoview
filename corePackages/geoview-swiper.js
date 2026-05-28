@@ -1,4 +1,4 @@
-/*! Package:geoview-swiper: 2.2.0 - "28f8723b1746ba7ea2f80d08dc7164982d8874e2" - 2026-05-28T18:17:10.152Z */
+/*! Package:geoview-swiper: 2.2.0 - "b7624c9f6dfb553473204ddcdd61679d0df14f6c" - 2026-05-28T18:36:09.349Z */
 /*
  * ATTENTION: An "eval-source-map" devtool has been used.
  * This devtool is neither made for production nor for readable output files.
