@@ -1,4 +1,4 @@
-/*! Package:geoview-stac-browser: 2.2.0 - "5ee31b0e9059162cb68de455589c1354f65ae634" - 2026-05-27T18:03:21.433Z */
+/*! Package:geoview-stac-browser: 2.2.0 - "99d1f1f931c1643ef66fe8be4e189a2453a3f8b9" - 2026-05-28T13:57:29.344Z */
 "use strict";
 /*
  * ATTENTION: An "eval-source-map" devtool has been used.
