@@ -52,7 +52,8 @@
             'initialView': {
               'zoomAndCenter': [3, [-110, 80]]
             },
-            'projection': 3573
+            'projection': 3573,
+            'minZoom': 3
           },
           'basemapOptions': {
             'basemapId': 'nogeom',
@@ -85,19 +86,19 @@
           ]
         },
         'components': ['north-arrow'],
-        'navBar': ['zoom'],
+        'navBar': ['zoom', 'home'],
+        'appBar': {
+          'tabs': {
+            'core': ['geolocator', 'legend', 'details', 'export']
+          }
+        },
         'footerBar': {
           'tabs': {
             'core': ['layers', 'data-table']
           }
         },
         'corePackages': [],
-        'theme': 'geo.ca',
-        'appBar': {
-          'tabs': {
-            'core': ['geolocator', 'legend', 'details', 'export']
-          }
-        }
+        'theme': 'geo.ca'
       }"
     ></div>
     <button type="button" class="collapsible">Configuration Snippet</button>
@@ -118,7 +119,8 @@
             'initialView': {
               'zoomAndCenter': [3, [-110, 80]]
             },
-            'projection': 3573
+            'projection': 3573,
+            'minZoom': 3
           },
           'basemapOptions': {
             'basemapId': 'nogeom',
@@ -169,7 +171,13 @@
           ]
         },
         'components': ['north-arrow'],
-        'navBar': ['zoom'],
+        'navBar': ['zoom', 'home'],
+        'appBar': {
+          'tabs': {
+            'core': ['geolocator', 'custom-legend', 'details', 'export']
+          },
+          'selectedTab': 'custom-legend'
+        },
         'footerBar': {
           'tabs': {
             'core': ['layers', 'data-table']
@@ -177,12 +185,6 @@
         },
         'corePackages': ['swiper'],
         'theme': 'geo.ca',
-        'appBar': {
-          'tabs': {
-            'core': ['geolocator', 'custom-legend', 'details', 'export']
-          },
-          'selectedTab': 'custom-legend'
-        },
         'corePackagesConfig': [
           {
             'swiper': {
