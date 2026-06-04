@@ -9,6 +9,7 @@ import type { LayerSetController } from '@/core/controllers/layer-set-controller
 import type { UIController } from '@/core/controllers/ui-controller';
 import type { DataTableController } from '@/core/controllers/data-table-controller';
 import type { DetailsController } from '@/core/controllers/details-controller';
+import type { SwiperController } from '@/core/controllers/swiper-controller';
 import type { DrawerController } from '@/core/controllers/drawer-controller';
 import type { PluginController } from '@/core/controllers/plugin-controller';
 import type { TimeSliderController } from '@/core/controllers/time-slider-controller';
@@ -93,6 +94,32 @@ export function useDetailsController(): DetailsController {
  */
 export function useDataTableController(): DataTableController {
   return useControllers().dataTableController;
+}
+
+/**
+ * Hook to access the SwiperController from the controller context.
+ *
+ * @returns The swiper controller instance
+ * @throws {Error} When used outside of a ControllerContext.Provider
+ */
+export function useSwiperController(): SwiperController {
+  const controller = useControllers().swiperController;
+  if (!controller) throw new Error('useSwiperController must be used with an initialized swiper plugin state');
+  return controller;
+}
+
+/**
+ * Hook to optionally access the SwiperController from the controller context.
+ *
+ * Unlike `useSwiperController`, this hook does not throw when the Swiper
+ * plugin is not configured. Use this in shared components that may or may not
+ * have the swiper plugin active.
+ *
+ * @returns The swiper controller instance, or undefined if the plugin is not configured
+ * @throws {Error} When used outside of a ControllerContext.Provider
+ */
+export function useSwiperControllerIfExists(): SwiperController | undefined {
+  return useControllers().swiperController;
 }
 
 /**

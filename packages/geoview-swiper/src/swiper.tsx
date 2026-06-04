@@ -166,32 +166,58 @@ export function Swiper(props: SwiperProps): JSX.Element {
   };
 
   /**
-   * On Drag and Drag Stop, calculates the clipping extent.
+   * Handles drag events - update refs and render map.
    */
-  const onStop = debounce(() => {
-    if (layerPaths.length) {
-      // Get map size
-      mapSize.current = viewer.map.getSize() || [0, 0];
+  const onDrag = debounce(() => {
+    if (!layerPaths.length) return;
 
-      // Update the position and swiper %
-      if (orientation === 'vertical') {
-        const [x] = getSwiperStyle();
-        swiperValueVertical.current = (x / mapSize.current[0]) * 100;
-        setXPositionVertical(x);
-        setYPositionVertical(0);
-      } else {
-        const [, y] = getSwiperStyle();
-        swiperValueHorizontal.current = (y / mapSize.current[1]) * 100;
-        setXPositionHorizontal(0);
-        setYPositionHorizontal(y);
-      }
+    // Get map size
+    mapSize.current = viewer.map.getSize() || [0, 0];
 
-      // Force refresh
-      olLayers.forEach((layer: BaseLayer) => {
-        layer.changed();
-      });
+    // Update refs ONLY
+    if (orientation === 'vertical') {
+      const [x] = getSwiperStyle();
+      swiperValueVertical.current = (x / mapSize.current[0]) * 100;
+    } else {
+      const [, y] = getSwiperStyle();
+      swiperValueHorizontal.current = (y / mapSize.current[1]) * 100;
     }
+
+    // Force refresh
+    olLayers.forEach((layer: BaseLayer) => {
+      layer.changed();
+    });
   }, 100);
+
+  /**
+   * Handles drag stop - sync everything to React state and store.
+   */
+  const onStop = useCallback((): void => {
+    if (!layerPaths.length) return;
+
+    // Get map size
+    mapSize.current = viewer.map.getSize() || [0, 0];
+
+    // Update refs, React state, and controller/store
+    if (orientation === 'vertical') {
+      const [x] = getSwiperStyle();
+      swiperValueVertical.current = (x / mapSize.current[0]) * 100;
+      setXPositionVertical(x);
+      setYPositionVertical(0);
+      controllerRegistry.swiperController?.setSwiperPosition(swiperValueVertical.current);
+    } else {
+      const [, y] = getSwiperStyle();
+      swiperValueHorizontal.current = (y / mapSize.current[1]) * 100;
+      setXPositionHorizontal(0);
+      setYPositionHorizontal(y);
+      controllerRegistry.swiperController?.setSwiperPosition(swiperValueHorizontal.current);
+    }
+
+    // Force refresh
+    olLayers.forEach((layer: BaseLayer) => {
+      layer.changed();
+    });
+  }, [layerPaths.length, viewer.map, orientation, olLayers, controllerRegistry.swiperController]);
 
   /**
    * Updates swiper and layers from keyboard CTRL + Arrow key.
@@ -368,7 +394,7 @@ export function Swiper(props: SwiperProps): JSX.Element {
             orientation === 'vertical' ? { x: xPositionVertical, y: yPositionVertical } : { x: xPositionHorizontal, y: yPositionHorizontal }
           }
           onStop={onStop}
-          onDrag={onStop}
+          onDrag={onDrag}
         >
           <Box
             sx={[orientation === 'vertical' ? memoSxClasses.vertical : memoSxClasses.horizontal, memoSxClasses.bar]}
