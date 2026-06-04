@@ -49,6 +49,9 @@ export abstract class AbstractBaseLayerEntryConfig extends ConfigBaseClass {
   /** The metadata associated with the layer. */
   #layerMetadata?: unknown;
 
+  /** Whether the layer is using proxy to connect to the service */
+  #isUsingProxy = false;
+
   /** The geometry field information. */
   #geometryField?: TypeOutfields;
 
@@ -579,6 +582,24 @@ export abstract class AbstractBaseLayerEntryConfig extends ConfigBaseClass {
     // TODO: Add onRefreshMetadata overrides for all layer types (only WMS for now)
     // Call overridable method
     return this.onRefreshMetadata(displayDateMode);
+  }
+
+  /**
+   * Indicates whether the layer is using a proxy to connect to its service.
+   *
+   * @returns `true` if the layer is using a proxy; otherwise, `false`
+   */
+  getIsUsingProxy(): boolean {
+    return this.#isUsingProxy;
+  }
+
+  /**
+   * Sets whether the layer is using a proxy to connect to its service.
+   *
+   * @param isUsingProxy - `true` if the layer is using a proxy; otherwise, `false`
+   */
+  setIsUsingProxy(isUsingProxy: boolean): void {
+    this.#isUsingProxy = isUsingProxy;
   }
 
   /**

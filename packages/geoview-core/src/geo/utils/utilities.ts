@@ -16,7 +16,7 @@ import GML3 from 'ol/format/GML3';
 
 import type { TypeFeatureStyle } from '@/geo/layer/geometry/geometry-types';
 import { parseXMLToJson } from '@/core/utils/utilities';
-import { ensureServiceRequestUrl } from '@/core/utils/ogc-url-helper';
+import { encodeLayersParam, ensureServiceRequestUrl } from '@/core/utils/ogc-url-helper';
 import { Fetch } from '@/core/utils/fetch-helper';
 import { Projection } from '@/geo/utils/projection';
 import { CONFIG_PROXY_URL } from '@/api/types/map-schema-types';
@@ -63,6 +63,9 @@ interface EsriJSONReadResult {
 // #region FETCH METADATA
 
 export abstract class GeoUtilities {
+  /** Whether to double encode the layers when behind a proxy */
+  static readonly DOUBLE_ENCODING_LAYERS_WHEN_BEHIND_PROXY = true;
+
   /**
    * Extracts the base URL (origin + pathname) from a full URL string,
    * removing any query parameters, hash fragments, or authentication data.
@@ -270,6 +273,13 @@ export abstract class GeoUtilities {
     } catch (error: unknown) {
       // If a network error such as CORS
       if (error instanceof NetworkError) {
+        // If double encoding the layers param when behind proxy
+        if (GeoUtilities.DOUBLE_ENCODING_LAYERS_WHEN_BEHIND_PROXY) {
+          // Encode the layers parameter if present
+          // eslint-disable-next-line no-param-reassign
+          url = encodeLayersParam(url);
+        }
+
         // We're going to change the metadata url to use a proxy
         const newProxiedMetadataUrl = `${CONFIG_PROXY_URL}?${url}`;
 
@@ -277,7 +287,7 @@ export abstract class GeoUtilities {
         capabilitiesString = await Fetch.fetchText(newProxiedMetadataUrl);
 
         // Callback about it
-        callbackNewMetadataUrl?.(`${CONFIG_PROXY_URL}?`);
+        callbackNewMetadataUrl?.(newProxiedMetadataUrl, CONFIG_PROXY_URL);
 
         // Return it
         return capabilitiesString;
@@ -1280,21 +1290,25 @@ export abstract class GeoUtilities {
    *
    * @param extentA - First extent
    * @param extentB - Optional second extent
-   * @returns The union of the extents, or undefined if both are undefined
+   * @returns The union of the extents, or the valid extent when the other one is undefined or contains NaN values
    */
   static getExtentUnion(extentA: Extent | undefined, extentB?: Extent | undefined): Extent | undefined {
-    // If no A, return B which may be undefined too
-    if (!extentA) return extentB;
+    // Treat extents containing NaN as invalid and ignore them for union purposes.
+    const validExtentA = extentA && !extentA.some((coord) => Number.isNaN(coord)) ? extentA : undefined;
+    const validExtentB = extentB && !extentB.some((coord) => Number.isNaN(coord)) ? extentB : undefined;
 
-    // If no B, return A
-    if (!extentB) return extentA;
+    // If no valid A, return valid B which may be undefined too.
+    if (!validExtentA) return validExtentB;
+
+    // If no valid B, return valid A.
+    if (!validExtentB) return validExtentA;
 
     // Return the union of A and B
     return [
-      Math.min(extentA[0], extentB[0]),
-      Math.min(extentA[1], extentB[1]),
-      Math.max(extentA[2], extentB[2]),
-      Math.max(extentA[3], extentB[3]),
+      Math.min(validExtentA[0], validExtentB[0]),
+      Math.min(validExtentA[1], validExtentB[1]),
+      Math.max(validExtentA[2], validExtentB[2]),
+      Math.max(validExtentA[3], validExtentB[3]),
     ];
   }
 
@@ -1303,21 +1317,25 @@ export abstract class GeoUtilities {
    *
    * @param extentA - First extent
    * @param extentB - Optional second extent
-   * @returns The intersection of the extents, or undefined if both are undefined
+   * @returns The intersection of the extents, or the valid extent when the other one is undefined or contains NaN values
    */
   static getExtentIntersection(extentA: Extent | undefined, extentB?: Extent | undefined): Extent | undefined {
-    // If no B, return A
-    if (!extentB) return extentA;
+    // Treat extents containing NaN as invalid and ignore them for intersection purposes.
+    const validExtentA = extentA && !extentA.some((coord) => Number.isNaN(coord)) ? extentA : undefined;
+    const validExtentB = extentB && !extentB.some((coord) => Number.isNaN(coord)) ? extentB : undefined;
 
-    // If no A, return B which may be undefined too
-    if (!extentA) return extentB;
+    // If no valid B, return valid A.
+    if (!validExtentB) return validExtentA;
+
+    // If no valid A, return valid B.
+    if (!validExtentA) return validExtentB;
 
     // Return the intersection of A and B
     return [
-      Math.max(extentA[0], extentB[0]),
-      Math.max(extentA[1], extentB[1]),
-      Math.min(extentA[2], extentB[2]),
-      Math.min(extentA[3], extentB[3]),
+      Math.max(validExtentA[0], validExtentB[0]),
+      Math.max(validExtentA[1], validExtentB[1]),
+      Math.min(validExtentA[2], validExtentB[2]),
+      Math.min(validExtentA[3], validExtentB[3]),
     ];
   }
 
@@ -1658,7 +1676,7 @@ export abstract class GeoUtilities {
 }
 
 /** The type for the function callback for getWMSServiceMetadata() */
-export type CallbackNewMetadataDelegate = (proxyUsed: string) => void;
+export type CallbackNewMetadataDelegate = (proxiedUrl: string, proxyUsed: string) => void;
 
 export interface TypeVectorLegend extends TypeLegend {
   legend: TypeVectorLayerStyles;

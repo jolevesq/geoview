@@ -28,6 +28,7 @@ import {
   LayerInvalidFeatureInfoFormatWMSError,
   LayerInvalidLayerFilterError,
 } from '@/core/exceptions/layer-exceptions';
+import { encodeLayersParam } from '@/core/utils/ogc-url-helper';
 import { formatError, NetworkError, RequestAbortedError, ResponseContentError } from '@/core/exceptions/core-exceptions';
 import { AbstractGVLayer } from '@/geo/layer/gv-layers/abstract-gv-layer';
 import type { EsriImageLayerEntryConfig } from '@/api/config/validation-classes/raster-validation-classes/esri-image-layer-entry-config';
@@ -445,13 +446,13 @@ export class GVWMS extends AbstractGVRaster {
   }
 
   /**
-   * Overrides the way to get the bounds for this layer type.
+   * Overrides the way to initialize the bounds for this layer type.
    *
-   * @param projection - The projection to get the bounds into
+   * @param projection - The projection to initialize the bounds into
    * @param stops - The number of stops to use to generate the extent
    * @returns A promise that resolves with the layer bounding box or undefined when not found
    */
-  override onGetBounds(projection: OLProjection, stops: number): Promise<Extent | undefined> {
+  override onInitBounds(projection: OLProjection, stops: number): Promise<Extent | undefined> {
     const layerConfig = this.getLayerConfig();
 
     // Get the layer config bounds
@@ -475,6 +476,7 @@ export class GVWMS extends AbstractGVRaster {
       if (metadataProj) {
         const metadataProjConv = Projection.getProjectionFromString(metadataProj);
         layerBounds = Projection.transformExtentFromProj(metadataBounds, metadataProjConv, projection, stops);
+        layerBounds = GeoUtilities.validateExtentWhenDefined(layerBounds, projection.getCode());
       }
     }
 
@@ -973,7 +975,7 @@ export class GVWMS extends AbstractGVRaster {
     if (!featureMember && featureInfoFormat.includes(GVWMS.MIME_TYPE_FORMAT_TEXT_XML)) {
       try {
         // Try to get the feature member using XML format
-        const featMember = await GVWMS.#getFeatureInfoUsingXML(
+        featureMember = await GVWMS.#getFeatureInfoUsingXML(
           wmsLayerConfig,
           wmsSource,
           clickCoordinate,
@@ -982,7 +984,6 @@ export class GVWMS extends AbstractGVRaster {
           projectionCode,
           abortController
         );
-        featureMember = [featMember];
 
         // Keep in mind, this output format works
         this.#featureOutputFormatWMSWorked = GVWMS.MIME_TYPE_FORMAT_TEXT_XML;
@@ -1311,16 +1312,15 @@ export class GVWMS extends AbstractGVRaster {
       fallbackCandidates.forEach((candidate): void => {
         featureMember.push(GVWMS.#convertXmlElementToRecord(candidate));
       });
+
+      // A valid GML response can legitimately contain zero features.
+      if (fallbackCandidates.length === 0) {
+        return [];
+      }
     }
 
-    // If found
-    if (featureMember.length > 0) {
-      // Success!
-      return featureMember;
-    }
-
-    // Failed
-    throw new LayerInvalidFeatureInfoFormatWMSError(layerConfig.layerPath, GVWMS.MIME_TYPE_FORMAT_GML, layerConfig.getLayerNameCascade());
+    // Success, including valid empty feature collections.
+    return featureMember;
   }
 
   /**
@@ -1335,7 +1335,7 @@ export class GVWMS extends AbstractGVRaster {
    * @param viewResolution - The current resolution of the map view
    * @param projectionCode - The projection in which the request should be made (e.g., 'EPSG:3857')
    * @param abortController - Optional {@link AbortController} to allow cancellation of the request
-   * @returns A promise that resolves with the feature member record
+   * @returns A promise that resolves with an array of feature member records
    */
   static async #getFeatureInfoUsingXML(
     layerConfig: OgcWmsLayerEntryConfig,
@@ -1345,7 +1345,7 @@ export class GVWMS extends AbstractGVRaster {
     qgisServerTolerance: number,
     projectionCode: ProjectionLike,
     abortController: AbortController | undefined = undefined
-  ): Promise<Record<string, unknown>> {
+  ): Promise<Record<string, unknown>[]> {
     // Try to get the information using xml format
     const responseData = await GVWMS.#readFeatureInfo(
       layerConfig,
@@ -1365,12 +1365,19 @@ export class GVWMS extends AbstractGVRaster {
     // Try to get the feature member
     let featureMember: Record<string, unknown> | undefined;
     const featureCollection = GVWMS.#getAttribute(jsonResponse, 'FeatureCollection');
-    if (featureCollection) featureMember = GVWMS.#getAttribute(featureCollection, 'featureMember');
-    else {
+    if (featureCollection) {
+      featureMember = GVWMS.#getAttribute(featureCollection, 'featureMember');
+
+      // A recognized FeatureCollection without a feature member is a valid empty response.
+      if (!featureMember) {
+        return [];
+      }
+    } else {
       const featureInfoResponse = GVWMS.#getAttribute(jsonResponse, 'FeatureInfoResponse');
       if (featureInfoResponse) {
         featureMember = GVWMS.#getAttribute(featureInfoResponse, 'FIELDS');
         if (featureMember) featureMember = GVWMS.#getAttribute(featureMember, '@attributes');
+        else return [];
       } else {
         const getFeatureInfoResponse = GVWMS.#getAttribute(jsonResponse, 'GetFeatureInfoResponse');
 
@@ -1385,6 +1392,8 @@ export class GVWMS extends AbstractGVRaster {
             const fieldValue = getFeatureInfoResponseCasted.Layer.Attribute['@attributes'].value;
             featureMember[fieldName] = fieldValue;
           }
+        } else if (getFeatureInfoResponse) {
+          return [];
         }
       }
     }
@@ -1392,7 +1401,7 @@ export class GVWMS extends AbstractGVRaster {
     // If found
     if (featureMember) {
       // Success!
-      return featureMember;
+      return [featureMember];
     }
 
     // Failed
@@ -1806,7 +1815,15 @@ export class GVWMS extends AbstractGVRaster {
       // Retry with proxy if it's a network error (e.g., CORS)
       if (error instanceof NetworkError) {
         // Read the blob again, using the proxy this time
-        const proxyUrl = `${CONFIG_PROXY_URL}?${queryUrl}`;
+        let proxyUrl = `${CONFIG_PROXY_URL}?${queryUrl}`;
+
+        // If need to double layer encoding
+        if (GeoUtilities.DOUBLE_ENCODING_LAYERS_WHEN_BEHIND_PROXY) {
+          // Encode the layers parameter if present
+          proxyUrl = encodeLayersParam(proxyUrl);
+        }
+
+        // Requery
         return Fetch.fetchBlobImage(proxyUrl);
       }
 
