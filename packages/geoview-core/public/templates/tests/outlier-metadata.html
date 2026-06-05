@@ -66,12 +66,7 @@
               'listOfLayerEntryConfig': [
                 {
                   'layerId': '0',
-                  'layerName': 'MPMO - Major Project',
-                  'initialSettings': {
-                    'states': {
-                      'visible': true
-                    }
-                  }
+                  'layerName': 'MPMO - Major Project'
                 }
               ]
             },
@@ -150,15 +145,46 @@
                       ]
                     }
                   }
+              'geoviewLayerId': 'nfi-group-with-slash',
+              'geoviewLayerName': 'Nfi Plot Test Slash',
+              'metadataAccessPath': 'https://nfi.nfis.org/mapserver/cgi-bin/nfi_plot_summaries_en.cgi?service=WMS',
+              'geoviewLayerType': 'ogcWms',
+              'listOfLayerEntryConfig': [
+                {
+                  'layerId': 'photo/plot/with/slash',
+                  'layerName': 'Photo/Plot/Group',
+                  'entryType': 'group',
+                  'listOfLayerEntryConfig': [
+                    {
+                      'layerId': 'ca_nfiphotoplot_lc_a_en'
+                    },
+                    {
+                      'layerId': 'ca_nfiphotoplot_lu_a_en'
+                    },
+                    {
+                      'layerId': 'ca_nfiphotoplot_ow_a_en'
+                    },
+                    {
+                      'layerId': 'ca_nfiphotoplot_ps_a_en'
+                    }
+                  ]
+                },
+                {
+                  'layerId': 'ca_nfigroundplot_cartographic_a'
                 }
               ]
             }
           ]
         },
         'components': ['overview-map'],
+        'appBar': {
+          'tabs': {
+            'core': ['legend', 'details', 'export']
+          }
+        },
         'footerBar': {
           'tabs': {
-            'core': ['legend', 'layers', 'details', 'data-table']
+            'core': ['layers', 'data-table']
           }
         },
         'corePackages': [],
@@ -180,6 +206,9 @@
         </li>
         <li>
           <strong>Boundaries</strong> - layers projection and extent projection from metadata are different for three layers (Block Land Transfer, Municipal Boundary, and Watershed Boundaries)
+        </li>
+        <li>
+          <strong>Nfi Plot Test Slash</strong> - WMS layer with slashes in layerId path, testing group entries with slash-separated IDs
         </li>
       </ul>
     </div>
@@ -216,9 +245,14 @@
           ]
         },
         'components': ['overview-map'],
+        'appBar': {
+          'tabs': {
+            'core': ['legend', 'details', 'export']
+          }
+        },
         'footerBar': {
           'tabs': {
-            'core': ['legend', 'layers', 'details', 'data-table']
+            'core': ['layers', 'data-table']
           }
         },
         'corePackages': [],
@@ -290,12 +324,12 @@
         'navBar': ['zoom', 'fullscreen', 'home', 'location', 'basemap-select'],
         'appBar': {
           'tabs': {
-            'core': ['geolocator', 'export']
+            'core': ['legend', 'details', 'export']
           }
         },
         'footerBar': {
           'tabs': {
-            'core': ['legend', 'layers', 'details', 'data-table']
+            'core': ['layers', 'data-table']
           }
         },
         'corePackages': [],

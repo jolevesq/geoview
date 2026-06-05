@@ -58,6 +58,16 @@
           }
         },
         'components': [],
+        'appBar': {
+          'tabs': {
+            'core': []
+          }
+        },
+        'footerBar': {
+          'tabs': {
+            'core': []
+           }
+        },
         'corePackages': [],
         'theme': 'geo.ca'
       }"
@@ -331,7 +341,7 @@
               mapViewer.layer.geometry.setActiveGeometryGroup();
             } else {
               mapViewer.layer.geometry.setActiveGeometryGroup();
-              mapViewer.layer.geometry.deleteGeometryGroup();
+              mapViewer.layer.geometry.deleteGeometryGroup(mapViewer.layer.geometry.defaultGeometryGroupId);
             }
           });
 

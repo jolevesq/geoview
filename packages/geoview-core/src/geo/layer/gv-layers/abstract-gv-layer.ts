@@ -571,7 +571,7 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this.#olSource as any).on(['imageloaderror'], this.#handleImageLoadError.bind(this));
 
-    // Activate source change listener to catch errors
+    // Activate source change listener to catch error
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this.#olSource as any).on('change', this.#handleSourceChange.bind(this));
 

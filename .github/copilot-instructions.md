@@ -925,6 +925,42 @@ items.forEach((item) => {
 - Plugin packages have their own config schemas (default-config-\*.json) but rely on core's validation APIs
 - Use `ConfigApi` and `ConfigValidation` classes from geoview-core for config operations
 
+### Canonical Config Property Order
+
+When creating or editing map configuration JSON files (navigator demos, test configs, inline `data-config` attributes), properties **must** follow the canonical order defined in `packages/geoview-core/schema-default-config.json`. This order groups properties logically — metadata first, then the map definition, then UI chrome, then services and extensions.
+
+**Root-level order:**
+
+```
+1. configMeta          — Config metadata (schema version)
+2. map                 — Map definition (view, basemap, layers)
+3. components          — Map components (overview-map, north-arrow)
+4. overviewMap         — Overview map settings
+5. navBar              — Navigation bar controls
+6. appBar              — Application bar tabs
+7. footerBar           — Footer bar tabs
+8. corePackages        — Core plugin packages to load
+9. globalSettings      — Universal map settings (sublayer removal, disabled types)
+10. serviceUrls        — Override service endpoints
+11. theme              — Display theme (geo.ca, dark, light)
+12. corePackagesConfig — Configuration for core packages
+13. externalPackages   — External plugin packages
+```
+
+**`map` sub-property order:**
+
+```
+1. interaction              — Map interaction mode (dynamic, static)
+2. viewSettings             — Projection, zoom, center, rotation, homeView
+3. basemapOptions           — Basemap type and visual options
+4. highlightColor           — Feature highlight color overrides
+5. overlayObjects           — Non-interactive markers and overlays
+6. listOfGeoviewLayerConfig — Layer definitions array
+7. extraOptions             — Pass-through OpenLayers map options
+```
+
+**Rationale:** The order mirrors the logical sequence: _what kind of map_ → _what it shows_ → _how the UI wraps it_ → _what services back it_ → _what extends it_. Following this order makes configs easier to read, review, and diff.
+
 ### Invalid `geoviewLayerType` Prevalidation
 
 - `Config.prevalidateGeoviewLayersConfig()` must **not throw** when a root `geoviewLayerType` is invalid or misspelled. It should report the `LayerInvalidGeoviewLayerTypeError` through the provided `onErrorCallback` and filter that layer out of the returned list.
