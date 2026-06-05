@@ -36,7 +36,8 @@
   "appBar": {
     "tabs": {
       "core": [
-        "legend"
+        "legend",
+        "details"
       ]
     }
   },

@@ -1,4 +1,4 @@
-/*! Package:geoview-aoi-panel: 2.2.0 - "8e702bec30f85bdda382900d13011c6d5ca8546a" - 2026-06-05T12:34:29.228Z */
+/*! Package:geoview-aoi-panel: 2.2.0 - "223cd504eedce01732a253f9c323ce594cca232e" - 2026-06-05T20:07:38.821Z */
 "use strict";
 /*
  * ATTENTION: An "eval-source-map" devtool has been used.

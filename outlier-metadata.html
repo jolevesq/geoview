@@ -109,6 +109,42 @@
               ]
             },
             {
+              'geoviewLayerId': 'nonna',
+              'geoviewLayerName': 'Nonna w/ space in id',
+              'metadataAccessPath': 'https://nonna-geoserver.data.chs-shc.ca/geoserver/wms',
+              'geoviewLayerType': 'ogcWms',
+              'listOfLayerEntryConfig': [
+                { 'layerId': 'nonna:NONNA 10' }
+              ]
+            },
+            {
+              'geoviewLayerId': 'nonna-missing-layerid',
+              'geoviewLayerName': 'Nonna w/o layerid',
+              'metadataAccessPath': 'https://nonna-geoserver.data.chs-shc.ca/geoserver/wms',
+              'geoviewLayerType': 'ogcWms',
+              'listOfLayerEntryConfig': []
+            },
+            {
+              'geoviewLayerId': 'u2-with-nameField-date',
+              'metadataAccessPath': 'https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/U2/FeatureServer/',
+              'geoviewLayerType': 'esriFeature',
+              'listOfLayerEntryConfig': [
+                {
+                  'layerId': '0',
+                  'layerName': 'U2 with date nameField',
+                  'source': {
+                    'featureInfo': {
+                      'queryableeeeee': true,
+                      'nameField': 'Date',
+                      'outfields': [
+                        { 'name': 'Venue', 'alias': 'Venue Set', 'type': 'string'},
+                        { 'name': 'Event', 'alias': 'Event Set', 'type': 'string'},
+                        { 'name': 'Tour', 'alias': 'Tour Set', 'type': 'string'},
+                        { 'name': 'City', 'alias': 'City Set', 'type': 'string'},
+                        { 'name': 'Date', 'alias': 'Date Set', 'type': 'date'}
+                      ]
+                    }
+                  }
               'geoviewLayerId': 'nfi-group-with-slash',
               'geoviewLayerName': 'Nfi Plot Test Slash',
               'metadataAccessPath': 'https://nfi.nfis.org/mapserver/cgi-bin/nfi_plot_summaries_en.cgi?service=WMS',
