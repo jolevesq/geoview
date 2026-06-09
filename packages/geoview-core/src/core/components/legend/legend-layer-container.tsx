@@ -6,10 +6,10 @@ import { useTheme } from '@mui/material';
 
 import { Box, Button, Collapse, List } from '@/ui';
 import { getSxClasses } from './legend-styles';
-import { CONST_LAYER_TYPES } from '@/api/types/layer-schema-types';
 import { ItemsList } from './legend-layer-items';
 import type { LegendLayerProps } from './legend-layer';
 import { logger } from '@/core/utils/logger';
+import { layerHasClassItems, layerHasLegendImage } from '@/core/components/layers/types';
 import type { TypeContainerBox } from '@/core/types/global-types';
 import { useStoreGeoViewMapId } from '@/core/stores/geoview-store';
 import {
@@ -20,6 +20,7 @@ import {
   useStoreLayerStatus,
   useStoreLayerSchemaTag,
   useStoreLayerLegendCollapsed,
+  useStoreLayerStyleConfig,
 } from '@/core/stores/states/layer-state';
 
 interface CollapsibleContentProps {
@@ -105,21 +106,51 @@ export const CollapsibleContent = memo(function CollapsibleContent({
   const isCollapsed = useStoreLayerLegendCollapsed(layerPath);
   const schemaTag = useStoreLayerSchemaTag(layerPath);
   const layerItems = useStoreLayerItems(layerPath);
+  const layerStyleConfig = useStoreLayerStyleConfig(layerPath);
   const layerChildPaths = useStoreLayerChildPaths(layerPath);
   const layerIcons = useStoreLayerIcons(layerPath);
   const layerStatus = useStoreLayerStatus(layerPath);
   const layerName = useStoreLayerName(layerPath);
 
-  // Early returns
+  // Has at least 2 layer items and style config
+  const hasMoreThanOneItemsAndStyle = layerHasClassItems(layerItems, layerStyleConfig, 2);
+
+  // If the layer has a legend image
+  const hasLegendImage = layerHasLegendImage(schemaTag, layerItems, layerIcons, layerStyleConfig);
+
+  // If the layer has child layers
+  const hasChildren = layerChildPaths && layerChildPaths.length > 0;
+
+  // TODO: PERFORMANCE - Early return when the no child or when layer items is 1 or when error. Search id: 39c51cfc
   if ((layerChildPaths?.length === 0 && layerItems?.length === 1) || layerStatus === 'error') return null;
 
-  const isWMSWithLegend = schemaTag === CONST_LAYER_TYPES.WMS && layerIcons?.[0]?.iconImage && layerIcons[0].iconImage !== 'no data';
-
   // If it is a WMS legend, create a specific component
-  if (isWMSWithLegend) {
+  if (hasMoreThanOneItemsAndStyle || hasChildren) {
+    return (
+      <Collapse
+        id={collapseContainerId}
+        role="region" // WCAG - aria-labelledby requires the region role to be announced by screen readers
+        aria-labelledby={layerNameId} // WCAG - Link collapsible content to its header using aria-labelledby and matching IDs
+        in={!isCollapsed}
+        sx={memoSxClasses.collapsibleContainer}
+        timeout="auto"
+        unmountOnExit
+      >
+        <List>
+          {hasChildren &&
+            layerChildPaths.map((childPath) => (
+              <LegendLayerComponent layerPath={childPath} key={childPath} showControls={showControls} containerType={containerType} />
+            ))}
+        </List>
+        {<ItemsList items={layerItems || []} layerPath={layerPath} />}
+      </Collapse>
+    );
+  }
+
+  if (hasLegendImage) {
     return (
       <WMSLegendImage
-        imgSrc={layerIcons[0].iconImage!}
+        imgSrc={layerIcons![0].iconImage!}
         initLightBox={initLightBox}
         legendExpanded={!isCollapsed}
         sxClasses={memoSxClasses}
@@ -131,23 +162,5 @@ export const CollapsibleContent = memo(function CollapsibleContent({
     );
   }
 
-  return (
-    <Collapse
-      id={collapseContainerId}
-      role="region" // WCAG - aria-labelledby requires the region role to be announced by screen readers
-      aria-labelledby={layerNameId} // WCAG - Link collapsible content to its header using aria-labelledby and matching IDs
-      in={!isCollapsed}
-      sx={memoSxClasses.collapsibleContainer}
-      timeout="auto"
-      unmountOnExit
-    >
-      <List>
-        {layerChildPaths &&
-          layerChildPaths.map((childPath) => (
-            <LegendLayerComponent layerPath={childPath} key={childPath} showControls={showControls} containerType={containerType} />
-          ))}
-      </List>
-      {layerItems && layerItems.length > 1 && <ItemsList items={layerItems || []} layerPath={layerPath} />}
-    </Collapse>
-  );
+  return null;
 });
