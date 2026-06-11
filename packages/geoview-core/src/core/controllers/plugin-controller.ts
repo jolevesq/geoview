@@ -229,10 +229,8 @@ export class PluginController extends AbstractMapViewerController {
           const error = validate.errors[j];
           const errorMessage = `Plugin ${pluginId}: ${error.instancePath} ${error.message} - ${JSON.stringify(error.params)}`;
 
-          // Log
+          // Log - Don't show error message as it can contain non-translated elements via Ajv error messages, only log for now
           logger.logError(errorMessage);
-          // Don't show error message as it can contain non-translated elements via Ajv error messages, only log for now
-          // api.getMapViewer(mapId).notifications.showError(errorMessage);
         }
       }
     }

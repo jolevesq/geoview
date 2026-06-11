@@ -226,7 +226,7 @@ function addLayers(layers) {
                 // Create map from config
                 await cgpv.api.createMapFromConfigFast('Map1', JSON.stringify(mapConfig), 800).then((mapViewer) => {
                   if (langSwitch) {
-                      mapViewer.notifications.showWarning('Map language changed', []);
+                      mapViewer.notifications.showWarning('Map language changed');
                       mapViewer.notifications.addNotificationWarning(`MapViewer: Map language changed to ${lang}`);
                   }
 
@@ -431,7 +431,7 @@ cgpv.api.getMapViewer('Map1').replaceMapConfigLayerNames(pairs, mapConfig, true)
           // Create map from config
           await cgpv.api.createMapFromConfigFast('Map1', JSON.stringify(mapConfig), 800).then((mapViewer) => {
             if (langSwitch) {
-              mapViewer.notifications.showWarning('Map language changed', []);
+              mapViewer.notifications.showWarning('Map language changed');
               mapViewer.notifications.addNotificationWarning(`MapViewer: Map language changed to ${lang}`);
             }
 
@@ -708,7 +708,7 @@ cgpv.api.getMapViewer('Map1').replaceMapConfigLayerNames(pairs, mapConfig, true)
         // listen to map language changed event
         mapViewer.onMapLanguageChanged((sender, payload) => {
           mapViewer.notifications.addNotificationWarning(`MapViewer: Map language changed to ${payload.language}`);
-          mapViewer.notifications.showWarning('Map language changed', []);
+          mapViewer.notifications.showWarning('Map language changed');
         });
 
         // Listen to layer removed event
