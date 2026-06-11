@@ -1542,6 +1542,25 @@ const handleToggleKeyDown = useCallback(
 - `role="checkbox"` with `aria-checked` for toggle-visibility buttons
 - `role="search"` on `<form>` elements containing search inputs
 
+### Snackbar & Notification Panel (WCAG)
+
+**Rule:** Every message displayed in the snackbar **must** also be added to the notification panel. The reverse is not required — a notification can exist without a snackbar.
+
+**Rationale:** Snackbar messages are transient and auto-dismiss. Users relying on assistive technology or who are momentarily not looking at the screen may miss them. The notification panel provides a persistent, reviewable message history.
+
+**API design:**
+
+- `notifications.showMessage/showSuccess/showWarning/showError` — Always adds both a snackbar AND a notification. No opt-out parameter.
+- `notifications.addNotificationMessage/addNotificationSuccess/addNotificationWarning/addNotificationError` — Adds a notification only (no snackbar). Use for non-urgent messages.
+
+**Do NOT:**
+
+- Add a `withNotification = false` parameter to snackbar methods
+- Create snackbar-only message paths that bypass the notification panel
+- Add interactive elements (buttons, links, actions) to snackbar messages — they auto-dismiss and are not accessible to assistive technology users. If an action is needed, use a persistent UI element (dialog, notification panel action, or inline component)
+
+**Layer message event chain:** Layer classes emit messages via `emitMessage(messageKey, params, messageType)` → `LayerMessageEvent` (no `notification` field) → domain event → controller handler → `notifications.show*()` (always notifies). The `notification` opt-out was removed from this entire chain to enforce the WCAG rule architecturally.
+
 ## UI Component Styling & Theme Safety
 
 ### Theme Extension Optional Chaining Rule (Critical)
