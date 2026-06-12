@@ -12,7 +12,7 @@
       "additionalProperties": false,
       "type": "object",
       "properties": {
-         "configMeta": {
+        "configMeta": {
           "$ref": "#/definitions/TypeConfigMeta"
         },
         "map": {
@@ -700,6 +700,10 @@
           "items": {
             "$ref": "#/definitions/TypeOutfields"
           }
+        },
+        "geometryField": {
+          "description": "The geometry field information.",
+          "$ref": "#/definitions/TypeOutfields"
         }
       }
     },
@@ -722,15 +726,17 @@
           "description": "The domain of values.",
           "oneOf": [
             {
-              "type": "null"
-            },
-            {
               "$ref": "#/definitions/codedValueType"
             },
             {
               "$ref": "#/definitions/rangeDomainType"
             }
           ]
+        },
+        "summary": {
+          "description": "Whether this field appears in summary views (e.g., Details panel). Default = true.",
+          "type": "boolean",
+          "default": true
         }
       },
       "required": ["name", "alias", "type"]

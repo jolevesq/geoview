@@ -250,8 +250,13 @@
       // Function to initialize/reinitialize the map with current config
       async function initializeMap() {
         try {
-          // Parse config from textarea using centralized parser
-          const configJson = parseConfigJSON(mapConfigTextarea.value);
+          // Replace single quotes with double quotes without parse/stringify round-trip.
+          // A round-trip would decode unicode escapes (e.g. \u0027 → ') in the object,
+          // then stringify would output the literal character, corrupting the config.
+          const configText = mapConfigTextarea.value.replace(getSingleQuoteRegex(), '"');
+
+          // Validate that the config is parseable JSON (throws on syntax error)
+          JSON.parse(configText);
 
           // Delete previous map if existing (compatible with different API versions)
           if (window.cgpv) {
@@ -285,7 +290,7 @@
           // Set up map container attributes
           mapContainer.className = 'geoview-map';
           mapContainer.setAttribute('data-lang', switchLang.value);
-          mapContainer.setAttribute('data-config', JSON.stringify(configJson));
+          mapContainer.setAttribute('data-config', configText);
 
           // Initialize cgpv
           if (window.cgpv) {

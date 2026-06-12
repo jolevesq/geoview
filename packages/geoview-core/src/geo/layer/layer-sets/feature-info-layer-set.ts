@@ -254,6 +254,21 @@ export class FeatureInfoLayerSet extends AbstractLayerSet {
       if (!(layer instanceof GVEsriImage) && AbstractLayerSet.recordsContainActualFields(layerConfig, arrayOfRecords)) {
         // Align fields with layerConfig fields
         AbstractLayerSet.alignRecordsWithOutFields(layerConfig, arrayOfRecords);
+
+        // GV: Remove fields marked with summary === false so they don't appear in the Details panel (summary view).
+        // GV: These fields remain available in the Data Table (full view) via AllFeatureInfoLayerSet which does not apply this filter.
+        const outfields = layerConfig.getOutfields();
+        if (outfields) {
+          const nonSummaryFieldNames = outfields.filter((f) => f.summary === false).map((f) => f.name);
+          if (nonSummaryFieldNames.length) {
+            arrayOfRecords.forEach((record) => {
+              nonSummaryFieldNames.forEach((fieldName) => {
+                // eslint-disable-next-line no-param-reassign
+                delete record.fieldInfo[fieldName];
+              });
+            });
+          }
+        }
       }
 
       // Filter out unsymbolized features if the showUnsymbolizedFeatures config is false
