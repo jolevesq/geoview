@@ -513,8 +513,14 @@ export function AddNewLayer(): JSX.Element {
         // All good
         return true;
       } catch (err) {
-        // throw new GeoviewLayerConfigError(`Unable to create ${curlayerType} GeoView layer using "${layerURL} URL.`);
-        emitErrorServer(curlayerType);
+        // If the error carries a localized message key (GeoViewError), show it directly
+        const gvError = err as GeoViewError;
+        if (gvError?.messageKey && gvError.messageKey.startsWith('validation.')) {
+          setIsLoading(false);
+          uiController.addMessage('error', gvError.messageKey, gvError.messageParams);
+        } else {
+          emitErrorServer(curlayerType);
+        }
         logger.logError(err);
       }
 

@@ -1,4 +1,4 @@
-﻿import type { Feature } from 'ol';
+import type { Feature } from 'ol';
 import type { ReadOptions } from 'ol/format/Feature';
 import type { Options as SourceOptions } from 'ol/source/Vector';
 import type { Projection as OLProjection } from 'ol/proj';
@@ -16,12 +16,16 @@ import type {
 import { CONST_LAYER_TYPES } from '@/api/types/layer-schema-types';
 
 import { EsriUtilities } from '@/geo/layer/geoview-layers/esri-layer-common';
-import { LayerServiceMetadataUnableToFetchError, LayerTooManyEsriFeatures } from '@/core/exceptions/layer-exceptions';
+import {
+  LayerEntryConfigLayerIdEsriMustBeNumberError,
+  LayerFeatureParsingError,
+  LayerServiceMetadataUnableToFetchError,
+  LayerTooManyEsriFeatures,
+} from '@/core/exceptions/layer-exceptions';
 import { AbstractGeoViewRaster } from '@/geo/layer/geoview-layers/raster/abstract-geoview-raster';
 import { GVEsriFeature } from '@/geo/layer/gv-layers/vector/gv-esri-feature';
 import { Fetch } from '@/core/utils/fetch-helper';
 import { formatError } from '@/core/exceptions/core-exceptions';
-import { LayerFeatureParsingError } from '@/core/exceptions/layer-exceptions';
 import { GeoUtilities } from '@/geo/utils/utilities';
 import type { DisplayDateMode } from '@/api/types/map-schema-types';
 
@@ -101,40 +105,34 @@ export class EsriFeature extends AbstractGeoViewVector {
     const entries = [];
     let finalUrl = this.getMetadataAccessPath();
     if (metadata) {
-      // If MapServer url
-      let sep = '/mapserver';
-      let idx = this.getMetadataAccessPath().toLowerCase().lastIndexOf(sep);
+      // Detect the service type separator (MapServer or FeatureServer)
+      const url = this.getMetadataAccessPath().toLowerCase();
+      const separators = ['/mapserver', '/featureserver'];
+      const sep = separators.find((s) => url.lastIndexOf(s) > 0);
 
-      if (idx > 0) {
-        // Cast the right payload
-        const metadataMapServer = metadata as TypeMetadataEsriDynamicLayer;
+      if (sep) {
+        const idx = url.lastIndexOf(sep);
+        const afterSep = this.getMetadataAccessPath().substring(idx + sep.length);
 
-        // The layer id is in the metadata at root
+        // A numeric layer id must follow the separator (e.g., /MapServer/0 or /FeatureServer/0)
+        if (!/^\/\d+/.test(afterSep)) {
+          throw new LayerEntryConfigLayerIdEsriMustBeNumberError(
+            this.getGeoviewLayerId(),
+            'undefined',
+            this.getLayerEntryNameOrGeoviewLayerName()
+          );
+        }
+
+        // Metadata is at root level when a layer id is present
+        const metadataLayer = metadata as TypeMetadataEsriDynamicLayer;
         finalUrl = this.getMetadataAccessPath().substring(0, idx + sep.length);
 
         entries.push({
-          id: metadataMapServer.id,
-          index: metadataMapServer.id,
-          layerId: metadataMapServer.id,
-          layerName: metadataMapServer.name,
+          id: metadataLayer.id,
+          index: metadataLayer.id,
+          layerId: metadataLayer.id,
+          layerName: metadataLayer.name,
         });
-      } else {
-        // If FeatureServer url, the metadata is in the first layer
-        sep = '/featureserver';
-        idx = this.getMetadataAccessPath().toLowerCase().lastIndexOf(sep);
-        if (idx > 0) {
-          // Cast the right payload
-          const metadataFeatureServer = metadata as TypeMetadataEsriFeature;
-
-          // The layer metadata is in the first layer of the metadata
-          const layer = metadataFeatureServer.layers[0];
-          entries.push({
-            id: layer.id,
-            index: layer.id,
-            layerId: layer.id,
-            layerName: layer.name,
-          });
-        }
       }
     }
 
