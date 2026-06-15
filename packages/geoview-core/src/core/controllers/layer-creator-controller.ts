@@ -455,29 +455,40 @@ export class LayerCreatorController extends AbstractMapViewerController {
             // Get the geoview layer if exists
             const innerGVLayer = layerController.getGeoviewLayerIfExists(registeredLayerPath);
 
-            // If found
-            if (innerGVLayer) {
+            // If found and has already been loaded at least once
+            if (innerGVLayer?.loadedOnce) {
               // Remove actual OL layer from the map
-              const layer = innerGVLayer.getOLLayer();
-              if (layer) this.getMapViewer().map.removeLayer(layer);
+              const olLayer = innerGVLayer.getOLLayer();
+              if (olLayer) this.getMapViewer().map.removeLayer(olLayer);
 
               // Remove from registered layers
               this.#layerDomain.deleteGVLayer(innerGVLayer);
+
+              // Create and register new layer
+              const layer = geoviewLayer.createGVLayer(layerEntryConfig as AbstractBaseLayerEntryConfig);
+
+              // Initialize the GV Layer
+              layer.init();
+
+              // Re-register in the domain
+              this.#layerDomain.registerGVLayer(layer);
+
+              // Re-add on the map
+              this.getMapViewer().map.addLayer(layer.getOLLayer());
+
+              // GV Cheat by pretending the layer was loaded once immediately
+              // GV Otherwise on next "reload layer" call it'll think it never was loaded ever (though it was at least once)
+              layer.loadedOnce = true;
+
+              // Show success of the layer reload
+              // GV As far as we're concerned, the reload worked, if the layer fails again, it'll reshow the fail error
+              this.getMapViewer().notifications.showSuccess('layers.layerReloaded', { layerName: layer.getLayerName() });
+            } else {
+              // Nonreloadable layer
+              this.getMapViewer().notifications.showError('layers.errorNonreloadableLayer');
             }
           }
         });
-
-        // Create and register new layer
-        const layer = geoviewLayer.createGVLayer(layerEntryConfig as AbstractBaseLayerEntryConfig);
-
-        // Initialize the GV Layer
-        layer.init();
-
-        // Re-register in the domain
-        this.#layerDomain.registerGVLayer(layer);
-
-        // Re-add on the map
-        this.getMapViewer().map.addLayer(layer.getOLLayer());
       }
     }
   }
