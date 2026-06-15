@@ -1755,10 +1755,10 @@ export abstract class WfsRenderer {
    *
    * @param ogcFilterToWrap - The OGC filter XML string to wrap, or undefined
    * @param wmsOrWfs - Whether the service is WMS or WFS
-   * @param version - The service version
+   * @param versionIsHigherThan2 - Indicates if the version is higher than 2
    * @returns The wrapped filter XML string, or undefined if nothing to wrap
    */
-  static wrapOGCFilter(ogcFilterToWrap: string | undefined, wmsOrWfs: 'wms' | 'wfs', version: string): string | undefined {
+  static wrapOGCFilter(ogcFilterToWrap: string | undefined, wmsOrWfs: 'wms' | 'wfs', versionIsHigherThan2: boolean): string | undefined {
     // If nothing to wrap
     if (!ogcFilterToWrap) return undefined;
 
@@ -1771,21 +1771,21 @@ export abstract class WfsRenderer {
         `.trim();
     }
 
-    // If the version is 1.3.0 or 2.0.0, use FES 2.0 filter
-    switch (version) {
-      case '2.0.0':
-        return `
-        <fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0" xmlns:gml="http://www.opengis.net/gml">
+    // If the version is 2.0.0 or higher, use FES 2.0 filter with gml 3.2
+    if (versionIsHigherThan2) {
+      return `
+        <fes:Filter xmlns:fes="http://www.opengis.net/fes/2.0" xmlns:gml="http://www.opengis.net/gml/3.2">
           ${ogcFilterToWrap}
         </fes:Filter>
         `.trim();
-      default:
-        return `
-        <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc" xmlns:gml="http://www.opengis.net/gml">
-          ${ogcFilterToWrap}
-        </ogc:Filter>
-        `.trim();
     }
+
+    // Default to ogc:Filter for older WFS versions
+    return `
+      <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc" xmlns:gml="http://www.opengis.net/gml">
+        ${ogcFilterToWrap}
+      </ogc:Filter>
+      `.trim();
   }
 
   // #endregion
