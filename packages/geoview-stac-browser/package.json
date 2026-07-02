@@ -1,6 +1,6 @@
 {
   "name": "geoview-stac-browser",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A STAC catalog browser plugin for the geoview project",
   "main": "src/index.tsx",
   "keywords": [
