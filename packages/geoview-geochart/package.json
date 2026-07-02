@@ -1,6 +1,6 @@
 {
   "name": "geoview-geochart",
-  "version": "2.1.0",
+  "version": "2.3.0",
   "description": "A Chart control for the geoview project",
   "main": "src/index.tsx",
   "keywords": [
