@@ -19,10 +19,10 @@ Default navbar (when `navBar` is omitted from config): `["zoom", "rotation", "fu
 
 > Detailed rotation and north arrow tests are in [02 — Map](02-map.md#map-rotation).
 
-| Test                   | Description                      | Steps                                                               | Expected Result                                     | Auto |
-| ---------------------- | -------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------- | ---- |
-| Rotation control       | Rotation control rotates the map | 1. On Map 1, verify rotation control appears<br>2. Use it to rotate | Map rotates according to the control                | C    |
-| Rotation value display | Rotation shown in map info bar   | 1. Rotate Map 1                                                     | Rotation value is shown in the map info bar tooltip | M    |
+| Test                   | Description                      | Steps                                                                              | Expected Result                                                         | Auto |
+| ---------------------- | -------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ---- |
+| Rotation control       | Rotation control rotates the map | 1. On Map 1, verify rotation control appears<br>2. Drag the rotation slider slowly | Map rotates continuously as the slider is dragged (not only on release) | C    |
+| Rotation value display | Rotation shown in map info bar   | 1. Rotate Map 1                                                                    | Rotation value is shown in the map info bar tooltip                     | M    |
 
 ## Home / Initial Extent
 

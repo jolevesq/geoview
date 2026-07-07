@@ -121,10 +121,10 @@ Config: `configs/navigator/demos/10-basic-appbar-data-table-tab.json` (data tabl
 
 ## Column Management
 
-| Test                    | Description              | Steps                                                                              | Expected Result                                            | Auto |
-| ----------------------- | ------------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------------- | ---- |
-| Column sort ascending   | Sort by column           | 1. Click a column header to sort ascending                                         | Rows reorder by that column in ascending order             | C    |
-| Column sort descending  | Reverse sort             | 1. Click the same column header again                                              | Rows reorder in descending order                           | C    |
-| Column sort reset       | Remove sort              | 1. Click the column header a third time                                            | Sort is cleared, rows return to original order             | C    |
-| Column visibility       | Hide a column            | 1. Open column visibility menu<br>2. Toggle a column off                           | Column disappears from the table                           | M    |
-| Column visibility restore | Show column again      | 1. Toggle the column back on                                                       | Column reappears in its original position                  | M    |
+| Test                      | Description       | Steps                                                    | Expected Result                                | Auto |
+| ------------------------- | ----------------- | -------------------------------------------------------- | ---------------------------------------------- | ---- |
+| Column sort ascending     | Sort by column    | 1. Click a column header to sort ascending               | Rows reorder by that column in ascending order | C    |
+| Column sort descending    | Reverse sort      | 1. Click the same column header again                    | Rows reorder in descending order               | C    |
+| Column sort reset         | Remove sort       | 1. Click the column header a third time                  | Sort is cleared, rows return to original order | C    |
+| Column visibility         | Hide a column     | 1. Open column visibility menu<br>2. Toggle a column off | Column disappears from the table               | M    |
+| Column visibility restore | Show column again | 1. Toggle the column back on                             | Column reappears in its original position      | M    |

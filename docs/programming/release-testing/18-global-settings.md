@@ -76,8 +76,8 @@ Config property: `serviceUrls` — overrides default service endpoints.
 
 ## Date Display Mode
 
-| Test                        | Description                | Steps                                                                                                 | Expected Result                                                               | Auto |
-| --------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---- |
-| ISO date format             | Dates show as ISO          | 1. Set `globalSettings.displayDateMode: 'iso'`<br>2. Open a layer with date fields in details/table   | Dates display in ISO format (e.g., `2024-01-15`)                              | C    |
-| Default date format         | Dates show as localized    | 1. Set `globalSettings.displayDateMode: 'default'`<br>2. Check same layer                             | Dates display in localized format (e.g., `January 15, 2024`)                  | C    |
-| Date timezone local         | Local timezone applied     | 1. Check date values with `displayDateTimezone: 'local'`                                              | Times reflect the browser's local timezone                                    | M    |
+| Test                | Description             | Steps                                                                                  | Expected Result                                              | Auto |
+| ------------------- | ----------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ---- |
+| ISO date format     | Dates show as ISO       | 1. On Map 5, click a feature with date fields<br>2. Check details panel and data table | Dates display in ISO format (e.g., `2024-01-15`)             | C    |
+| Default date format | Dates show as localized | 1. Change `displayDateMode` to `'default'` via API<br>2. Check same layer              | Dates display in localized format (e.g., `January 15, 2024`) | C    |
+| Date timezone local | Local timezone applied  | 1. On Map 5, check date values with time components                                    | Times reflect the browser's local timezone                   | M    |

@@ -110,8 +110,8 @@ Config: `configs/navigator/demos/23b-initial-settings-states-controls.json`
 
 Tests `initialSettings` cascading through deeply nested group hierarchies.
 
-| Test                               | Description                     | Steps                                                                                                      | Expected Result                                                                              | Auto |
-| ---------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ---- |
-| Parent visible=false cascades      | Children greyed out             | 1. Load a config with a group set to `visible: false`<br>2. Check children in the legend                   | Children show `visible: true` but greyed out (parent OL layer hides rendering)               | C    |
-| Child override wins                | Explicit child value preserved  | 1. Check a child that explicitly sets `opacity: 0.5` inside a parent with `opacity: 1.0`                  | Child renders at 0.5 opacity (not overridden by parent)                                      | C    |
-| controls.remove=false cascades     | Remove button hidden            | 1. Check a group with `controls.remove: false`<br>2. Check its children and grandchildren                 | Remove button is hidden at all descendant levels                                             | C    |
+| Test                           | Description                    | Steps                                                         | Expected Result                                                                | Auto |
+| ------------------------------ | ------------------------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------ | ---- |
+| Parent visible=false cascades  | Children greyed out            | 1. On Map 4, check children of the parent group in the legend | Children show `visible: true` but greyed out (parent OL layer hides rendering) | C    |
+| Child override wins            | Explicit child value preserved | 1. On Map 4, check child layer with explicit `opacity: 0.5`   | Child renders at 0.5 opacity (not overridden by parent)                        | C    |
+| controls.remove=false cascades | Remove button hidden           | 1. On Map 4, check the parent group and its children          | Remove button is hidden at all descendant levels                               | C    |

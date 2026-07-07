@@ -1,7 +1,40 @@
 ---
 name: TestCreator
 description: "Use when: creating new tests for the geoview-test-suite, writing utility function tests, config validation tests, layer tests, map interaction tests, UI tests, identifying missing test coverage in a PR branch, suggesting tests for new or changed code, reviewing manual release testing checklists against the codebase, managing the release testing issue template. Generates test files following the custom in-browser test framework patterns and maintains manual release-testing docs."
-tools: [execute/runNotebookCell, execute/getTerminalOutput, execute/killTerminal, execute/sendToTerminal, execute/runTask, execute/createAndRunTask, execute/runInTerminal, execute/runTests, execute/testFailure, read/getNotebookSummary, read/problems, read/readFile, read/viewImage, read/readNotebookCellOutput, read/terminalSelection, read/terminalLastCommand, read/getTaskOutput, agent/runSubagent, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, edit/rename, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/usages, todo]
+tools:
+  [
+    execute/runNotebookCell,
+    execute/getTerminalOutput,
+    execute/killTerminal,
+    execute/sendToTerminal,
+    execute/runTask,
+    execute/createAndRunTask,
+    execute/runInTerminal,
+    execute/runTests,
+    execute/testFailure,
+    read/getNotebookSummary,
+    read/problems,
+    read/readFile,
+    read/viewImage,
+    read/readNotebookCellOutput,
+    read/terminalSelection,
+    read/terminalLastCommand,
+    read/getTaskOutput,
+    agent/runSubagent,
+    edit/createDirectory,
+    edit/createFile,
+    edit/createJupyterNotebook,
+    edit/editFiles,
+    edit/editNotebook,
+    edit/rename,
+    search/changes,
+    search/codebase,
+    search/fileSearch,
+    search/listDirectory,
+    search/textSearch,
+    search/usages,
+    todo,
+  ]
 argument-hint: "describe the test to create, 'review' to scan a branch for missing tests, 'review-manual' to audit release-testing checklists against codebase, or 'create-release-issue' to prepare a new release testing cycle"
 ---
 
@@ -232,12 +265,33 @@ After ANY of these changes, verify the other two are updated:
 
 | Change                                         | Also update                                                     |
 | ---------------------------------------------- | --------------------------------------------------------------- |
-| Add/remove/rename a **section** in a test file | Issue template (add/remove checkbox)                            |
+| Add/remove/rename a **section** in a test file | Issue template (add/remove checkbox with test count)            |
 | Add/remove **tests** within a section          | Issue template (update test count in parentheses)               |
 | Add/remove/rename a **test file**              | README table + issue template (add/remove entire section block) |
-| Change a **section heading**                   | Issue template (update anchor link)                             |
-| Change **time estimate**                       | README table (update Est. Time column)                          |
-| Change **Auto flag** (M→A, C→A, M→C)           | README table (update "Tests (A/C/M)" column + TOTAL row)        |
+
+**Issue template checkbox format**: Every checkbox MUST include the test count in parentheses:
+
+```
+- [ ] [Section Name](../docs/programming/release-testing/NN-file.md#section-anchor) (X tests)
+```
+
+Use `(1 test)` for singular. This count must match the actual number of test rows in that section's table(s).
+
+### Phase 6 — Update Release Candidate Tracker
+
+**MANDATORY**: After ANY changes to test files, HTML test pages, configs, or test infrastructure, append a summary to `docs/programming/release-testing/RELEASE-CANDIDATE.md`. This file tracks all changes made during the release cycle for generating release notes.
+
+Add entries to the appropriate section:
+
+- **Breaking Changes**: Config properties renamed, removed, or with changed behavior
+- **New Features**: User-facing features tested or enabled
+- **Bug Fixes**: Fixes discovered or applied
+- **Test Plan Changes**: Tests added, moved, removed, reorganized; HTML infrastructure changes
+- **Config Schema Changes**: Properties added or modified
+- Update the **Updated Counts** table if test totals changed
+  | Change a **section heading** | Issue template (update anchor link) |
+  | Change **time estimate** | README table (update Est. Time column) |
+  | Change **Auto flag** (M→A, C→A, M→C) | README table (update "Tests (A/C/M)" column + TOTAL row) |
 
 ### Phase 6 — Verify
 
@@ -617,10 +671,12 @@ When adding or editing manual tests, follow these conventions:
 **Test page linkage** (when a dedicated release testing HTML page exists):
 
 - Add a `> **Test page**:` link immediately after the progress tracking line pointing to the HTML file: `> **Test page**: [rt-NN-name.html](../../packages/geoview-core/public/templates/release-testing/rt-NN-name.html)`
+- **Every test row in the MD MUST have a corresponding map in the HTML test page.** If a test says "On Map 3, check X", Map 3 must exist in the HTML with the config needed for that test. Never add test rows without also adding the map they reference.
 - Steps in the test table MUST reference specific maps by ID (e.g., "On Map 1, click..." not "Load a config with...")
 - Do NOT reference sandbox.html, all-layers.json, or generic "load a config" instructions when a dedicated test page exists
 - Each map on the test page should be minimal — only include components/layers needed for that page's tests
-- Use inline `data-config` (not `data-config-url` or JSON files) for simplicity
+- Every map div MUST have a matching `<button class="collapsible">Map N — Configuration Snippet</button><pre id="mapNCS" class="panel"></pre>` pair at the bottom (for the config modal)
+- Use inline `data-config` (not `data-config-url` or JSON files) for simplicity. Use `data-config-url` only for configs too large to inline or shared with the navigator
 
 ### Release Testing Issue Process
 
