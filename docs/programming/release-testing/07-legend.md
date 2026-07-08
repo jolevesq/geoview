@@ -28,12 +28,15 @@ Legend panel behavior and interactions. The Legend panel is available via appBar
 
 The ToggleAll component provides two controls at the top of the legend: an eye icon (toggle all visibility) and a collapse icon (expand/collapse all layer headers).
 
-| Test                      | Description                | Steps                                                                                     | Expected Result                                                   | Auto |
-| ------------------------- | -------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ---- |
-| Collapse all              | All layer headers collapse | 1. On Map 1, click the "Collapse All" button                                              | All expanded layer entries collapse (children/items hidden)       | C    |
-| Expand all                | All layer headers expand   | 1. On Map 1, click the "Expand All" button                                                | All layer entries expand to show children and items               | C    |
-| Toggle all visibility off | All layers hidden          | 1. On Map 1, click the "All Visibility OFF" button (or the eye icon in the ToggleAll bar) | All layers turn off on the map; visibility icons update in legend | C    |
-| Toggle all visibility on  | All layers shown           | 1. On Map 1, click the "All Visibility ON" button (or the eye icon again)                 | All layers turn back on; visibility icons update in legend        | C    |
+| Test                      | Description                 | Steps                                                                                      | Expected Result                                                             | Auto |
+| ------------------------- | --------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- | ---- |
+| Collapse all              | All layer headers collapse  | 1. On Map 1, click the "Collapse All" button                                               | All expanded layer entries collapse (children/items hidden)                 | C    |
+| Expand all                | All layer headers expand    | 1. On Map 1, click the "Expand All" button                                                 | All layer entries expand to show children and items                         | C    |
+| Toggle all visibility off | All layers hidden           | 1. On Map 1, click the "All Visibility OFF" button (or the eye icon in the ToggleAll bar)  | All layers turn off on the map; visibility icons update in legend           | C    |
+| Toggle all visibility on  | All layers shown            | 1. On Map 1, click the "All Visibility ON" button (or the eye icon again)                  | All layers turn back on; visibility icons update in legend                  | C    |
+| Controls with error layer | Controls still available    | 1. On Map 1 (has a mix of loaded and error layers)<br>2. Check toggle all and collapse all | Toggle all visibility and collapse all buttons are present and functional   | M    |
+| All layers error          | Controls hidden             | 1. On Map 1, delete all valid layers (let only error layers remain)<br>2. Check legend     | No toggle all visibility or collapse all buttons — legend shows empty state | M    |
+| Empty map                 | No controls on empty legend | 1. On Map 1, delete all layers<br>2. Check legend                                          | No toggle all visibility or collapse all buttons — legend shows empty state | M    |
 
 ## Visibility Toggle
 

@@ -36,13 +36,14 @@ Map rendering, projections, north pole, and north arrow.
 
 ## Map Interaction
 
-| Test              | Description                    | Steps                                               | Expected Result                          | Auto |
-| ----------------- | ------------------------------ | --------------------------------------------------- | ---------------------------------------- | ---- |
-| Pan               | Click-drag panning             | 1. On Map 1, click and drag                         | Smooth panning                           | M    |
-| Zoom with scroll  | Scroll wheel zoom              | 1. On Map 1, use scroll wheel to zoom in/out        | Smooth zoom transitions                  | M    |
-| Zoom with buttons | Navbar zoom buttons            | 1. On Map 1, use the zoom +/- buttons in the navbar | Map zooms in/out                         | M    |
-| Pinch zoom        | Touch device zoom              | 1. (Touch devices) Pinch to zoom on Map 1           | Correct zoom behavior                    | M    |
-| Double-click zoom | Double-click centers and zooms | 1. Double-click on Map 1                            | Map zooms in centered at the click point | M    |
+| Test                   | Description                    | Steps                                                                   | Expected Result                                                              | Auto |
+| ---------------------- | ------------------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ---- |
+| Pan                    | Click-drag panning             | 1. On Map 1, click and drag                                             | Smooth panning                                                               | M    |
+| Zoom with scroll       | Scroll wheel zoom              | 1. On Map 1, use scroll wheel to zoom in/out                            | Smooth zoom transitions                                                      | M    |
+| Zoom with buttons      | Navbar zoom buttons            | 1. On Map 1, use the zoom +/- buttons in the navbar                     | Map zooms in/out                                                             | M    |
+| Pinch zoom             | Touch device zoom              | 1. (Touch devices) Pinch to zoom on Map 1                               | Correct zoom behavior                                                        | M    |
+| Double-click zoom      | Double-click centers and zooms | 1. Double-click on Map 1                                                | Map zooms in centered at the click point                                     | M    |
+| Click marker alignment | Marker at pointer location     | 1. On Map 1, click on a feature<br>2. Observe the click marker position | Click marker icon appears exactly at the pointer click location (not offset) | M    |
 
 ## Static Map
 

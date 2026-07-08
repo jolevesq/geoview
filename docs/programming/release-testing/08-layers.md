@@ -27,10 +27,13 @@ Reorder uses **up/down arrow buttons** in edit mode (not drag-and-drop). First l
 
 The ToggleAll component at the top provides collapse/expand all and toggle all visibility.
 
-| Test         | Description         | Steps                                                                                | Expected Result           | Auto |
-| ------------ | ------------------- | ------------------------------------------------------------------------------------ | ------------------------- | ---- |
-| Collapse all | All groups collapse | 1. On Map 1, click the "Collapse All" button (or collapse icon in the ToggleAll bar) | All layer groups collapse | C    |
-| Expand all   | All groups expand   | 1. On Map 1, click the "Expand All" button (or collapse icon again)                  | All layer groups expand   | C    |
+| Test                      | Description                            | Steps                                                                                        | Expected Result                                                           | Auto |
+| ------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---- |
+| Collapse all              | All groups collapse                    | 1. On Map 1, click the "Collapse All" button (or collapse icon in the ToggleAll bar)         | All layer groups collapse                                                 | C    |
+| Expand all                | All groups expand                      | 1. On Map 1, click the "Expand All" button (or collapse icon again)                          | All layer groups expand                                                   | C    |
+| Controls with error layer | Controls available with partial errors | 1. On Map 1 (has loaded and error layers)<br>2. Check toggle all and collapse all            | Toggle all visibility and collapse all buttons are present and functional | M    |
+| All layers error          | Controls hidden                        | 1. On Map 1, delete all valid layers (let only error layers remain)<br>2. Check layers panel | No toggle all or collapse all buttons — panel shows empty state           | M    |
+| Empty map                 | No controls on empty panel             | 1. On Map 1, delete all layers<br>2. Check layers panel                                      | No toggle all or collapse all buttons — panel shows empty state           | M    |
 
 ### Loading Status
 
@@ -348,16 +351,16 @@ Config: `configs/navigator/layers/geojson-multi.json`
 
 Tests the four-source filter system (class + time + data + config) combined with AND logic.
 
-| Test                          | Description                     | Steps                                                                                                           | Expected Result                                                                     | Auto |
-| ----------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---- |
-| Style class filter            | Toggle class filters data table | 1. On Map 1, toggle a style class off for a uniqueValue layer<br>2. Open data table for that layer              | Data table rows filtered to exclude the toggled-off class                           | C    |
-| Combined class + data filter  | Both filters apply              | 1. Toggle a style class off<br>2. Apply a column filter in data table<br>3. Check map rendering                 | Map shows only features matching both filters (AND logic)                           | C    |
-| Clear all filters             | Filters reset                   | 1. Re-enable all style classes<br>2. Clear data table filters                                                   | All features reappear on map and in data table                                      | C    |
+| Test                         | Description                     | Steps                                                                                              | Expected Result                                           | Auto |
+| ---------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ---- |
+| Style class filter           | Toggle class filters data table | 1. On Map 1, toggle a style class off for a uniqueValue layer<br>2. Open data table for that layer | Data table rows filtered to exclude the toggled-off class | C    |
+| Combined class + data filter | Both filters apply              | 1. Toggle a style class off<br>2. Apply a column filter in data table<br>3. Check map rendering    | Map shows only features matching both filters (AND logic) | C    |
+| Clear all filters            | Filters reset                   | 1. Re-enable all style classes<br>2. Clear data table filters                                      | All features reappear on map and in data table            | C    |
 
 ### Opacity Hierarchical Capping
 
-| Test                              | Description                    | Steps                                                                                               | Expected Result                                                           | Auto |
-| --------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---- |
-| Parent caps child opacity         | Child limited by parent        | 1. On Map 1, set a group to 50% opacity<br>2. Set a child layer to 100%                            | Child renders at 50% (capped by parent)                                   | C    |
-| Restore after parent reset        | Full opacity restored          | 1. Set parent group back to 100%<br>2. Check child opacity                                          | Child renders at its own opacity value (100%)                             | C    |
-| Highlight opacity snapshot        | Opacity preserved after highlight | 1. Highlight a layer<br>2. Remove highlight<br>3. Check all sibling layer opacities                | All layers return to their pre-highlight opacity values                    | C    |
+| Test                       | Description                       | Steps                                                                               | Expected Result                                         | Auto |
+| -------------------------- | --------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------- | ---- |
+| Parent caps child opacity  | Child limited by parent           | 1. On Map 1, set a group to 50% opacity<br>2. Set a child layer to 100%             | Child renders at 50% (capped by parent)                 | C    |
+| Restore after parent reset | Full opacity restored             | 1. Set parent group back to 100%<br>2. Check child opacity                          | Child renders at its own opacity value (100%)           | C    |
+| Highlight opacity snapshot | Opacity preserved after highlight | 1. Highlight a layer<br>2. Remove highlight<br>3. Check all sibling layer opacities | All layers return to their pre-highlight opacity values | C    |

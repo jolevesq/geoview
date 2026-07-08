@@ -1,51 +1,4 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>RT-08 Layers Panel - Release Testing</title>
-    <link rel="shortcut icon" href="./favicon.ico" />
-    <link rel="stylesheet" href="css/style.css" />
-  <script src="cgpv-main.js"></script></head>
-
-  <body>
-    <div id="page-header"></div>
-    <div>
-      <div class="back-to-main">
-        <a href="./release-testing.html">← Back to Release Testing</a>
-      </div>
-
-      <div class="demo-section">
-        <h4>08 — Layers Panel Tests</h4>
-        <p>
-          Left panel (reorder, visibility, collapse, delete), right panel (info, settings, shortcuts, actions, opacity, style classes).
-          For "Add Layer" tests, use the dedicated <a href="../demos/add-layers.html" target="_blank">Add Layers demo page</a>.
-        </p>
-        <p>
-          <strong>Test plan:</strong>
-          <a href="https://github.com/Canadian-Geospatial-Platform/geoview/blob/develop/docs/programming/release-testing/08-layers.md" target="_blank">08-layers.md</a>
-        </p>
-      </div>
-
-      <!-- Map 1: Layers panel with many layer types, groups, style classes -->
-      <h5>Map 1 — Layers Panel (Groups, Settings, Style Classes)</h5>
-      <p>
-        GeoCore group layers (Fieldnotes = ESRI dynamic groups, Hydro = WMS groups with scale limits) + simple layer +
-        ESRI Feature layers with uniqueValue/classBreaks style classes. Layers panel in footer bar for reorder, visibility, settings, opacity, shortcuts.
-      </p>
-
-      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px;">
-        <button onclick="collapseAll()">Collapse All</button>
-        <button onclick="expandAll()">Expand All</button>
-        <button onclick="toggleAllVisOff()">All Visibility OFF</button>
-        <button onclick="toggleAllVisOn()">All Visibility ON</button>
-      </div>
-
-      <div
-        id="map1"
-        class="geoview-map"
-        data-lang="en"
-        data-config="{
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>RT-08 Layers Panel - Release Testing</title><link rel="shortcut icon" href="./favicon.ico"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div id="page-header"></div><div><div class="back-to-main"><a href="./release-testing.html">← Back to Release Testing</a></div><div class="demo-section"><h4>08 — Layers Panel Tests</h4><p>Left panel (reorder, visibility, collapse, delete), right panel (info, settings, shortcuts, actions, opacity, style classes). For "Add Layer" tests, use the dedicated <a href="../demos/add-layers.html" target="_blank">Add Layers demo page</a>.</p><p><strong>Test plan:</strong> <a href="https://github.com/Canadian-Geospatial-Platform/geoview/blob/develop/docs/programming/release-testing/08-layers.md" target="_blank">08-layers.md</a></p></div><h5>Map 1 — Layers Panel (Groups, Settings, Style Classes)</h5><p>GeoCore group layers (Fieldnotes = ESRI dynamic groups, Hydro = WMS groups with scale limits) + simple layer + ESRI Feature layers with uniqueValue/classBreaks style classes. Layers panel in footer bar for reorder, visibility, settings, opacity, shortcuts.</p><div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px;"><button onclick="collapseAll()">Collapse All</button> <button onclick="expandAll()">Expand All</button> <button onclick="toggleAllVisOff()">All Visibility OFF</button> <button onclick="toggleAllVisOn()">All Visibility ON</button></div><div id="map1" class="geoview-map" data-lang="en" data-config="{
           'map': {
             'interaction': 'dynamic',
             'viewSettings': { 'projection': 3978, 'initialView': { 'zoomAndCenter': [4, [-90, 60]] } },
@@ -83,17 +36,7 @@
           'appBar': { 'tabs': { 'core': ['legend', 'details', 'export'] } },
           'footerBar': { 'tabs': { 'core': ['layers', 'data-table'] } },
           'theme': 'geo.ca'
-        }"
-      ></div>
-
-      <!-- Map 2: WMS + ESRI Image settings tests -->
-      <h5>Map 2 — WMS & ESRI Image Layer Settings</h5>
-      <p>WMS layers from wms.json with settings panels. ESRI Image layer for raster function and mosaic rule settings.</p>
-      <div
-        id="map2"
-        class="geoview-map"
-        data-lang="en"
-        data-config="{
+        }"></div><h5>Map 2 — WMS & ESRI Image Layer Settings</h5><p>WMS layers from wms.json with settings panels. ESRI Image layer for raster function and mosaic rule settings.</p><div id="map2" class="geoview-map" data-lang="en" data-config="{
           'map': {
             'interaction': 'dynamic',
             'viewSettings': { 'projection': 3978, 'initialView': { 'zoomAndCenter': [4, [-90, 60]] } },
@@ -126,17 +69,7 @@
           'appBar': { 'tabs': { 'core': ['legend'] } },
           'footerBar': { 'tabs': { 'core': ['layers'] } },
           'theme': 'geo.ca'
-        }"
-      ></div>
-
-      <!-- Map 3: Esri Dynamic Group of Groups -->
-      <h5>Map 3 — Esri Dynamic: Group of Groups</h5>
-      <p>Multi-level group hierarchy (groups within groups). Tests expand/collapse, visibility per level, feature query on nested leaves.</p>
-      <div
-        id="map3"
-        class="geoview-map"
-        data-lang="en"
-        data-config="{
+        }"></div><h5>Map 3 — Esri Dynamic: Group of Groups</h5><p>Multi-level group hierarchy (groups within groups). Tests expand/collapse, visibility per level, feature query on nested leaves.</p><div id="map3" class="geoview-map" data-lang="en" data-config="{
           'map': {
             'interaction': 'dynamic',
             'viewSettings': { 'projection': 3857, 'initialView': { 'zoomAndCenter': [10, [-75.370748, 45.001058]] } },
@@ -163,17 +96,7 @@
           'appBar': { 'tabs': { 'core': ['legend', 'details'] } },
           'footerBar': { 'tabs': { 'core': ['layers'] } },
           'theme': 'geo.ca'
-        }"
-      ></div>
-
-      <!-- Map 4: Esri Dynamic Projections -->
-      <h5>Map 4 — Esri Dynamic: Projections (forceServiceProjection)</h5>
-      <p>Tests forceServiceProjection flag: OL reproject-on-the-fly vs server-side reprojection. Switch projection and verify no artifacts.</p>
-      <div
-        id="map4"
-        class="geoview-map"
-        data-lang="en"
-        data-config="{
+        }"></div><h5>Map 4 — Esri Dynamic: Projections (forceServiceProjection)</h5><p>Tests forceServiceProjection flag: OL reproject-on-the-fly vs server-side reprojection. Switch projection and verify no artifacts.</p><div id="map4" class="geoview-map" data-lang="en" data-config="{
           'map': {
             'interaction': 'dynamic',
             'viewSettings': { 'projection': 3857, 'initialView': { 'zoomAndCenter': [5, [-90, 50]] } },
@@ -197,17 +120,7 @@
           'appBar': { 'tabs': { 'core': ['legend'] } },
           'footerBar': { 'tabs': { 'core': ['layers'] } },
           'theme': 'geo.ca'
-        }"
-      ></div>
-
-      <!-- Map 5: Vector Tiles -->
-      <h5>Map 5 — Vector Tiles</h5>
-      <p>CBCT French and CBMT English vector tile layers with styleUrl. Toggle independently, zoom for level-of-detail.</p>
-      <div
-        id="map5"
-        class="geoview-map"
-        data-lang="en"
-        data-config="{
+        }"></div><h5>Map 5 — Vector Tiles</h5><p>CBCT French and CBMT English vector tile layers with styleUrl. Toggle independently, zoom for level-of-detail.</p><div id="map5" class="geoview-map" data-lang="en" data-config="{
           'map': {
             'interaction': 'dynamic',
             'viewSettings': { 'projection': 3978 },
@@ -233,17 +146,7 @@
           'appBar': { 'tabs': { 'core': ['legend'] } },
           'footerBar': { 'tabs': { 'core': ['layers'] } },
           'theme': 'geo.ca'
-        }"
-      ></div>
-
-      <!-- Map 6: WKB -->
-      <h5>Map 6 — WKB (Well-Known Binary)</h5>
-      <p>Two WKB layers (South Africa polygons): one from metadataAccessPath hex string, one from dataAccessPath. Initial view zooms to layerIds.</p>
-      <div
-        id="map6"
-        class="geoview-map"
-        data-lang="en"
-        data-config="{
+        }"></div><h5>Map 6 — WKB (Well-Known Binary)</h5><p>Two WKB layers (South Africa polygons): one from metadataAccessPath hex string, one from dataAccessPath. Initial view zooms to layerIds.</p><div id="map6" class="geoview-map" data-lang="en" data-config="{
           'map': {
             'interaction': 'dynamic',
             'viewSettings': { 'projection': 3857, 'maxExtent': [-180, -90, 180, 90], 'initialView': { 'layerIds': ['wkbLYR1/1'] } },
@@ -268,62 +171,7 @@
           'appBar': { 'tabs': { 'core': ['legend'] } },
           'footerBar': { 'tabs': { 'core': ['layers'] } },
           'theme': 'geo.ca'
-        }"
-      ></div>
-
-      <!-- Map 7: Shapefile -->
-      <h5>Map 7 — Shapefile (ZIP)</h5>
-      <p>Local shapefiles in ZIP (Crown Harvest Plans, Sunchild Aquifer), remote shapefile (Wildfire HotSpots .shp with uniqueValue style on SOURCE field).</p>
-      <div
-        id="map7"
-        class="geoview-map"
-        data-lang="en"
-        data-config-url="./../../configs/navigator/layers/shapefile.json"
-      ></div>
-
-      <!-- Map 8: GeoJSON Multi -->
-      <h5>Map 8 — GeoJSON Multi</h5>
-      <p>Multiple GeoJSON layers with mixed geometry types (points, lines, polygons). Independent visibility toggle.</p>
-      <div
-        id="map8"
-        class="geoview-map"
-        data-lang="en"
-        data-config-url="./../../configs/navigator/layers/geojson-multi.json"
-      ></div>
-
-      <!-- Map 9: All Layer Zoom Levels -->
-      <h5>Map 9 — All Layer Zoom Levels (Comprehensive)</h5>
-      <p>Zoom and scale constraints across ALL layer types simultaneously. Zoom in/out to verify layers appear/disappear at configured thresholds.</p>
-      <div
-        id="map9"
-        class="geoview-map"
-        data-lang="en"
-        data-config-url="./../../configs/navigator/demos/08-all-layer-zoom-levels.json"
-      ></div>
-
-      <button type="button" class="collapsible">Map 1 — Configuration Snippet</button>
-      <pre id="map1CS" class="panel"></pre>
-      <button type="button" class="collapsible">Map 2 — Configuration Snippet</button>
-      <pre id="map2CS" class="panel"></pre>
-      <button type="button" class="collapsible">Map 3 — Configuration Snippet</button>
-      <pre id="map3CS" class="panel"></pre>
-      <button type="button" class="collapsible">Map 4 — Configuration Snippet</button>
-      <pre id="map4CS" class="panel"></pre>
-      <button type="button" class="collapsible">Map 5 — Configuration Snippet</button>
-      <pre id="map5CS" class="panel"></pre>
-      <button type="button" class="collapsible">Map 6 — Configuration Snippet</button>
-      <pre id="map6CS" class="panel"></pre>
-      <button type="button" class="collapsible">Map 7 — Configuration Snippet</button>
-      <pre id="map7CS" class="panel"></pre>
-      <button type="button" class="collapsible">Map 8 — Configuration Snippet</button>
-      <pre id="map8CS" class="panel"></pre>
-      <button type="button" class="collapsible">Map 9 — Configuration Snippet</button>
-      <pre id="map9CS" class="panel"></pre>
-    </div>
-
-    <script src="codedoc.js"></script>
-    <script>
-      insertPageHeader();
+        }"></div><h5>Map 7 — Shapefile (ZIP)</h5><p>Local shapefiles in ZIP (Crown Harvest Plans, Sunchild Aquifer), remote shapefile (Wildfire HotSpots .shp with uniqueValue style on SOURCE field).</p><div id="map7" class="geoview-map" data-lang="en" data-config-url="./../../configs/navigator/layers/shapefile.json"></div><h5>Map 8 — GeoJSON Multi</h5><p>Multiple GeoJSON layers with mixed geometry types (points, lines, polygons). Independent visibility toggle.</p><div id="map8" class="geoview-map" data-lang="en" data-config-url="./../../configs/navigator/layers/geojson-multi.json"></div><h5>Map 9 — All Layer Zoom Levels (Comprehensive)</h5><p>Zoom and scale constraints across ALL layer types simultaneously. Zoom in/out to verify layers appear/disappear at configured thresholds.</p><div id="map9" class="geoview-map" data-lang="en" data-config-url="./../../configs/navigator/demos/08-all-layer-zoom-levels.json"></div><button type="button" class="collapsible">Map 1 — Configuration Snippet</button><pre id="map1CS" class="panel"></pre><button type="button" class="collapsible">Map 2 — Configuration Snippet</button><pre id="map2CS" class="panel"></pre><button type="button" class="collapsible">Map 3 — Configuration Snippet</button><pre id="map3CS" class="panel"></pre><button type="button" class="collapsible">Map 4 — Configuration Snippet</button><pre id="map4CS" class="panel"></pre><button type="button" class="collapsible">Map 5 — Configuration Snippet</button><pre id="map5CS" class="panel"></pre><button type="button" class="collapsible">Map 6 — Configuration Snippet</button><pre id="map6CS" class="panel"></pre><button type="button" class="collapsible">Map 7 — Configuration Snippet</button><pre id="map7CS" class="panel"></pre><button type="button" class="collapsible">Map 8 — Configuration Snippet</button><pre id="map8CS" class="panel"></pre><button type="button" class="collapsible">Map 9 — Configuration Snippet</button><pre id="map9CS" class="panel"></pre></div><script src="codedoc.js"></script><script>insertPageHeader();
 
       function collapseAll() {
         try {
@@ -363,7 +211,4 @@
         createConfigSnippet();
         createConfigModals();
         createMapNavigation();
-      });
-    </script>
-  </body>
-</html>
+      });</script></body></html>
