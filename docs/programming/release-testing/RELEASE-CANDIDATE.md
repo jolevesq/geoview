@@ -15,11 +15,54 @@
 
 _(Config properties, public API methods, event names — affects external consumers and plugin authors)_
 
-- `mapController.setClickCoordinates` renamed to `mapController.performMapClickAction` (#3544)
-- `MapViewer.onMapZoomEnd` event renamed to `onMapResolutionChanged` (#3544)
-- `degreeRotation` type changed from `string` to `number` (#3544)
-- `whenThisThen` default timeout changed from 10 seconds to `undefined` (no timeout) (#3544)
-- `emitLayerFilterApplied` function privatized — no longer accessible externally (#3544)
+### MapViewer — Removed Methods
+
+| Method                                       | Replacement                                                             | PR    |
+| -------------------------------------------- | ----------------------------------------------------------------------- | ----- |
+| `getPluginAsync(pluginId)`                   | No replacement                                                          | #3544 |
+| `getCenter()`                                | Use `cgpv.api.getMapViewer().getView().getCenter()`                     | #3544 |
+| `getMapSize()`                               | Use `cgpv.api.getMapViewer().map.getSize()`                             | #3544 |
+| `getCoordinateFromPixel(pointXY, timeoutMs)` | No replacement                                                          | #3544 |
+| `setExtent(extent)`                          | Use `zoomToExtent(extent)`                                              | #3544 |
+| `setMaxExtent(extent)`                       | No replacement                                                          | #3544 |
+| `waitAllLayersStatus(layerStatus)`           | Use `cgpv.api.getMapViewer().layer.waitForAllLayersStatus(layerStatus)` | #3544 |
+| `waitForLayersLoaded()`                      | Use `cgpv.api.getMapViewer().layer.waitForLayersLoaded()`               | #3544 |
+
+### MapViewer — Signature Changes
+
+| Method                                 | Change                                                          | PR    |
+| -------------------------------------- | --------------------------------------------------------------- | ----- |
+| `setMapZoomLevel(zoom)`                | No longer returns a Promise                                     | #3544 |
+| `getNorthArrowAngle()`                 | Returns `number` instead of `string`                            | #3544 |
+| `zoomToExtent(extent, options?)`       | New signature: `zoomToExtent(extent, useAnimation, options)`    | #3544 |
+| `onMapZoomEnd` / `offMapZoomEnd`       | Renamed to `onMapResolutionChanged` / `offMapResolutionChanged` | #3544 |
+| `onMapChangeSize` / `offMapChangeSize` | Renamed to `onMapSizeChanged` / `offMapSizeChanged`             | #3544 |
+
+### LayerApi — Removed Methods
+
+| Method              | Replacement    | PR    |
+| ------------------- | -------------- | ----- |
+| `getOLLayerAsync()` | No replacement | #3544 |
+
+### LayerApi — Signature Changes
+
+| Method                                      | Change                                                                   | PR    |
+| ------------------------------------------- | ------------------------------------------------------------------------ | ----- |
+| `zoomToLayerExtent(layerPath, fitOptions?)` | New signature: `zoomToLayerExtent(layerPath, useAnimation, fitOptions?)` | #3544 |
+
+### Controller — Renames
+
+| Old                                 | New                                   | PR    |
+| ----------------------------------- | ------------------------------------- | ----- |
+| `mapController.setClickCoordinates` | `mapController.performMapClickAction` | #3544 |
+
+### Type Changes
+
+| Item                           | Change                                              | PR    |
+| ------------------------------ | --------------------------------------------------- | ----- |
+| `degreeRotation`               | Type changed from `string` to `number`              | #3544 |
+| `whenThisThen` default timeout | Changed from 10 seconds to `undefined` (no timeout) | #3544 |
+| `emitLayerFilterApplied`       | Privatized — no longer accessible externally        | #3544 |
 
 ## Breaking Changes — Developer-Only (Internal)
 
