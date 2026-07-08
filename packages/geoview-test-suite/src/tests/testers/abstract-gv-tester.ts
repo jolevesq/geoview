@@ -1,12 +1,12 @@
 import type { Coordinate } from 'ol/coordinate';
 
 import { AbstractTester } from '../core/abstract-tester';
+import { Test } from '../core/test';
 import type { API } from 'geoview-core/api/api';
 import type { MapViewer } from 'geoview-core/geo/map/map-viewer';
 import type { TypeGeoviewLayerType } from 'geoview-core/api/types/layer-schema-types';
 import type { TypeLegendItem } from 'geoview-core/core/components/layers/types';
 import type { ControllerRegistry } from 'geoview-core/core/controllers/base/controller-registry';
-import { Test } from '../core/test';
 import { getStoreLayerLegendLayerByPath } from 'geoview-core/core/stores/states/layer-state';
 import type { GeometryApi } from 'geoview-core/geo/layer/geometry/geometry';
 
@@ -25,6 +25,9 @@ export abstract class GVAbstractTester extends AbstractTester {
   static readonly ONTARIO_CENTER_LONLAT: Coordinate = [-87, 51];
   static readonly ALBERTA_CENTER_LONLAT: Coordinate = [-112, 51];
 
+  /** Indicates if using animation to perform zoom operations */
+  static readonly USE_ZOOM_ANIMATION = false;
+
   /** Bad url */
   static BAD_URL = 'https://badurl/oops';
 
@@ -41,6 +44,11 @@ export abstract class GVAbstractTester extends AbstractTester {
   static AIRBORNE_RADIOACTIVITY_GROUP = `${GVAbstractTester.AIRBORNE_RADIOACTIVITY_UUID}/0`;
   static AIRBORNE_RADIOACTIVITY_UUID_WITH_SUFFIX = `${GVAbstractTester.AIRBORNE_RADIOACTIVITY_UUID}/0/1`;
   static AIRBORNE_RADIOACTIVITY_LAYER_GROUP_NAME = 'Airborne Radioactivity';
+
+  /** Geocore UUID with group layers having defaultVisibility set to false */
+  static readonly GEOCORE_MARINE_FISHERIES_UUID = '44ef4d33-20b7-45fc-974c-d73a0a8fbae8';
+  static readonly GEOCORE_MARINE_FISHERIES_LAYER_PATH = GVAbstractTester.GEOCORE_MARINE_FISHERIES_UUID + '/0';
+  static readonly GEOCORE_MARINE_FISHERIES_LAYER_PATH_GROUP_NON_VISIBLE = GVAbstractTester.GEOCORE_MARINE_FISHERIES_LAYER_PATH + '/4';
 
   /** Historical Flood */
   static readonly HISTORICAL_FLOOD_URL_MAP_SERVER: string =
@@ -558,10 +566,11 @@ export abstract class GVAbstractTester extends AbstractTester {
    * Sets the MapViewer and the Controller registry for the current test.
    *
    * @param mapViewer - The MapViewer to set
+   * @param controllerRegistry - The ControllerRegistry to set
    */
-  reassignMapViewerAndControllers(mapViewer: MapViewer): void {
+  reassignMapViewerAndControllers(mapViewer: MapViewer, controllerRegistry: ControllerRegistry): void {
     this.#mapViewer = mapViewer;
-    this.#controllerRegistry = mapViewer.controllers;
+    this.#controllerRegistry = controllerRegistry;
   }
 
   /**

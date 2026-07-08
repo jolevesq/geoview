@@ -52,7 +52,7 @@ import {
   setStoreLayerSelectedLayersTabLayer,
   utilFindLayerAndChildrenPaths,
 } from '@/core/stores/states/layer-state';
-import { getStoreAppDisplayDateMode, getStoreAppShowLayerHighlightLayerBbox } from '@/core/stores/states/app-state';
+import { getStoreAppShowLayerHighlightLayerBbox } from '@/core/stores/states/app-state';
 import { setStoreDataTableFilter } from '@/core/stores/states/data-table-state';
 import { isStoreTimeSliderInitialized, setStoreTimeSliderFilter } from '@/core/stores/states/time-slider-state';
 import type {
@@ -90,6 +90,7 @@ import type {
   DomainLayerWMSStyleChangedEvent,
   LayerDomain,
 } from '@/core/domains/layer-domain';
+import type { UIDomain } from '@/core/domains/ui-domain';
 import { doTimeout, isValidUUID, type DelayJob } from '@/core/utils/utilities';
 import type { TemporalMode, TypeDisplayDateFormat } from '@/core/utils/date-mgt';
 import type { TypeLayersViewDisplayState, TypeLegendItem } from '@/core/components/layers/types';
@@ -98,7 +99,13 @@ import { NoBoundsError } from '@/core/exceptions/geoview-exceptions';
 import { OL_ZOOM_DURATION, OL_ZOOM_PADDING } from '@/core/utils/constant';
 import { Projection } from '@/geo/utils/projection';
 import { GeoUtilities } from '@/geo/utils/utilities';
-import { MapViewer } from '@/geo/map/map-viewer';
+import {
+  MapViewer,
+  type MapBaseEvent,
+  type MapLayersProcessedDelegate,
+  type MapMoveEndDelegate,
+  type MapMoveEndEvent,
+} from '@/geo/map/map-viewer';
 import { AbstractGVRaster } from '@/geo/layer/gv-layers/raster/abstract-gv-raster';
 import { GVEsriImage } from '@/geo/layer/gv-layers/raster/gv-esri-image';
 import type { AbstractBaseGVLayer } from '@/geo/layer/gv-layers/abstract-base-layer';
@@ -119,6 +126,9 @@ export class LayerController extends AbstractMapViewerController {
   /** The timeout duration for metadata refresh in milliseconds */
   static readonly #METADATA_REFRESHED_TIMEOUT = 5000; // When the metadata is already fresh of 5 seconds, we consider it as still fresh and we avoid trying to refresh it again to prevent multiple rapid refresh attempts.
 
+  /** The UI Domain instance associated with this controller */
+  #uiDomain: UIDomain;
+
   /** The Layer Domain instance associated with this controller */
   #layerDomain: LayerDomain;
 
@@ -136,6 +146,12 @@ export class LayerController extends AbstractMapViewerController {
 
   /** Flag indicating if the controller is currently handling layer item visibility adjustments (batch processing) */
   #isBatchingLayerItemsVisibility = false;
+
+  /** The bounded reference to the handle map layers processed event */
+  #boundedHandleMapLayersProcessed: MapLayersProcessedDelegate;
+
+  /** The bounded reference to the handle map move end event */
+  #boundedHandleMapMoveEnd: MapMoveEndDelegate;
 
   /** The bounded reference to the handle layer entry config registered */
   #boundedHandleDomainLayerEntryConfigRegistered: DomainLayerStatusChangedDelegate;
@@ -212,12 +228,22 @@ export class LayerController extends AbstractMapViewerController {
    * @param mapViewer - The map viewer instance to associate with this controller
    * @param controllerRegistry - The controller registry for accessing sibling controllers
    * @param layerDomain - The layer domain instance to associate with this controller
+   * @param uiDomain - The UI domain instance to associate with this controller
    */
-  constructor(mapViewer: MapViewer, controllerRegistry: ControllerRegistry, layerDomain: LayerDomain) {
+  constructor(mapViewer: MapViewer, controllerRegistry: ControllerRegistry, layerDomain: LayerDomain, uiDomain: UIDomain) {
     super(mapViewer, controllerRegistry);
 
     // Keep the domain internally
     this.#layerDomain = layerDomain;
+
+    // Keep the UI domain internally
+    this.#uiDomain = uiDomain;
+
+    // Keep a bounded reference to the handle map move end method
+    this.#boundedHandleMapMoveEnd = this.#handleMapMoveEnd.bind(this);
+
+    // Keep a bounded reference to the handle map layers processed event
+    this.#boundedHandleMapLayersProcessed = this.#handleMapLayersProcessed.bind(this);
 
     // Keep a bounded reference to the handle layer entry config registered
     this.#boundedHandleDomainLayerEntryConfigRegistered = this.#handleDomainLayerEntryConfigRegistered.bind(this);
@@ -292,6 +318,12 @@ export class LayerController extends AbstractMapViewerController {
    * Hooks layer domain listeners.
    */
   protected override onHook(): void {
+    // Listens when the map move ends
+    this.getMapViewer().onMapMoveEnd(this.#boundedHandleMapMoveEnd);
+
+    // Listens when the map layers have been processed
+    this.getMapViewer().onMapLayersProcessed(this.#boundedHandleMapLayersProcessed);
+
     // Listens when a layer config has been registered in the domain
     this.#layerDomain.onLayerEntryConfigRegistered(this.#boundedHandleDomainLayerEntryConfigRegistered);
 
@@ -428,6 +460,12 @@ export class LayerController extends AbstractMapViewerController {
 
     // Unhooks when a layer config has been registered in the domain
     this.#layerDomain.offLayerEntryConfigRegistered(this.#boundedHandleDomainLayerEntryConfigRegistered);
+
+    // Unhooks when the map layers have been processed
+    this.getMapViewer().offMapLayersProcessed(this.#boundedHandleMapLayersProcessed);
+
+    // Unhooks when the map move ends
+    this.getMapViewer().offMapMoveEnd(this.#boundedHandleMapMoveEnd);
   }
 
   // #endregion OVERRIDES
@@ -624,22 +662,32 @@ export class LayerController extends AbstractMapViewerController {
   /**
    * Asynchronously returns the OpenLayer layer associated to a specific layer path.
    *
-   * This function waits the timeout period before abandonning (or uses the default timeout when not provided).
+   * Resolves immediately if the layer is already registered; otherwise waits for the next
+   * layer-registered event matching the given path.
    * Note this function uses the 'Async' suffix to differentiate it from 'getOLLayer'.
    *
    * @param layerPath - The layer path to the layer's configuration
-   * @param timeout - Optionally indicate the timeout after which time to abandon the promise
-   * @param checkFrequency - Optionally indicate the frequency at which to check for the condition on the layer
    * @returns A promise that resolves to an OpenLayer layer associated to the layer path
    */
-  getOLLayerAsync(layerPath: string, timeout?: number, checkFrequency?: number): Promise<BaseLayer> {
+  getOLLayerAsync(layerPath: string): Promise<BaseLayer> {
     // Retrieve from the domain
-    return this.#layerDomain.getOLLayerAsync(layerPath, timeout, checkFrequency);
+    return this.#layerDomain.getOLLayerAsync(layerPath);
   }
 
   // #endregion PUBLIC METHODS - DOMAIN SIMPLE GETTERS
 
   // #region PUBLIC METHODS - UI RELATED
+
+  /**
+   * Gets the ordered layer paths.
+   *
+   * @returns The ordered layer paths
+   * @deprecated This method doesn't seem to be used anymore, remove?
+   */
+  getMapLayerOrderPaths(): string[] {
+    // Retrieve from the store
+    return getStoreLayerOrderedLayerPaths(this.getMapId());
+  }
 
   /**
    * Sets the layer panel display state.
@@ -668,10 +716,12 @@ export class LayerController extends AbstractMapViewerController {
   /**
    * Gets the max extent of all layers on the map, or of a provided subset of layers.
    *
+   * Waits for each layer's bounds to be initialized before computing the union.
+   *
    * @param layerIds - Identifiers or layerPaths of layers to get max extents from
-   * @returns The overall extent or undefined when no bounds are found
+   * @returns A promise that resolves with the overall extent or undefined when no bounds are found
    */
-  getExtentOfMultipleLayers(layerIds: string[] = this.getLayerEntryLayerPaths()): Extent | undefined {
+  getExtentOfMultipleLayers(layerIds: string[] = this.getLayerEntryLayerPaths()): Promise<Extent | undefined> {
     // Retrieve from the domain
     return this.#layerDomain.getExtentOfMultipleLayers(layerIds);
   }
@@ -1716,9 +1766,10 @@ export class LayerController extends AbstractMapViewerController {
    * Zooms to extents of a layer.
    *
    * @param layerPath - The path of the layer to zoom to
+   * @param useAnimation - Indicates if a zoom animation should be used, default: true
    * @throws {NoBoundsError} When the layer doesn't have bounds
    */
-  zoomToLayerExtent(layerPath: string, fitOptions?: FitOptions): Promise<void> {
+  zoomToLayerExtent(layerPath: string, useAnimation = true, fitOptions?: FitOptions): Promise<void> {
     // Define some zoom options
     const options: FitOptions = fitOptions ?? { padding: OL_ZOOM_PADDING, duration: OL_ZOOM_DURATION };
 
@@ -1727,7 +1778,7 @@ export class LayerController extends AbstractMapViewerController {
 
     // If found
     if (bounds) {
-      return this.getControllersRegistry().mapController.zoomToExtent(bounds, options);
+      return this.getControllersRegistry().mapController.zoomToExtent(bounds, useAnimation, options);
     }
 
     // Failed
@@ -1969,7 +2020,84 @@ export class LayerController extends AbstractMapViewerController {
     job?.delayedJob.cancel();
   }
 
+  /**
+   * Waits until all GeoView layers reach the specified status before resolving the promise.
+   *
+   * Event-driven: subscribes to layer status changes and re-checks the condition on each event.
+   * Immune to background-tab timer throttling.
+   *
+   * Note: we don't need to subscribe to layer-entry-config-registered events. When a sub-layer
+   * registers on-the-fly (notably: EsriDynamic, WMS), the LayerDomain attaches its status-change
+   * handler at registration time, so every subsequent transition (toward loaded/error) of that
+   * new sub-layer will fire onLayerStatusChanged here.
+   *
+   * @param layerStatus - The desired status to wait for (e.g., 'loaded', 'processed')
+   * @returns A promise that resolves with the number of layers that have reached the specified status
+   */
+  waitForAllLayersStatus(layerStatus: TypeLayerStatus): Promise<number> {
+    // Log
+    logger.logInfo(`Waiting on layers to become ${layerStatus}`);
+
+    // First, check synchronously — the condition may ALREADY be met
+    const [allGoodNow, countNow] = this.checkLayerStatus(layerStatus);
+    if (allGoodNow) return Promise.resolve(countNow);
+
+    // Subscribe via onceLayerStatusChangedAsync with a filter that re-checks the global condition on each event
+    return this.#layerDomain
+      .onceLayerStatusChanged(() => {
+        const [allGood] = this.checkLayerStatus(layerStatus, (layerConfig) => {
+          // Log
+          logger.logTraceDetailed(
+            `waitForAllLayersStatus - waiting on layer to be '${layerStatus}'...`,
+            layerConfig.layerPath,
+            layerConfig.layerStatus
+          );
+        });
+        return allGood;
+      })
+      .then(() => this.checkLayerStatus(layerStatus)[1]);
+  }
+
+  /**
+   * Waits for the map layers loaded event to be emitted.
+   *
+   * @returns A promise that resolves with the number of layers that have reached the specified status
+   */
+  async waitForLayersLoaded(): Promise<number> {
+    // First, wait for the map to be ready in case it's not ready yet. We need the layer configs to be registered at least!
+    await this.getMapViewer().waitForMapReady();
+
+    // Redirect
+    return this.waitForAllLayersStatus('loaded');
+  }
+
   // #endregion PUBLIC METHODS
+
+  // #region MAP HANDLERS
+
+  /**
+   * Handles when the map layers have been processed (e.g., after initial load or a significant change).
+   *
+   * @param sender - The map viewer that fired the event
+   * @param event - The event data (not used in this handler)
+   */
+  #handleMapLayersProcessed(sender: MapViewer, event: MapBaseEvent): void {
+    // Update the layers visible in range
+    this.#updateLayersVisibleInRange();
+  }
+
+  /**
+   * Handles when the map has finished moving (e.g., after a pan or zoom action).
+   *
+   * @param sender - The map viewer that fired the event
+   * @param event - The event data (not used in this handler)
+   */
+  #handleMapMoveEnd(sender: MapViewer, event: MapMoveEndEvent): void {
+    // Update the layers visible in range
+    this.#updateLayersVisibleInRange();
+  }
+
+  // #endregion MAP HANDLERS
 
   // #region DOMAIN HANDLERS
   // GV Eventually, these should be moved to a store adaptor or similar construct that directly connects the domain to the store without going through the controller
@@ -2390,6 +2518,38 @@ export class LayerController extends AbstractMapViewerController {
   // #region PRIVATE METHODS
 
   /**
+   * Updates the inVisibleRange property for all layers based on the current map zoom level and resolution,
+   * which is used to determine if a layer should be visible or not based on its scale thresholds.
+   */
+  #updateLayersVisibleInRange(): void {
+    // Get the map viewer
+    const mapViewer = this.getMapViewer();
+
+    // Get the zoom
+    const zoom = mapViewer.getView().getZoom();
+    if (!zoom) return;
+
+    // Get all layers
+    const allLayers = this.getGeoviewLayers();
+
+    // Current map resolution used for resolution-based visibility checks.
+    const currentResolution = mapViewer.getView().getResolution() ?? mapViewer.getView().getResolutionForZoom(zoom);
+    const currentScale = mapViewer.getMapScaleFromZoom(zoom);
+
+    // Get the inVisibleRange property by checking each layer's OL resolution thresholds.
+    allLayers.forEach((layer) => {
+      // Get the effective scales
+      const effectiveScales = MapViewer.computeEffectiveLayerScales(mapViewer, layer.getLayerConfig());
+
+      // Check if the layer is in visible range
+      const inVisibleRange = layer.isInVisibleRange(currentResolution, currentScale, effectiveScales);
+
+      // Save to the store
+      this.setLayerInVisibleRange(layer.getLayerPath(), inVisibleRange);
+    });
+  }
+
+  /**
    * Attempts to rescue an image load failure on a WMS layer by overriding CRS.
    *
    * @param event - The image load rescue event
@@ -2460,7 +2620,7 @@ export class LayerController extends AbstractMapViewerController {
 
     // Refresh metadata on-the-fly and retry time slider registration.
     this.#layersBeingMetadataRefreshed[layerConfig.layerPath] = Date.now();
-    await layerConfig.refreshMetadata(getStoreAppDisplayDateMode(this.getMapId()));
+    await layerConfig.refreshMetadata(this.#uiDomain.getDisplayDateMode());
     this.getControllersRegistry().timeSliderController?.tryRegisterLayer(event.layer);
 
     // Force a refresh so the layer gets drawn again to confirm if the layer was rescued or not by the metadata refresh operation
@@ -2688,7 +2848,7 @@ type LayerDeletionJob = {
 };
 
 /** Defines the event payload for the layer item visibility changed delegate. */
-export type ControllerLayerItemVisibilityChangedEvent = {
+export interface ControllerLayerItemVisibilityChangedEvent {
   /** The affected layer. */
   layer: AbstractGVLayer;
 
@@ -2697,7 +2857,7 @@ export type ControllerLayerItemVisibilityChangedEvent = {
 
   /** The new visibility. */
   visible: boolean;
-};
+}
 
 /** Defines a delegate for the layer item visibility changed event handler function signature. */
 export type ControllerLayerItemVisibilityChangedDelegate = EventDelegateBase<

@@ -13,18 +13,19 @@ import type { Projection as OLProjection } from 'ol/proj';
 
 import type { EventDelegateBase } from '@/api/events/event-helper';
 import EventHelper from '@/api/events/event-helper';
+import type { TypeDisplayLanguage, TypeFeatureInfoResult, TypeLayerStyleConfig } from '@/api/types/map-schema-types';
+import { GeoViewError, NoExtentError } from '@/core/exceptions/geoview-exceptions';
+import { LayerStatusErrorError } from '@/core/exceptions/layer-exceptions';
 import { logger } from '@/core/utils/logger';
 import type { VectorLayerEntryConfig } from '@/api/config/validation-classes/vector-layer-entry-config';
-import type { TypeDisplayLanguage, TypeFeatureInfoResult, TypeLayerStyleConfig } from '@/api/types/map-schema-types';
 import type { FilterNodeType } from '@/geo/utils/renderer/geoview-renderer-types';
 import { GeoviewRenderer } from '@/geo/utils/renderer/geoview-renderer';
 import { GVLayerUtilities } from '@/geo/layer/gv-layers/utils';
-import { AbstractGVLayer } from '@/geo/layer/gv-layers/abstract-gv-layer';
+import { AbstractGVLayer, type LayerErrorDelegate } from '@/geo/layer/gv-layers/abstract-gv-layer';
 import { GVVectorSource } from '@/geo/layer/source/vector-source';
 import type { LayerFilters } from '@/geo/layer/gv-layers/layer-filters';
 import { GeoUtilities } from '@/geo/utils/utilities';
 import { Projection } from '@/geo/utils/projection';
-import { GeoViewError, NoExtentError } from '@/core/exceptions/geoview-exceptions';
 import { GeoviewTextRenderer } from '@/geo/utils/renderer/geoview-text-renderer';
 
 /**
@@ -365,12 +366,12 @@ export abstract class AbstractGVVector extends AbstractGVLayer {
    * @param projection - The projection to initialize the bounds into.
    * @param stops - The number of stops to use to generate the extent.
    * @returns A promise that resolves with the layer bounding box, or undefined if not available.
-   * @throws {LayerStatusErrorError} When the layer enters the `error` state before reaching `loaded` (propagated from `waitLoadedStatus()`)
+   * @throws {LayerStatusErrorError} When the layer enters the `error` state before reaching `loaded` (propagated from `waitForLoadedStatus()`)
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   override async onInitBounds(projection: OLProjection, stops: number): Promise<Extent | undefined> {
     // Wait for the features to be loaded, because this is a vector layer the features have to be loaded for the extent to be valid
-    await this.waitLoadedStatus();
+    await this.waitForLoadedStatus();
 
     // Get the layer bounds
     // ?? undefined to coerce null → undefined because OL 10.9 changed getExtent() to return Extent | null
@@ -549,6 +550,49 @@ export abstract class AbstractGVVector extends AbstractGVLayer {
   }
 
   /**
+   * Waits until the vector layer's style has been applied or the layer enters an error state.
+   *
+   * Resolves immediately if a style is already set, or rejects immediately if the layer is already in `error` state.
+   * Otherwise subscribes to the `styleApplied` and `layerError` events; the first event to fire settles the promise
+   * and both subscriptions are cleaned up.
+   *
+   * @returns A promise that resolves when the style has been applied
+   * @throws {LayerStatusErrorError} When the layer is already in (or enters) the `error` state before the style is applied
+   */
+  waitForStyleAppliedVector(): Promise<void> {
+    // Sync check: style already applied
+    if (this.getStyle()) return Promise.resolve();
+
+    // Sync check: already in error
+    if (this.getLayerStatus() === 'error') {
+      return Promise.reject(new LayerStatusErrorError(this.getGeoviewLayerId(), this.getLayerName()));
+    }
+
+    // Subscribe to style-changed and layer-error events; the first to fire settles the promise.
+    // GV The handlers cross-reference each other to cross-unsubscribe, so they must be forward-declared.
+    return new Promise<void>((resolve, reject) => {
+      const styleHandler: StyleAppliedDelegate = (sender, event): void => {
+        // Only settle if the event payload actually carries a style; otherwise keep waiting for the next change
+        if (!event.styleApplied) return;
+        this.offStyleApplied(styleHandler);
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        this.offLayerError(errorHandler);
+        resolve();
+      };
+
+      const errorHandler: LayerErrorDelegate = (): void => {
+        this.offStyleApplied(styleHandler);
+        this.offLayerError(errorHandler);
+        reject(new LayerStatusErrorError(this.getGeoviewLayerId(), this.getLayerName()));
+      };
+
+      // Hook on the style-applied and error events to resolve the promise in question
+      this.onStyleApplied(styleHandler);
+      this.onLayerError(errorHandler);
+    });
+  }
+
+  /**
    * Handles the first loaded event for the layer.
    *
    * If the layer starts with no style and is initially invisible, it temporarily sets the layer to visible
@@ -572,23 +616,16 @@ export abstract class AbstractGVVector extends AbstractGVLayer {
    * @param initialVisible - Whether the layer is visible intially
    */
   #ensureStyleWithTemporaryVisibility(initialVisible: boolean): void {
-    // Subscribe to style changes
-    const hook = this.onLayerStyleChanged(() => {
-      // Unsubscribe after the first style change to avoid repeated triggers
-      this.offLayerStyleChanged(hook);
-
-      // Restore the original visibility state
-      this.setVisible(initialVisible);
-    });
-
     // Handle race condition: style may already be set
-    if (this.getStyle()) {
-      this.offLayerStyleChanged(hook);
-      return;
-    }
+    if (this.getStyle()) return;
 
     // Temporarily make the layer visible so the style can be computed/applied
     this.setVisible(true);
+
+    // Wait for the first style change, then restore the original visibility state
+    void this.onceLayerStyleChanged().then(() => {
+      this.setVisible(initialVisible);
+    });
   }
 
   // #endregion METHODS
@@ -729,10 +766,10 @@ export abstract class AbstractGVVector extends AbstractGVLayer {
 /**
  * Define an event for the delegate
  */
-export type StyleAppliedEvent = {
+export interface StyleAppliedEvent {
   // The style applied indicator
   styleApplied: boolean;
-};
+}
 
 /**
  * Define a delegate for the event handler function signature
@@ -742,9 +779,9 @@ export type StyleAppliedDelegate = EventDelegateBase<AbstractGVVector, StyleAppl
 /**
  * Define an event for the delegate
  */
-export type TextVisibleChangedEvent = {
+export interface TextVisibleChangedEvent {
   textVisible: boolean;
-};
+}
 
 /**
  * Define a delegate for the event handler function signature

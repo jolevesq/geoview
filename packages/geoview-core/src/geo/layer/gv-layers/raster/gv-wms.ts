@@ -1790,6 +1790,7 @@ export class GVWMS extends AbstractGVRaster {
    * @param layerConfig - The layer configuration
    * @param chosenStyle - Style to get the legend image for
    * @returns A promise that resolves to an image blob or null if it fails to retrieve the legend image
+   * @throws {ResponseContentError} When no URL is available to fetch the legend image
    */
   static async #getLegendImage(layerConfig: OgcWmsLayerEntryConfig, chosenStyle?: string): Promise<string | ArrayBuffer | null> {
     // Get the legend URL from the layer metadata
@@ -1894,10 +1895,6 @@ export class GVWMS extends AbstractGVRaster {
   static #logErrorThrowIfAborted(error: unknown, _message: string): void {
     // If the error is a RequestAborted error, rethrow it, we want it to be handled by the caller and not eaten by the various attempts to get the feature info
     if (error instanceof RequestAbortedError) throw error;
-
-    // Failed to retrieve features, log it as a warning
-    // TODO: CLEANUP - Remove this dead code if we determine it's better without. Was commented on 2026-06-12
-    // logger.logWarning(message, error);
   }
 
   // #endregion STATIC METHODS

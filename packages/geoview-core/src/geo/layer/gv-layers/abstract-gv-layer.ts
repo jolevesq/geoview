@@ -51,7 +51,7 @@ import { formatError, NotImplementedError, NotSupportedError } from '@/core/exce
 import { LayerNotQueryableError, LayerStatusErrorError, LayerStyleGeometryNotFoundError } from '@/core/exceptions/layer-exceptions';
 import { GVLayerUtilities } from '@/geo/layer/gv-layers/utils';
 import { LayerFilters, type FilterCategory } from '@/geo/layer/gv-layers/layer-filters';
-import { delay, doTimeout, whenThisThen, type DelayJob } from '@/core/utils/utilities';
+import { delay, doTimeout, type DelayJob } from '@/core/utils/utilities';
 import type { EsriImageLayerEntryConfig } from '@/api/config/validation-classes/raster-validation-classes/esri-image-layer-entry-config';
 
 /**
@@ -1026,85 +1026,124 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
   /**
    * Utility function allowing to wait for the layer to be loaded at least once.
    *
-   * @param timeout - A timeout for the period to wait for. Defaults to 30,000 ms
-   * @returns A promise that resolves when the layer has been loaded at least once
+   * Sync-checks first, then subscribes to the layer-first-loaded and layer-error events. Resolves
+   * when the layer reaches its first loaded state; rejects when the layer enters the `error` state before that.
+   *
+   * @returns A promise that resolves once the layer has been loaded at least once
    * @throws {LayerStatusErrorError} When the layer enters the `error` state before being loaded
    */
-  waitLoadedOnce(timeout = 30000): Promise<boolean> {
-    // Create a promise and wait until the layer is first loaded
-    return whenThisThen(() => {
-      // If the layer is in error, abort the waiting
-      if (this.getLayerStatus() === 'error') {
-        // The layer is in error, throw error
-        throw new LayerStatusErrorError(this.getGeoviewLayerId(), this.getLayerName());
-      }
+  waitForLoadedOnce(): Promise<void> {
+    // Sync check: already loaded once
+    if (this.loadedOnce) return Promise.resolve();
 
-      // If the layer was first loaded
-      return this.loadedOnce;
-    }, timeout);
+    // Sync check: already in error
+    if (this.getLayerStatus() === 'error') {
+      return Promise.reject(new LayerStatusErrorError(this.getGeoviewLayerId(), this.getLayerName()));
+    }
+
+    // Subscribe to first-loaded and error events; the first to fire settles the promise.
+    // GV The handlers cross-reference each other to cross-unsubscribe, so they must be forward-declared.
+    return new Promise<void>((resolve, reject) => {
+      const loadedHandler: LayerBaseDelegate = (): void => {
+        this.offLayerFirstLoaded(loadedHandler);
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        this.offLayerError(errorHandler);
+        resolve();
+      };
+
+      const errorHandler: LayerErrorDelegate = (): void => {
+        this.offLayerFirstLoaded(loadedHandler);
+        this.offLayerError(errorHandler);
+        reject(new LayerStatusErrorError(this.getGeoviewLayerId(), this.getLayerName()));
+      };
+
+      // Hook on the first loaded and error events to resolve the promise in question
+      this.onLayerFirstLoaded(loadedHandler);
+      this.onLayerError(errorHandler);
+    });
   }
 
   /**
    * Utility function allowing to wait for the layer status to become `loaded`.
    *
-   * @param timeout - A timeout for the period to wait for. Defaults to 30,000 ms
-   * @returns A promise that resolves when the layer status is `loaded`
+   * Sync-checks first, then subscribes to the layer-loaded and layer-error events. Resolves
+   * when the layer reaches the `loaded` state; rejects when the layer enters the `error` state first.
+   *
+   * @returns A promise that resolves once the layer status is `loaded`
    * @throws {LayerStatusErrorError} When the layer enters the `error` state before reaching `loaded`
    */
-  waitLoadedStatus(timeout = 30000): Promise<boolean> {
-    // Create a promise and wait until the layer is first loaded
-    return whenThisThen(() => {
-      // If the layer is in error, abort the waiting
-      if (this.getLayerStatus() === 'error') {
-        // The layer is in error, throw error
-        throw new LayerStatusErrorError(this.getGeoviewLayerId(), this.getLayerName());
-      }
+  waitForLoadedStatus(): Promise<void> {
+    // Sync check: already loaded
+    if (this.getLayerStatus() === 'loaded') return Promise.resolve();
 
-      // If the layer status is loaded
-      return this.getLayerStatus() === 'loaded';
-    }, timeout);
+    // Sync check: already in error
+    if (this.getLayerStatus() === 'error') {
+      return Promise.reject(new LayerStatusErrorError(this.getGeoviewLayerId(), this.getLayerName()));
+    }
+
+    // Subscribe to loaded and error events; the first to fire settles the promise.
+    // GV The handlers cross-reference each other to cross-unsubscribe, so they must be forward-declared.
+    return new Promise<void>((resolve, reject) => {
+      const loadedHandler: LayerBaseDelegate = (): void => {
+        this.offLayerLoaded(loadedHandler);
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        this.offLayerError(errorHandler);
+        resolve();
+      };
+
+      const errorHandler: LayerErrorDelegate = (): void => {
+        this.offLayerLoaded(loadedHandler);
+        this.offLayerError(errorHandler);
+        reject(new LayerStatusErrorError(this.getGeoviewLayerId(), this.getLayerName()));
+      };
+
+      // Hook on the loaded and error events to resolve the promise in question
+      this.onLayerLoaded(loadedHandler);
+      this.onLayerError(errorHandler);
+    });
   }
 
   /**
-   * Utility function allowing to wait for the layer legend to be fetched.
+   * Utility function allowing to wait for the layer legend to be queried.
    *
-   * @param timeout - A timeout for the period to wait for. Defaults to 30,000 ms
-   * @returns A promise that resolves when the layer legend has been fetched
-   * @throws {LayerStatusErrorError} When the layer enters the `error` state before the legend is fetched
-   */
-  waitLegendFetched(timeout = 30000): Promise<TypeLegend> {
-    // Create a promise and wait until the layer is first loaded
-    return whenThisThen(() => {
-      // If the layer is in error, abort the waiting
-      if (this.getLayerStatus() === 'error') {
-        // The layer is in error, throw error
-        throw new LayerStatusErrorError(this.getGeoviewLayerId(), this.getLayerName());
-      }
-
-      // If the layer was first loaded
-      return this.getLegend()!;
-    }, timeout);
-  }
-
-  /**
-   * Utility function allowing to wait for the layer style to be applied.
+   * Sync-checks first, then subscribes to the legend-changed and layer-error events. Resolves
+   * when the legend becomes available; rejects when the layer enters the `error` state first.
    *
-   * @param timeout - A timeout for the period to wait for. Defaults to 30,000 ms
-   * @returns A promise that resolves when the layer style has been applied
-   * @throws {LayerStatusErrorError} When the layer enters the `error` state before the style is applied
+   * @returns A promise that resolves once the layer legend has been queried
+   * @throws {LayerStatusErrorError} When the layer enters the `error` state before the legend is queried
    */
-  waitStyleApplied(timeout = 30000): Promise<TypeLayerStyleConfig> {
-    // Create a promise and wait until the layer is first loaded
-    return whenThisThen(() => {
-      // If the layer is in error, abort the waiting
-      if (this.getLayerStatus() === 'error') {
-        // The layer is in error, throw error
-        throw new LayerStatusErrorError(this.getGeoviewLayerId(), this.getLayerName());
-      }
+  waitForLegendQueried(): Promise<void> {
+    // Sync check: legend already queried
+    if (this.getLegend()) return Promise.resolve();
 
-      // If the layer was first loaded
-      return this.getStyle()!;
-    }, timeout);
+    // Sync check: already in error
+    if (this.getLayerStatus() === 'error') {
+      return Promise.reject(new LayerStatusErrorError(this.getGeoviewLayerId(), this.getLayerName()));
+    }
+
+    // Subscribe to legend-changed and layer-error events; the first to fire settles the promise.
+    // GV The handlers cross-reference each other to cross-unsubscribe, so they must be forward-declared.
+    return new Promise<void>((resolve, reject) => {
+      const legendHandler: LegendChangedDelegate = (sender, event): void => {
+        // Only settle if the event payload actually carries a legend; otherwise keep waiting for the next change
+        if (!event.legend) return;
+
+        this.offLegendQueried(legendHandler);
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        this.offLayerError(errorHandler);
+        resolve();
+      };
+
+      const errorHandler: LayerErrorDelegate = (): void => {
+        this.offLegendQueried(legendHandler);
+        this.offLayerError(errorHandler);
+        reject(new LayerStatusErrorError(this.getGeoviewLayerId(), this.getLayerName()));
+      };
+
+      // Hook on the legend-changed and error events to resolve the promise in question
+      this.onLegendQueried(legendHandler);
+      this.onLayerError(errorHandler);
+    });
   }
 
   // #endregion PUBLIC METHODS
@@ -1660,7 +1699,7 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
     this.getOLLayer().changed();
 
     // Emit event
-    this.emitLayerFilterApplied({
+    this.#emitLayerFilterApplied({
       filter: layerFilters,
       filterCategory: filterCategoryChanged,
     });
@@ -1733,11 +1772,53 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
   }
 
   /**
+   * Emits an event to all handlers.
+   *
+   * @param event - The event to emit
+   */
+  #emitLayerStyleChanged(event: StyleChangedEvent): void {
+    // Emit the event for all handlers
+    EventHelper.emitEvent(this, this.#onLayerStyleChangedHandlers, event);
+  }
+
+  /**
+   * Returns a promise that resolves the next time the layer style changed event fires.
+   *
+   * @param filter - Optional filter predicate. When provided, only events passing the filter resolve the promise
+   * @returns A promise that resolves with the style changed event payload
+   */
+  onceLayerStyleChanged(filter?: (event: StyleChangedEvent) => boolean): Promise<StyleChangedEvent> {
+    // Register a one-shot event handler that resolves a promise
+    return EventHelper.onceEventPromise(this.#onLayerStyleChangedHandlers, filter);
+  }
+
+  /**
+   * Registers a layer style changed event handler.
+   *
+   * @param callback - The callback to be executed whenever the event is emitted
+   * @returns The registered callback for potential unregistration
+   */
+  onLayerStyleChanged(callback: StyleChangedDelegate): StyleChangedDelegate {
+    // Register the event handler
+    return EventHelper.onEvent(this.#onLayerStyleChangedHandlers, callback);
+  }
+
+  /**
+   * Unregisters a layer style changed event handler.
+   *
+   * @param callback - The callback to stop being called whenever the event is emitted
+   */
+  offLayerStyleChanged(callback: StyleChangedDelegate | undefined): void {
+    // Unregister the event handler
+    EventHelper.offEvent(this.#onLayerStyleChangedHandlers, callback);
+  }
+
+  /**
    * Emits filter applied event.
    *
    * @param event - The event to emit
    */
-  protected emitLayerFilterApplied(event: LayerFilterAppliedEvent): void {
+  #emitLayerFilterApplied(event: LayerFilterAppliedEvent): void {
     // Emit the event for all handlers
     EventHelper.emitEvent(this, this.#onLayerFilterAppliedHandlers, event);
   }
@@ -1764,42 +1845,22 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
   }
 
   /**
-   * Emits an event to all handlers.
-   *
-   * @param event - The event to emit
-   */
-  #emitLayerStyleChanged(event: StyleChangedEvent): void {
-    // Emit the event for all handlers
-    EventHelper.emitEvent(this, this.#onLayerStyleChangedHandlers, event);
-  }
-
-  /**
-   * Registers a layer style changed event handler.
-   *
-   * @param callback - The callback to be executed whenever the event is emitted
-   * @returns The registered callback for potential unregistration
-   */
-  onLayerStyleChanged(callback: StyleChangedDelegate): StyleChangedDelegate {
-    // Register the event handler
-    return EventHelper.onEvent(this.#onLayerStyleChangedHandlers, callback);
-  }
-
-  /**
-   * Unregisters a layer style changed event handler.
-   *
-   * @param callback - The callback to stop being called whenever the event is emitted
-   */
-  offLayerStyleChanged(callback: StyleChangedDelegate | undefined): void {
-    // Unregister the event handler
-    EventHelper.offEvent(this.#onLayerStyleChangedHandlers, callback);
-  }
-
-  /**
    * Emits an event to all handlers when a layer have been first loaded on the map.
    */
   #emitLayerFirstLoaded(): void {
     // Emit the event for all handlers
     EventHelper.emitEvent(this, this.#onLayerFirstLoadedHandlers, {});
+  }
+
+  /**
+   * Returns a promise that resolves the next time the layer first loaded event fires.
+   *
+   * @param filter - Optional filter predicate. When provided, only events passing the filter resolve the promise
+   * @returns A promise that resolves with the layer base event payload
+   */
+  onceLayerFirstLoaded(filter?: (event: LayerBaseEvent) => boolean): Promise<LayerBaseEvent> {
+    // Register a one-shot event handler that resolves a promise
+    return EventHelper.onceEventPromise(this.#onLayerFirstLoadedHandlers, filter);
   }
 
   /**
@@ -1889,6 +1950,17 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
   #emitLayerError(event: LayerErrorEvent): void {
     // Emit the event for all handlers
     EventHelper.emitEvent(this, this.#onLayerErrorHandlers, event);
+  }
+
+  /**
+   * Returns a promise that resolves the next time the layer error event fires.
+   *
+   * @param filter - Optional filter predicate. When provided, only events passing the filter resolve the promise
+   * @returns A promise that resolves with the layer error event payload
+   */
+  onceLayerError(filter?: (event: LayerErrorEvent) => boolean): Promise<LayerErrorEvent> {
+    // Register a one-shot event handler that resolves a promise
+    return EventHelper.onceEventPromise(this.#onLayerErrorHandlers, filter);
   }
 
   /**
@@ -2499,6 +2571,15 @@ export interface LegendQueriedEvent extends LayerBaseEvent {
 
 /** Delegate for the {@link LegendQueriedEvent} handler. */
 export type LegendQueriedDelegate = EventDelegateBase<AbstractGVLayer, LegendQueriedEvent, void>;
+
+/** Event payload emitted when the layer legend changes. */
+export interface LegendChangedEvent extends LayerBaseEvent {
+  /** The new legend assigned to the layer. */
+  legend: TypeLegend;
+}
+
+/** Delegate for the {@link LegendChangedEvent} handler. */
+export type LegendChangedDelegate = EventDelegateBase<AbstractGVLayer, LegendChangedEvent, void>;
 
 /** Event payload emitted when a layer filter is applied. */
 export interface LayerFilterAppliedEvent extends LayerBaseEvent {

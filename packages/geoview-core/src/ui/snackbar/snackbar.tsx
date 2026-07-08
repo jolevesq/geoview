@@ -30,6 +30,7 @@ interface SnackBarProps {
 const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref): JSX.Element => {
   return <MaterialAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
+Alert.displayName = 'Alert';
 
 /**
  * Material-UI Snackbar component for displaying app/map notification messages.

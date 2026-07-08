@@ -1,4 +1,6 @@
 ﻿import type { QueryType, TypeFeatureInfoResult } from '@/api/types/map-schema-types';
+import type { EventDelegateBase } from '@/api/events/event-helper';
+import EventHelper from '@/api/events/event-helper';
 import { GVWMS } from '@/geo/layer/gv-layers/raster/gv-wms';
 import { GVEsriImage } from '@/geo/layer/gv-layers/raster/gv-esri-image';
 import type { AbstractBaseGVLayer } from '@/geo/layer/gv-layers/abstract-base-layer';
@@ -7,6 +9,7 @@ import {
   deleteStoreDataTableFeatureAllInfo,
   setStoreDataTableQueryStatusAndFeatures,
   setStoreDataTableInitialSettings,
+  getStoreDataTableQueryStatus,
 } from '@/core/stores/states/data-table-state';
 import { RequestAbortedError } from '@/core/exceptions/core-exceptions';
 import { logger } from '@/core/utils/logger';
@@ -22,6 +25,9 @@ export class AllFeatureInfoLayerSet extends AbstractLayerSet {
 
   /** The abort controllers per layer path */
   #abortControllers: { [layerPath: string]: AbortController } = {};
+
+  /** Callback delegates for the layer queried event */
+  #onLayerQueriedHandlers: LayerQueriedDelegate[] = [];
 
   // #region OVERRIDES
 
@@ -132,8 +138,12 @@ export class AllFeatureInfoLayerSet extends AbstractLayerSet {
 
       // Only propagate to the store if this query has not been superseded by a newer one
       if (!signal.aborted && this.getRegisteredLayerPaths().includes(layerPath)) {
+        // Update the store
         setStoreDataTableQueryStatusAndFeatures(this.getMapId(), layerPath, 'processed', arrayOfRecords);
       }
+
+      // Emit the layer queried event
+      this.#emitLayerQueried({ layerPath, result: promiseResult });
 
       // Return the result with aligned records
       return promiseResult;
@@ -170,5 +180,86 @@ export class AllFeatureInfoLayerSet extends AbstractLayerSet {
     setStoreDataTableQueryStatusAndFeatures(this.getMapId(), layerPath, 'init', undefined);
   }
 
+  /**
+   * Waits for the query associated with a specific layer path to finish processing.
+   *
+   * This method returns a promise that resolves when the query status for the given `layerPath` in the store is 'processed'.
+   *
+   * @param layerPath - The unique path identifying the layer to check
+   * @returns A promise that resolves when the query status is 'processed'
+   */
+  waitForLayerQueryToFinish(layerPath: string): Promise<void> {
+    // First, check synchronously — the query may have ALREADY finished
+    if (getStoreDataTableQueryStatus(this.getMapId(), layerPath) === 'processed') return Promise.resolve();
+
+    // Otherwise, wait for the specific layer path to be queried
+    return this.onceLayerQueried((event) => event.layerPath === layerPath).then(() => {});
+  }
+
   // #endregion PUBLIC METHODS
+
+  // #region EVENTS
+
+  /**
+   * Emits a layer queried event to all handlers.
+   *
+   * @param event - The event to emit
+   */
+  #emitLayerQueried(event: LayerQueriedEvent): void {
+    // Emit the event for all handlers
+    EventHelper.emitEvent(this, this.#onLayerQueriedHandlers, event);
+  }
+
+  /**
+   * Returns a promise that resolves the next time the layer queried event fires.
+   *
+   * @param filter - Optional filter predicate. When provided, only events passing the filter resolve the promise
+   * @returns A promise that resolves with the event payload when layer queried fires (and passes the filter)
+   */
+  onceLayerQueried(filter?: (event: LayerQueriedEvent) => boolean): Promise<LayerQueriedEvent> {
+    // Register a one-shot event handler that resolves a promise
+    return EventHelper.onceEventPromise(this.#onLayerQueriedHandlers, filter);
+  }
+
+  /**
+   * Registers a layer queried event handler.
+   *
+   * @param callback - The callback to be executed whenever the event is emitted
+   */
+  onLayerQueried(callback: LayerQueriedDelegate): void {
+    // Register the event handler
+    EventHelper.onEvent(this.#onLayerQueriedHandlers, callback);
+  }
+
+  /**
+   * Unregisters a layer queried event handler.
+   *
+   * @param callback - The callback to stop being called whenever the event is emitted
+   */
+  offLayerQueried(callback: LayerQueriedDelegate): void {
+    // Unregister the event handler
+    EventHelper.offEvent(this.#onLayerQueriedHandlers, callback);
+  }
+
+  // #endregion EVENTS
 }
+
+// #region EVENTS & DELEGATES
+
+/**
+ * Define an event for the delegate
+ */
+export interface LayerQueriedEvent {
+  /** The layer path that was queried. */
+  layerPath: string;
+
+  /** The result of the query. */
+  result: TypeFeatureInfoResult;
+}
+
+/**
+ * Define a delegate for the event handler function signature
+ */
+export type LayerQueriedDelegate = EventDelegateBase<AllFeatureInfoLayerSet, LayerQueriedEvent, void>;
+
+// #endregion EVENTS & DELEGATES

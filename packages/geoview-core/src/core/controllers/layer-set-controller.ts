@@ -20,7 +20,6 @@ import {
   setStoreLegendLayersDirectly,
 } from '@/core/stores/states/layer-state';
 import { logger } from '@/core/utils/logger';
-import { whenThisThen } from '@/core/utils/utilities';
 import { LayerNoLastQueryToPerformError } from '@/core/exceptions/geoview-exceptions';
 import { AllFeatureInfoLayerSet } from '@/geo/layer/layer-sets/all-feature-info-layer-set';
 import { HoverFeatureInfoLayerSet } from '@/geo/layer/layer-sets/hover-feature-info-layer-set';
@@ -138,7 +137,7 @@ export class LayerSetController extends AbstractMapViewerController {
     // If the layer isn't in the domain yet, give it a chance to get registered
     if (waitForLayer) {
       // Wait for the layer to be available, this can happen if the trigger is called too soon (or between the layer config registration and the actual layer registration)
-      await whenThisThen(() => this.allFeatureInfoLayerSet.getRegisteredLayerPaths().includes(layerPath));
+      await this.allFeatureInfoLayerSet.waitForLayerToGetRegistered(layerPath);
     }
 
     // Query the registered layer
@@ -388,15 +387,16 @@ export class LayerSetController extends AbstractMapViewerController {
     // Get the layer name
     const layerName = LayerSetController.#getLayerName(layer, layerConfig);
 
+    const opacity = layerConfig.getInitialSettings()?.states?.opacity ?? 1; // default: 1
+    const legendCollapsed = layerConfig.getInitialSettings()?.states?.legendCollapsed ?? false; // default: false
+    const visible = layerConfig.getInitialSettings()?.states?.visible ?? true; // default: true
+
     if (entryIndex === -1) {
       // Get if the layer is a child, use the gv layer if we can or use the layerConfig.getParent
       const isChild = LayerSetController.#isLegendLayerChild(layerConfig, layer);
 
       // Build the controls
       const controls: TypeLayerControls = this.#buildLegendLayerControls(layerConfig, isChild);
-
-      const opacity = layerConfig.getInitialSettings()?.states?.opacity ?? 1; // default: 1
-      const legendCollapsed = layerConfig.getInitialSettings()?.states?.legendCollapsed ?? false; // default: false
 
       const legendLayerEntry: TypeLegendLayer = {
         controls,
@@ -410,7 +410,7 @@ export class LayerSetController extends AbstractMapViewerController {
         entryType: 'group',
         canToggle: true,
         opacity,
-        visible: true,
+        visible,
         inVisibleRange: true,
         legendCollapsed,
         icons: [] as TypeLegendLayerItem[],
@@ -428,6 +428,10 @@ export class LayerSetController extends AbstractMapViewerController {
     // TODO: REFACTOR - propagateLegendToStore - this should be refactored so that the entry type is not 'magically' updated in this function
     // eslint-disable-next-line no-param-reassign
     existingEntries[entryIndex].entryType = 'group';
+
+    // eslint-disable-next-line no-param-reassign
+    existingEntries[entryIndex].visible = visible;
+
     return entryIndex;
   }
 
@@ -639,10 +643,10 @@ export class LayerSetController extends AbstractMapViewerController {
    * @param event - The map single click event containing the click coordinates
    */
   #handleMapClicked(sender: MapViewer, event: MapSingleClickEvent): void {
-    // Perform a query at the clicked lonlat
-    this.queryAtLonLat(event.lonlat).catch((error: unknown) => {
+    // Redirect to controller
+    this.performMapClickAction(event).catch((error: unknown) => {
       // Log
-      logger.logPromiseFailed('performQueryAtLonLat in #handleMapClicked in LayerSetController', error);
+      logger.logPromiseFailed('performMapClickAction in handleMapClicked', error);
     });
   }
 
@@ -667,7 +671,7 @@ export class LayerSetController extends AbstractMapViewerController {
     // Query
     this.hoverFeatureInfoLayerSet.queryLayers(event.pixel).catch((error: unknown) => {
       // Log
-      logger.logPromiseFailed('queryLayers in onMapPointerStop in HoverFeatureInfoLayerSet', error);
+      logger.logPromiseFailed('queryLayers in handleMapPointerStopped', error);
     });
   }
 

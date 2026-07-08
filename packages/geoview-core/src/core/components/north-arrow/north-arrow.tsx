@@ -20,12 +20,12 @@ import { useMapController } from '@/core/controllers/use-controllers';
  *
  * @returns The north arrow component
  */
-export const NorthArrow = memo(function NorthArrow(): JSX.Element {
+export const NorthArrow = memo((): JSX.Element => {
   logger.logTraceRender('components/north-arrow/north-arrow');
 
   // Hooks
   const theme = useTheme();
-  const memoSxClasses = useMemo(() => {
+  const memoSxClasses = useMemo((): ReturnType<typeof getSxClasses> => {
     logger.logTraceUseMemo('NORTH-ARROW - memoSxClasses', theme);
     return getSxClasses(theme);
   }, [theme]);
@@ -57,7 +57,7 @@ export const NorthArrow = memo(function NorthArrow(): JSX.Element {
           duration: theme.transitions.duration.standard,
           easing: theme.transitions.easing.easeOut,
         }),
-        transform: `rotate(${rotationAngle.angle}deg)`,
+        transform: `rotate(${rotationAngle}deg)`,
         visibility: northArrowElement.isNorthVisible ? 'hidden' : 'visible',
         left: northOffset,
       }}
@@ -66,6 +66,7 @@ export const NorthArrow = memo(function NorthArrow(): JSX.Element {
     </Box>
   );
 });
+NorthArrow.displayName = 'NorthArrow';
 
 /**
  * Creates a north pole flag marker icon.
@@ -74,7 +75,9 @@ export const NorthArrow = memo(function NorthArrow(): JSX.Element {
  *
  * @returns The north pole marker component
  */
-export const NorthPoleFlag = memo(function NorthPoleFlag(): JSX.Element {
+export const NorthPoleFlag = memo((): JSX.Element => {
+  logger.logTraceRender('components/north-arrow/north-arrow > NorthPoleFlag');
+
   // State
   const northPoleRef = useRef<HTMLDivElement | null>(null);
 
@@ -98,3 +101,4 @@ export const NorthPoleFlag = memo(function NorthPoleFlag(): JSX.Element {
     </Box>
   );
 });
+NorthPoleFlag.displayName = 'NorthPoleFlag';

@@ -1,6 +1,5 @@
 import { Test } from '../core/test';
 import { GVAbstractTester } from './abstract-gv-tester';
-import { whenThisThen } from 'geoview-core/core/utils/utilities';
 import { getStoreSwiperLayerPaths, getStoreSwiperOrientation } from 'geoview-core/core/stores/states/swiper-state';
 
 /**
@@ -35,13 +34,17 @@ export class SwiperTester extends GVAbstractTester {
       'Test Swiper lifecycle: activate, deactivate, multi-layer, orientation, deactivate all...',
       async (test) => {
         // Step 1: Wait for layers to be registered (not necessarily fully loaded)
-        test.addStep('Waiting for layers to be registered on the map...');
-        // prettier-ignore
-        await whenThisThen(() => !!this.getControllersRegistry().layerController.getGeoviewLayerRegularIfExists(SwiperTester.SWIPER_WMS_LAYER_PATH), GVAbstractTester.LAYER_REGISTRATION_TIMEOUT_MS);
-        // prettier-ignore
-        await whenThisThen(() => !!this.getControllersRegistry().layerController.getGeoviewLayerRegularIfExists(SwiperTester.SWIPER_GEOJSON_LAYER_PATH), GVAbstractTester.LAYER_REGISTRATION_TIMEOUT_MS);
-        // prettier-ignore
-        await whenThisThen(() => !!this.getControllersRegistry().layerController.getGeoviewLayerRegularIfExists(SwiperTester.SWIPER_OGC_FEATURE_LAYER_PATH), GVAbstractTester.LAYER_REGISTRATION_TIMEOUT_MS);
+        test.addStep('Waiting for layer configs to be registered on the map...');
+        const promiseWMS = this.getControllersRegistry().layerSetController.legendsLayerSet.waitForLayerConfigToGetRegistered(
+          SwiperTester.SWIPER_WMS_LAYER_PATH
+        );
+        const promiseGeoJSON = this.getControllersRegistry().layerSetController.legendsLayerSet.waitForLayerConfigToGetRegistered(
+          SwiperTester.SWIPER_GEOJSON_LAYER_PATH
+        );
+        const promiseOgcFeature = this.getControllersRegistry().layerSetController.legendsLayerSet.waitForLayerConfigToGetRegistered(
+          SwiperTester.SWIPER_OGC_FEATURE_LAYER_PATH
+        );
+        await Promise.all([promiseWMS, promiseGeoJSON, promiseOgcFeature]);
 
         // Step 2: Verify swiper starts with no active layers (config has empty layers array)
         test.addStep('Verifying swiper starts with no active layers...');

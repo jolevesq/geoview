@@ -9,6 +9,7 @@ import type { FitOptions, ViewOptions } from 'ol/View';
 import View from 'ol/View';
 import type { Coordinate } from 'ol/coordinate';
 import type { Extent } from 'ol/extent';
+import type { Type as OLGeomType } from 'ol/geom/Geometry';
 import type { Projection as OLProjection } from 'ol/proj';
 import type { Condition } from 'ol/events/condition';
 import { shared as iconImageCache } from 'ol/style/IconImageCache';
@@ -24,10 +25,10 @@ import type {
   TypeValidMapProjectionCodes,
   TypeDisplayLanguage,
   TypeDisplayTheme,
-  TypeMapViewSettings,
   TypeStyleGeometry,
   TypeMapMouseInfo,
   TypeMapState,
+  TypeMapViewSettings,
 } from '@/api/types/map-schema-types';
 import {
   MAP_CENTER,
@@ -39,19 +40,25 @@ import {
   MAP_ZOOM_LEVEL,
   MAX_EXTENTS_RESTRICTION_LONLAT,
 } from '@/api/types/map-schema-types';
-import type { EffectiveLayerScales, TypeLayerStatus, TypeLegend } from '@/api/types/layer-schema-types';
+import type { EffectiveLayerScales, TypeLegend } from '@/api/types/layer-schema-types';
 
-import { BasemapApi } from '@/geo/layer/basemap/basemap';
+import { BasemapApi, type BasemapErrorEvent } from '@/geo/layer/basemap/basemap';
 import { LayerApi } from '@/geo/layer/layer';
 import type { TypeFeatureStyle } from '@/geo/layer/geometry/geometry-types';
 import { Projection } from '@/geo/utils/projection';
 
-import { ControllerRegistry } from '@/core/controllers/base/controller-registry';
+import type { ConfigBaseClass } from '@/api/config/validation-classes/config-base-class';
 import { Plugin } from '@/api/plugin/plugin';
+import type { PluginsContainer } from '@/api/plugin/plugin-types';
+import type { AbstractPlugin } from '@/api/plugin/abstract-plugin';
+import { UIDomain } from '@/core/domains/ui-domain';
+import { LayerDomain } from '@/core/domains/layer-domain';
 import { AppBarApi } from '@/core/components/app-bar/app-bar-api';
 import { NavBarApi } from '@/core/components/nav-bar/nav-bar-api';
 import { FooterBarApi } from '@/core/components/footer-bar/footer-bar-api';
 import { StateApi } from '@/core/stores/state-api';
+import { ControllerRegistry } from '@/core/controllers/base/controller-registry';
+import { Fetch } from '@/core/utils/fetch-helper';
 
 import { Select } from '@/geo/interaction/select';
 import { Draw } from '@/geo/interaction/draw';
@@ -64,45 +71,26 @@ import { Transform } from '@/geo/interaction/transform/transform';
 import type { EventDelegateBase } from '@/api/events/event-helper';
 import EventHelper from '@/api/events/event-helper';
 import { ModalApi } from '@/ui';
-import { delay, generateId, getLocalizedMessage, whenThisThen } from '@/core/utils/utilities';
+import { delay, generateId, getLocalizedMessage } from '@/core/utils/utilities';
 import { debounce } from '@/core/utils/debounce';
 import type { TimeIANA } from '@/core/utils/date-mgt';
 import { logger } from '@/core/utils/logger';
-import { NORTH_POLE_POSITION_LONLAT } from '@/core/utils/constant';
+import { DEFAULT_OL_FITOPTIONS, NORTH_POLE_POSITION_LONLAT, OL_ZOOM_DURATION } from '@/core/utils/constant';
 import type { TypeMapFeaturesConfig, TypeHTMLElement } from '@/core/types/global-types';
 import type { TypeClickMarker } from '@/core/components/click-marker/click-marker';
+import { InvalidExtentError } from '@/core/exceptions/geoview-exceptions';
 import { Notifications } from '@/core/utils/notifications';
 import {
   getStoreMapCurrentBasemapOptionsOrInitial,
   getStoreMapConfigViewSettings,
-  getStoreMapGeolocatorSearchArea,
-  getStoreMapInteraction,
   getStoreMapStateJson,
-  setStoreMapLoaded,
-  setStoreMapClickMarker,
-  setStoreMapZoom,
-  setStoreMapHomeButtonView,
-  setStoreMapDisplayed,
-  setStoreMapPointerPosition,
-  setStoreMapIsMouseInsideMap,
-  setStoreMapRotation,
-  setStoreMapScale,
-  setStoreMapMoveEnd,
-  setStoreMapInteraction,
   type TypeScaleInfo,
 } from '@/core/stores/states/map-state';
-import { getStoreAppDisplayTheme } from '@/core/stores/states/app-state';
-import { getStoreLayerOrderedLayerPaths } from '@/core/stores/states/layer-state';
-import { TIME_DELAY_BETWEEN_PROPAGATION_FOR_BATCH } from '@/core/stores/states/feature-info-state';
+import { TIME_DELAY_BETWEEN_PROPAGATION_FOR_BATCH, type TypeFeatureInfoResultSet } from '@/core/stores/states/feature-info-state';
 import { GeoUtilities } from '@/geo/utils/utilities';
-import { Fetch } from '@/core/utils/fetch-helper';
-import type { PluginsContainer } from '@/api/plugin/plugin-types';
-import type { AbstractPlugin } from '@/api/plugin/abstract-plugin';
-import { UIDomain } from '@/core/domains/ui-domain';
-import { LayerDomain } from '@/core/domains/layer-domain';
+
 import { GeometryApi } from '@/geo/layer/geometry/geometry';
 import { FeatureHighlight } from './feature-highlight';
-import type { ConfigBaseClass } from '@/api/config/validation-classes/config-base-class';
 
 /**
  * Class used to manage created maps.
@@ -110,9 +98,6 @@ import type { ConfigBaseClass } from '@/api/config/validation-classes/config-bas
 export class MapViewer {
   /** Minimum delay (in milliseconds) for map to be in loading state */
   static readonly #MIN_DELAY_LOADING = 2000; // 2 seconds
-
-  /** Maximum delay to wait until the layers get processes/loaded/error state, should be high as other timeouts should expire before this.. */
-  static readonly #MAX_DELAY_TO_WAIT_ON_MAP = 120 * 1000; // 2 minutes
 
   /** Default densification number when forming layer extents, to make ture to compensate for earth curvature */
   static DEFAULT_STOPS = 25;
@@ -236,6 +221,12 @@ export class MapViewer {
   /** Callback delegates for the map pointer move event */
   #onMapPointerMoveHandlers: MapPointerMoveDelegate[] = [];
 
+  /** Callback delegates for the map mouse enter event */
+  #onMapMouseEnterHandlers: MapMouseEnterDelegate[] = [];
+
+  /** Callback delegates for the map mouse leave event */
+  #onMapMouseLeaveHandlers: MapMouseLeaveDelegate[] = [];
+
   /** Callback delegates for the map pointer stop event */
   #onMapPointerStopHandlers: MapPointerMoveDelegate[] = [];
 
@@ -243,13 +234,13 @@ export class MapViewer {
   #onMapSingleClickHandlers: MapSingleClickDelegate[] = [];
 
   /** Callback delegates for the map zoom end event */
-  #onMapZoomEndHandlers: MapZoomEndDelegate[] = [];
+  #onMapResolutionChangedHandlers: MapResolutionChangedDelegate[] = [];
 
   /** Callback delegates for the map rotation event */
   #onMapRotationHandlers: MapRotationDelegate[] = [];
 
   /** Callback delegates for the map change size event */
-  #onMapChangeSizeHandlers: MapChangeSizeDelegate[] = [];
+  #onMapSizeChangedHandlers: MapSizeChangedDelegate[] = [];
 
   /** Callback delegates for the map projection changed event */
   #onMapProjectionChangeStartedHandlers: MapProjectionChangedDelegate[] = [];
@@ -263,8 +254,14 @@ export class MapViewer {
   /** Callback delegates for the map component removed event */
   #onMapComponentRemovedHandlers: MapComponentRemovedDelegate[] = [];
 
+  /** Callback delegates for the interaction changed event */
+  #onMapInteractionChangedHandlers: MapInteractionChangedDelegate[] = [];
+
   /** Callback delegates for the map language changed event */
   #onMapLanguageChangedHandlers: MapLanguageChangedDelegate[] = [];
+
+  /** Callback delegates for the marker icon showed event */
+  #onMarkerIconShowedHandlers: MarkerIconShowedDelegate[] = [];
 
   /** The starting time of the timer for the map ready */
   #checkMapReadyStartTime: number | undefined;
@@ -283,6 +280,9 @@ export class MapViewer {
 
   /** Bounded reference to the debounced handle map single click */
   #boundedHandleMapSingleClickDebounced: (event: MapBrowserEvent) => void;
+
+  /** Bounded reference to the handle basemap error */
+  #boundedHandleBasemapError: (sender: BasemapApi, event: BasemapErrorEvent) => void;
 
   /** Getter for map is init */
   get mapInit(): boolean {
@@ -321,12 +321,17 @@ export class MapViewer {
     this.mapFeaturesConfig = mapFeaturesConfig;
 
     // Initialize the ui domain
-    this.#uiDomain = new UIDomain(i18instance, mapFeaturesConfig.displayLanguage ?? 'en');
+    this.#uiDomain = new UIDomain(
+      i18instance,
+      mapFeaturesConfig.displayLanguage ?? 'en',
+      mapFeaturesConfig.theme ?? 'geo.ca',
+      mapFeaturesConfig.globalSettings?.displayDateMode ?? 'long',
+      'local'
+    );
     this.#layerDomain = new LayerDomain();
 
     // Initialize the controller registry
     this.controllers = new ControllerRegistry(this, this.#uiDomain, this.#layerDomain);
-    this.controllers.hookControllers();
 
     // The geometry api
     this.geometry = new GeometryApi(this);
@@ -348,11 +353,8 @@ export class MapViewer {
     // Initialize layer api
     this.layer = new LayerApi(this.controllers, this.#layerDomain, this.geometry, this.featureHighlight);
 
-    // Register handler when basemap has error
-    this.basemap.onBasemapError((sender, event) => {
-      // Show the error using the GeoViewError messageKey and params
-      this.notifications.showError(event.error.messageKey, event.error.messageParams);
-    });
+    // Bind hooks
+    this.#boundedHandleBasemapError = this.#handleBasemapError.bind(this);
 
     // Mouse bounded handle references
     this.#boundedHandleMapPointerMove = this.#handleMapPointerMove.bind(this);
@@ -360,6 +362,9 @@ export class MapViewer {
     this.#boundedHandleMapSingleClick = this.#handleMapSingleClick.bind(this);
     this.#boundedHandleMapPointerStoppedDebounced = debounce(this.#boundedHandleMapPointerStopped, 750, { leading: false });
     this.#boundedHandleMapSingleClickDebounced = debounce(this.#boundedHandleMapSingleClick, 1000, { leading: true });
+
+    // Register handler when basemap has error
+    this.basemap.onBasemapError(this.#boundedHandleBasemapError);
   }
 
   /**
@@ -407,6 +412,18 @@ export class MapViewer {
     // Set the map
     this.map = initialMap;
 
+    // GV Patch: guard against OpenLayers race condition known issue where redrawText iterates stale layerStatesArray
+    // GV entries with null layers during layer removal or projection changes (font-load event timing).
+    const originalRedrawText = this.map.redrawText.bind(this.map);
+    this.map.redrawText = (): void => {
+      try {
+        originalRedrawText();
+      } catch (e) {
+        // Suppress stale frameState race condition during layer removal
+        logger.logDebug('Suppressed OL redrawText race condition', e);
+      }
+    };
+
     // GV Register a handler when the map will postrender before pursuing map initialization
     // That means:
     //   - The map has been sized based on the container div
@@ -438,7 +455,7 @@ export class MapViewer {
     this.#checkMapReadyStartTime = Date.now();
 
     // Load the Map itself and the UI controls
-    await this.initMapControls();
+    this.initMapControls();
 
     // Load the core packages plugins
     await this.#loadCorePackages();
@@ -477,7 +494,7 @@ export class MapViewer {
   /**
    * Initializes the map controls
    */
-  async initMapControls(): Promise<void> {
+  initMapControls(): void {
     // Log
     logger.logTraceCore('MAP VIEWER - initMapControls', this.mapId);
 
@@ -529,21 +546,6 @@ export class MapViewer {
       stopEvent: false,
     });
     map.addOverlay(this.#clickMarkerOverlay);
-
-    // Get the size
-    const size = await this.getMapSize();
-
-    // Set map size
-    this.controllers.mapController.setMapSize(size);
-
-    // Get the scale information
-    const scale = MapViewer.getScaleInfoFromDomElement(mapId);
-
-    // Save to the store
-    setStoreMapScale(mapId, scale);
-
-    // Set interaction (enable/disables map controls) and save value to the store
-    this.setInteraction(getStoreMapInteraction(mapId));
   }
 
   /**
@@ -579,18 +581,6 @@ export class MapViewer {
   }
 
   /**
-   * Asynchronously attempts to get a plugin by its id.
-   *
-   * @param pluginId - The plugin id
-   * @returns A promise that resolves with the plugin
-   */
-  getPluginAsync(pluginId: string): Promise<AbstractPlugin> {
-    return whenThisThen(() => {
-      return this.plugins[pluginId];
-    });
-  }
-
-  /**
    * Retrieves the configuration object for a specific core plugin from the map's features configuration.
    *
    * @param pluginId - The ID of the core plugin to look up
@@ -620,12 +610,54 @@ export class MapViewer {
   }
 
   /**
+   * Set the display language of the map.
+   *
+   * @param displayLanguage - The language to use (en, fr)
+   * @param reloadLayers - Optional flag to ask viewer to reload layers with the new localize language
+   * @returns A promise that resolves when the language change is complete
+   */
+  // TODO: REFACTOR MAPVIEWER - Move this function at the 'application' level, because it has nothing to do with the map itself
+  async setLanguage(displayLanguage: TypeDisplayLanguage, reloadLayers?: boolean | false): Promise<void> {
+    // If the language hasn't changed don't do anything
+    if (this.#uiDomain.getLanguage() === displayLanguage) return;
+
+    if (!VALID_DISPLAY_LANGUAGE.includes(displayLanguage)) {
+      // Unsupported
+      this.notifications.addNotificationError(getLocalizedMessage(displayLanguage, 'validation.changeDisplayLanguage'));
+      return;
+    }
+
+    // Proceed
+    await this.controllers.uiController.setDisplayLanguage(displayLanguage);
+
+    // if flag is true, reload just the GeoCore layers instead of reloading the whole map with current state
+    if (reloadLayers) {
+      this.controllers.layerCreatorController.reloadGeocoreLayers();
+    }
+
+    // Emit language changed event
+    this.#emitMapLanguageChanged({ language: displayLanguage });
+  }
+
+  /**
    * Returns the current display theme.
    *
    * @returns The display theme
    */
   getDisplayTheme(): TypeDisplayTheme {
-    return getStoreAppDisplayTheme(this.mapId);
+    return this.#uiDomain.getDisplayTheme();
+  }
+
+  /**
+   * Set the display theme of the map.
+   *
+   * @param displayTheme - The theme to use (geo.ca, light, dark)
+   */
+  // TODO: REFACTOR MAPVIEWER - Move this function at the 'application' level, because it has nothing to do with the map itself
+  setTheme(displayTheme: TypeDisplayTheme): void {
+    if (VALID_DISPLAY_THEME.includes(displayTheme)) {
+      this.controllers.uiController.setDisplayTheme(displayTheme);
+    } else this.notifications.addNotificationError(getLocalizedMessage(this.getDisplayLanguage(), 'validation.changeDisplayTheme'));
   }
 
   /**
@@ -684,19 +716,6 @@ export class MapViewer {
   }
 
   /**
-   * Asynchronously gets the map center coordinate to give a chance for the map to
-   * render before returning the value.
-   *
-   * @returns A promise that resolves with the map center
-   */
-  getCenter(): Promise<Coordinate> {
-    // When the getCenter() function actually returns a coordinate
-    return whenThisThen(() => {
-      return this.getView().getCenter()!;
-    });
-  }
-
-  /**
    * Sets the map center.
    *
    * @param center - New center to use
@@ -706,34 +725,6 @@ export class MapViewer {
     const transformedCenter = Projection.transformFromLonLat(center, currentView.getProjection());
 
     currentView.setCenter(transformedCenter);
-  }
-
-  /**
-   * Asynchronously gets the map size to give a chance for the map to
-   * render before returning the value.
-   *
-   * @returns A promise that resolves with the map size
-   */
-  getMapSize(): Promise<Size> {
-    // When the getSize() function actually returns a coordinate
-    return whenThisThen(() => {
-      return this.map.getSize()!;
-    });
-  }
-
-  /**
-   * Asynchronously gets the map coordinate from pixel to give a chance for the map to
-   * render before returning the value.
-   *
-   * @param pointXY - The pixel coordinate to convert
-   * @param timeoutMs - The maximum time in milliseconds to wait for the getCoordinateFromPixel to return a value
-   * @returns A promise that resolves with the map coordinate at the given pixel location
-   */
-  getCoordinateFromPixel(pointXY: [number, number], timeoutMs: number): Promise<Coordinate> {
-    // When the getCoordinateFromPixel() function actually returns a coordinate
-    return whenThisThen(() => {
-      return this.map.getCoordinateFromPixel(pointXY);
-    }, timeoutMs);
   }
 
   /**
@@ -782,7 +773,7 @@ export class MapViewer {
       const viewSettings = getStoreMapConfigViewSettings(this.mapId);
 
       // Get view status (center and projection) to calculate new center
-      const currentView = this.map.getView();
+      const currentView = this.getView();
       const currentCenter = currentView.getCenter();
       const currentProjectionCode = currentProjection.getCode();
       const centerLatLng = Projection.transformPoints([currentCenter!], currentProjectionCode, Projection.PROJECTION_NAMES.LONLAT)[0] as [
@@ -841,9 +832,12 @@ export class MapViewer {
    * Gets the ordered layer paths.
    *
    * @returns The ordered layer paths
+   * @deprecated This method doesn't seem to be used anymore, remove?
    */
+  // TODO: REFACTOR MAPVIEWER - Move this function to the 'layer api'
   getMapLayerOrderPaths(): string[] {
-    return getStoreLayerOrderedLayerPaths(this.mapId);
+    // Redirect to controller
+    return this.controllers.layerController.getMapLayerOrderPaths();
   }
 
   /**
@@ -860,8 +854,10 @@ export class MapViewer {
    *
    * @returns The geolocator search area with coordinates and optional bounding box, or undefined if not set
    */
+  // TODO: REFACTOR MAPVIEWER - Move this function at the 'application' level, because it has nothing to do with the map itself
   getGeolocatorSearchArea(): { coords: Coordinate; bbox?: Extent } | undefined {
-    return getStoreMapGeolocatorSearchArea(this.mapId);
+    // Redirect to controller
+    return this.controllers.uiController.getMapGeolocatorSearchArea();
   }
 
   /**
@@ -870,6 +866,7 @@ export class MapViewer {
    * @param status - Toggle fullscreen or exit fullscreen status
    * @param element - The element to toggle fullscreen on
    */
+  // TODO: REFACTOR MAPVIEWER - Move this function at the 'application' level, because it has nothing to do with the map itself
   setFullscreen(status: boolean, element: TypeHTMLElement | undefined): void {
     // Redirect to controller
     this.controllers.uiController.setFullScreen(status, element);
@@ -884,44 +881,15 @@ export class MapViewer {
     // Set active the map interactions if necessary
     this.map.getInteractions().forEach((x) => x.setActive(interaction === 'dynamic'));
 
-    // Save to the store
-    setStoreMapInteraction(this.mapId, interaction);
-
     // Register or unregister pointer handlers
     if (interaction === 'static') {
       this.unregisterMapPointerHandlers(this.map);
     } else {
       this.registerMapPointerHandlers(this.map);
     }
-  }
 
-  /**
-   * Set the display language of the map.
-   *
-   * @param displayLanguage - The language to use (en, fr)
-   * @param reloadLayers - Optional flag to ask viewer to reload layers with the new localize language
-   * @returns A promise that resolves when the language change is complete
-   */
-  async setLanguage(displayLanguage: TypeDisplayLanguage, reloadLayers?: boolean | false): Promise<void> {
-    // If the language hasn't changed don't do anything
-    if (this.#uiDomain.getLanguage() === displayLanguage) return;
-
-    if (!VALID_DISPLAY_LANGUAGE.includes(displayLanguage)) {
-      // Unsupported
-      this.notifications.addNotificationError(getLocalizedMessage(displayLanguage, 'validation.changeDisplayLanguage'));
-      return;
-    }
-
-    // Proceed
-    await this.controllers.uiController.setDisplayLanguage(displayLanguage);
-
-    // if flag is true, reload just the GeoCore layers instead of reloading the whole map with current state
-    if (reloadLayers) {
-      this.controllers.layerCreatorController.reloadGeocoreLayers();
-    }
-
-    // Emit language changed event
-    this.#emitMapLanguageChanged({ language: displayLanguage });
+    // Emit about it
+    this.#emitMapInteractionChanged({ interaction });
   }
 
   /**
@@ -934,8 +902,8 @@ export class MapViewer {
    * @throws {InvalidTimezoneError} When the time zone is not a valid or supported IANA identifier
    */
   setDisplayDateTimezone(displayDateTimezone: TimeIANA): void {
-    // Redirect to controller
-    this.controllers.uiController.setDisplayDateTimezone(displayDateTimezone);
+    // Redirect to UI domain
+    this.#uiDomain.setDisplayDateTimezone(displayDateTimezone);
   }
 
   /**
@@ -946,17 +914,6 @@ export class MapViewer {
   rotate(degree: number): void {
     // Rotate the view, the store will get updated via this.#handleMapRotation listener
     this.getView().animate({ rotation: degree });
-  }
-
-  /**
-   * Set the display theme of the map.
-   *
-   * @param displayTheme - The theme to use (geo.ca, light, dark)
-   */
-  setTheme(displayTheme: TypeDisplayTheme): void {
-    if (VALID_DISPLAY_THEME.includes(displayTheme)) {
-      this.controllers.uiController.setDisplayTheme(displayTheme);
-    } else this.notifications.addNotificationError(getLocalizedMessage(this.getDisplayLanguage(), 'validation.changeDisplayTheme'));
   }
 
   /**
@@ -1009,28 +966,61 @@ export class MapViewer {
   }
 
   /**
-   * Set the map zoom level.
+   * Animates the map to the specified zoom level.
    *
-   * @param zoom - New zoom level
+   * The store is updated automatically via the MapViewer move-end event.
+   *
+   * @param zoom - The target zoom level
+   * @param useAnimation - Indicates if a zoom animation should be used, default: true
+   * @param duration - Optional animation duration in ms
+   * @returns A promise that resolves when the zoom animation is complete
+   */
+  zoomMap(zoom: number, useAnimation = true, duration: number = OL_ZOOM_DURATION): Promise<void> {
+    // If using animation
+    if (useAnimation) {
+      // Resolve when OL signals animation completion (immune to background-tab setTimeout throttling)
+      return new Promise<void>((resolve) => {
+        this.getView().animate({ zoom, duration }, () => resolve());
+        // GV No need to Save to the store, because this will trigger an event on MapViewer which will take care of updating the store
+      });
+    }
+
+    // Straight fast zoom
+    this.setMapZoomLevel(zoom);
+    return Promise.resolve();
+  }
+
+  /**
+   * Zoom to specified extent or coordinate provided in lonlat.
+   *
+   * @param extent - The extent or coordinate to zoom to
+   * @param useAnimation - Indicates if a zoom animation should be used, default: true
+   * @param options - Optional options to configure the zoomToExtent (default: { padding: [100, 100, 100, 100], maxZoom: 11 })
    * @returns A promise that resolves when the zoom operation completes
    */
-  setMapZoomLevel(zoom: number): Promise<void> {
-    // If zoom level is already set at this value, just resolve the promise
-    const view = this.getView();
-    const isSameZoom = view.getZoom() === zoom;
-    const belowMin = zoom < view.getMinZoom();
-    const aboveMax = zoom > view.getMaxZoom();
+  zoomToLonLatExtentOrCoordinate(extent: Extent | Coordinate, useAnimation = true, options?: FitOptions): Promise<void> {
+    const fullExtent = extent.length === 2 ? [extent[0], extent[1], extent[0], extent[1]] : extent;
+    const projectedExtent = Projection.transformExtentFromProj(fullExtent, Projection.getProjectionLonLat(), this.getProjection());
+    return this.zoomToExtent(projectedExtent, useAnimation, options);
+  }
 
-    if (isSameZoom || belowMin || aboveMax) return Promise.resolve();
+  /**
+   * Set the map zoom level instantaneously, no animation.
+   *
+   * @param zoom - New zoom level
+   */
+  setMapZoomLevel(zoom: number): void {
+    const view = this.getView();
+    // eslint-disable-next-line no-param-reassign
+    if (zoom < view.getMinZoom()) zoom = view.getMinZoom();
+    // eslint-disable-next-line no-param-reassign
+    if (zoom > view.getMaxZoom()) zoom = view.getMaxZoom();
+
+    // If zoom level is already set at this value, just return
+    if (view.getZoom() === zoom) return;
 
     // Set zoom level
     this.getView().setZoom(zoom);
-
-    return new Promise((resolve) => {
-      this.map.once('rendercomplete', () => {
-        resolve();
-      });
-    });
   }
 
   /**
@@ -1049,41 +1039,6 @@ export class MapViewer {
    */
   setMaxZoomLevel(zoom: number): void {
     this.getView().setMaxZoom(zoom);
-  }
-
-  /**
-   * Set map extent.
-   *
-   * @param extent - New extent to zoom to
-   * @returns A promise that resolves when the zoom operation completes
-   */
-  setExtent(extent: Extent): Promise<void> {
-    return this.controllers.mapController.zoomToExtent(extent);
-  }
-
-  /**
-   * Set the maximum extent of the map.
-   *
-   * @param extent - New extent to use
-   */
-  setMaxExtent(extent: Extent): void {
-    const currentView = this.getView();
-
-    // create new view settings
-    const newView: TypeViewSettings = {
-      initialView: {
-        zoomAndCenter: [
-          currentView.getZoom() as number,
-          this.convertCoordinateLonLatToMapProj(currentView.getCenter()!) as [number, number],
-        ],
-      },
-      minZoom: currentView.getMinZoom(),
-      maxZoom: currentView.getMaxZoom(),
-      maxExtent: Projection.transformExtentFromProj(extent, Projection.getProjectionLonLat(), currentView.getProjection()),
-      projection: currentView.getProjection().getCode().split(':')[1] as unknown as TypeValidMapProjectionCodes,
-    };
-
-    this.setView(newView);
   }
 
   // #endregion
@@ -1116,18 +1071,6 @@ export class MapViewer {
   }
 
   /**
-   * Emits a map single click event.
-   *
-   * NOTE: This Does not update the store, only emit the click.
-   *
-   * @param clickCoordinates - The clicked coordinates to emit
-   */
-  emitMapSingleClick(clickCoordinates: MapSingleClickEvent): void {
-    // Emit the event is done
-    this.#emitMapSingleClick(clickCoordinates);
-  }
-
-  /**
    * Simulate a map click and return promises of store update and ui update.
    *
    * @param lonlat - The lonlat coordinates to simulate
@@ -1146,44 +1089,13 @@ export class MapViewer {
       dragging: false,
     };
 
-    // Update store... this will not emit the event because only when WCAG mode is enable
-    this.controllers.mapController.setClickCoordinates(clickCoordinates);
+    // Perform the map click
+    const promiseQuery = this.controllers.layerSetController.performMapClickAction(clickCoordinates);
 
-    // The resolve of the query
-    let resolveQuery: () => void;
-    const promiseQuery = new Promise<void>((resolve) => {
-      resolveQuery = resolve;
-    });
+    // Wait for the query + UI batch propagation delay + buffer to make sure of Zustand delays
+    const promiseQueryBatched = promiseQuery.then(() => delay(TIME_DELAY_BETWEEN_PROPAGATION_FOR_BATCH + 300));
 
-    // The resolve of the query once batched
-    let resolveQueryBatched: () => void;
-    const promiseQueryBatched = new Promise<void>((resolve) => {
-      resolveQueryBatched = resolve;
-    });
-
-    // Register one-time listener for query completion
-    const handleQueryEnded = (): void => {
-      // Unregister the listener immediately
-      this.controllers.layerSetController.featureInfoLayerSet.offQueryEnded(handleQueryEnded);
-
-      // Resolve the promise about the completion of the query
-      resolveQuery();
-
-      // Wait for UI batch propagation
-      delay(TIME_DELAY_BETWEEN_PROPAGATION_FOR_BATCH)
-        .then(() => {
-          // Now resolve the promise about the completion of the query and batched through the UI
-          resolveQueryBatched();
-        })
-        .catch((error: unknown) => {
-          logger.logPromiseFailed('in delay in simulateMapClick in testDetailsLayerSelectionPersistence', error);
-        });
-    };
-
-    // Register the handler before clicking
-    this.controllers.layerSetController.featureInfoLayerSet.onQueryEnded(handleQueryEnded);
-
-    // Emit the event is done here, not from the processor to avoid circular references
+    // Emit the single click event which triggers the feature info query
     this.#emitMapSingleClick(clickCoordinates);
 
     // Return the simulated map click information
@@ -1207,10 +1119,8 @@ export class MapViewer {
     // Set it on the MapViewer
     this.getClickMarkerOverlay().setPosition(projectedCoords);
 
-    // Save in store
-    // TODO: REFACTOR - This set in the store shouldn't be here, it should be in the controller, but since
-    // TO.DOCONT: this clickMarkerIconShow function is accessed directly by external code, a refactoring needs to be done to adjust that.
-    setStoreMapClickMarker(this.mapId, projectedCoords);
+    // Emit the marker icon showed event
+    this.#emitMarkerIconShowed({ projectedCoords });
 
     // Return the projected coordinates
     return projectedCoords;
@@ -1241,6 +1151,9 @@ export class MapViewer {
       logger.logError('Failed to remove layers', error);
     }
 
+    // Unhook the basemap error handler
+    this.basemap.offBasemapError(this.#boundedHandleBasemapError);
+
     // Remove all controls
     this.map.getControls().clear();
 
@@ -1252,48 +1165,70 @@ export class MapViewer {
   }
 
   /**
-   * Zoom to the specified extent.
+   * Zooms to the specified extent.
    *
    * @param extent - The extent to zoom to
-   * @param options - Optional options to configure the zoomToExtent (default: { padding: [100, 100, 100, 100], maxZoom: 11 })
-   * @returns A promise that resolves when the zoom operation completes
+   * @param useAnimation - Indicates if a zoom animation should be used, default: true
+   * @param options - The options to configure the zoomToExtent (default: { padding: [100, 100, 100, 100], maxZoom: 13, duration: 500 })
+   * @returns A promise that resolves when the zoom animation is complete
+   * @throws {InvalidExtentError} When the extent is invalid
    */
-  zoomToExtent(extent: Extent, options?: FitOptions): Promise<void> {
-    // Redirect to the processor
-    return this.controllers.mapController.zoomToExtent(extent, options);
+  zoomToExtent(extent: Extent, useAnimation = true, options: FitOptions = DEFAULT_OL_FITOPTIONS): Promise<void> {
+    // Merge user options with defaults
+    const mergedOptions: FitOptions = { ...DEFAULT_OL_FITOPTIONS, ...options };
+
+    // Validate the extent coordinates - need to make sure we aren't excluding zero with !number or using invalid extents
+    const validatedExtent = GeoUtilities.validateExtent(extent, this.getProjectionEPSG());
+    if (
+      validatedExtent.some((number) => {
+        return (!number && number !== 0) || Number.isNaN(number);
+      })
+    ) {
+      // Invalid extent
+      this.notifications.showWarning('error.map.invalidZoomExtent');
+      throw new InvalidExtentError(extent);
+    }
+
+    // If not using animation
+    const userCallback = mergedOptions.callback;
+    if (!useAnimation) {
+      mergedOptions.duration = 0;
+    }
+
+    // Perform the fit operation and call the userCallback and resolve the promise upon fit callback
+    return new Promise<void>((resolve) => {
+      // Use the validated (clamped) extent so out-of-bounds coordinates are accepted after clamping
+      this.getView().fit(validatedExtent, {
+        ...mergedOptions,
+        callback: (complete) => {
+          userCallback?.(complete);
+          resolve();
+        },
+      });
+    });
   }
 
   /**
-   * Zoom to the initial extent defined in the map configuration.
+   * Sets the home button view settings for the map.
    *
-   * @returns A promise that resolves when the zoom operation completes
+   * @param view - The view settings to set for the home button
    */
-  zoomToInitialExtent(): Promise<void> {
-    // Redirect to the processor
-    return this.controllers.mapController.zoomToInitialExtent();
-  }
-
-  /**
-   * Update nav bar home button view settings.
-   *
-   * @param view - The new view settings
-   */
+  // TODO: REFACTOR MAPVIEWER - Move this function at the 'application' level, because it has nothing to do with the map itself (more applicative) (or if so, keep the home view settings at the domain level instead of coupling to store via controller here)
   setHomeButtonView(view: TypeMapViewSettings): void {
-    // Save to the store
-    setStoreMapHomeButtonView(this.mapId, view);
+    // Redirect to controller
+    this.controllers.mapController.setHomeButtonView(view);
   }
 
   /**
-   * Zoom to specified extent or coordinate provided in lonlat.
+   * Returns to initial view state of the map using config.
    *
-   * @param extent - The extent or coordinate to zoom to
-   * @param options - Optional options to configure the zoomToExtent (default: { padding: [100, 100, 100, 100], maxZoom: 11 })
-   * @returns A promise that resolves when the zoom operation completes
+   * @param useAnimation - Indicates if a zoom animation should be used, default: true
+   * @returns A promise that resolves when the zoom animation is complete
    */
-  zoomToLonLatExtentOrCoordinate(extent: Extent | Coordinate, options?: FitOptions): Promise<void> {
-    const fullExtent = extent.length === 2 ? [extent[0], extent[1], extent[0], extent[1]] : extent;
-    const projectedExtent = Projection.transformExtentFromProj(fullExtent, Projection.getProjectionLonLat(), this.getProjection());
-    return this.controllers.mapController.zoomToExtent(projectedExtent, options);
+  // TODO: REFACTOR MAPVIEWER - Move this function at the 'application' level, because it has nothing to do with the map itself (more applicative)
+  zoomToInitialExtent(useAnimation = true): Promise<void> {
+    // Redirect to controller
+    return this.controllers.mapController.zoomToInitialExtent(useAnimation);
   }
 
   /**
@@ -1330,77 +1265,44 @@ export class MapViewer {
    *
    * @returns A promise that resolves when the map is ready
    */
-  waitForMapReady(): Promise<void> {
+  waitForMapReady(): Promise<MapBaseEvent> {
     // If already ready
-    if (this.#mapReady) return Promise.resolve();
+    if (this.#mapReady) return Promise.resolve({});
 
     // Wait for onMapReady to be triggered
-    return new Promise((resolve) => {
-      this.onMapReady(() => resolve());
-    });
+    return this.onceMapReady();
   }
 
   /**
-   * Waits until all GeoView layers reach the specified status before resolving the promise.
+   * Waits for the next map move-end event to be emitted.
    *
-   * This function repeatedly checks whether all layers have reached the given layerStatus.
-   *
-   * @param layerStatus - The desired status to wait for (e.g., 'loaded', 'processed')
-   * @returns A promise that resolves with the number of layers that have reached the specified status
+   * @returns A promise that resolves when the map move-end event fires
    */
-  async waitAllLayersStatus(layerStatus: TypeLayerStatus): Promise<number> {
-    // Log
-    logger.logInfo(`Waiting on layers to become ${layerStatus}`);
+  waitForMoveEnd(): Promise<MapMoveEndEvent> {
+    // Get the view
+    const view = this.getView();
 
-    // Wait for the layers to get the layerStatus required
-    let layersCount = 0;
-    await whenThisThen(
-      () => {
-        // Check if all layers have met the status
-        const [allGood, layersCountInside] = this.controllers.layerController.checkLayerStatus(layerStatus, (layerConfig) => {
-          // Log
-          logger.logTraceDetailed(
-            `checkMapReady - waiting on layer to be '${layerStatus}'...`,
-            layerConfig.layerPath,
-            layerConfig.layerStatus
-          );
-        });
+    // If the map is not currently moving, there is nothing to wait for
+    if (!view.getAnimating() && !view.getInteracting()) return Promise.resolve({ lonlat: this.getView().getCenter()! });
 
-        // Update the count
-        layersCount = layersCountInside;
-
-        // Return if all good
-        return allGood;
-      },
-      MapViewer.#MAX_DELAY_TO_WAIT_ON_MAP,
-      250
-    );
-
-    // Return the number of layers meeting the status
-    return layersCount;
+    // Return a promise that resolves when the map move-end event fires
+    return this.onceMapMoveEnd();
   }
 
   /**
-   * Waits for the map layers loaded event to be emitted.
+   * Waits for the next rendercomplete event to be emitted.
    *
-   * @returns A promise that resolves with the number of layers that have reached the specified status
-   */
-  async waitForLayersLoaded(): Promise<number> {
-    // First, wait for the map to be ready in case it's not ready yet. We need the layer configs to be registered at least!
-    await this.waitForMapReady();
-
-    // Redirect
-    return this.waitAllLayersStatus('loaded');
-  }
-
-  /**
-   * Waits for the rendercomplete event to be triggered.
+   * Forces a synchronous frame via `map.renderSync()` so `rendercomplete` is guaranteed to fire,
+   * even when the map is idle. Without this, waiting on `rendercomplete` for an idle map hangs
+   * forever because OL does not schedule a frame unless something invalidates the view.
    *
-   * @returns A promise that resolves when map render is complete
+   * @returns A promise that resolves when the map render is complete
    */
   waitForRender(): Promise<void> {
+    // Return a promise that resolves when the map render is complete
     return new Promise((resolve) => {
       this.map.once('rendercomplete', () => resolve());
+      this.map.renderSync();
     });
   }
 
@@ -1480,7 +1382,7 @@ export class MapViewer {
    * @param geometryFunction - Optional geometry function for custom drawing behavior
    * @returns The draw interaction
    */
-  initDrawInteractions(geomGroupKey: string, type: string, style: TypeFeatureStyle, geometryFunction?: GeometryFunction): Draw {
+  initDrawInteractions(geomGroupKey: string, type: OLGeomType, style: TypeFeatureStyle, geometryFunction?: GeometryFunction): Draw {
     // Create the Draw component
     const draw = new Draw(
       {
@@ -1674,7 +1576,7 @@ export class MapViewer {
    *
    * @returns The arrow angle
    */
-  getNorthArrowAngle(): string {
+  getNorthArrowAngle(): number {
     try {
       // north value
       const pointA = { x: NORTH_POLE_POSITION_LONLAT[1], y: NORTH_POLE_POSITION_LONLAT[0] };
@@ -1694,10 +1596,10 @@ export class MapViewer {
       const bearing = (Math.atan2(y, x) * 180) / Math.PI;
 
       // return angle (180 is pointing north)
-      return ((bearing + 360) % 360).toFixed(1);
+      return parseFloat(((bearing + 360) % 360).toFixed(1));
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: unknown) {
-      return '180.0';
+      return 180.0;
     }
   }
 
@@ -1823,10 +1725,12 @@ export class MapViewer {
    * @param includeFeatureInfo - Optional - Indicates if feature info should be included in the config for each layer.
    * @returns Map config with current map state, or undefined if unavailable
    */
+  // TODO: REFACTOR MAPVIEWER - Move this function at the 'application' level, because it has nothing to do with the map itself
   createMapConfigFromMapState(
     overrideGeocoreServiceNames: boolean | 'hybrid' = true,
     includeFeatureInfo = false
   ): TypeMapFeaturesInstance | undefined {
+    // Redirect to controller
     return this.controllers.mapController.createMapConfigFromMapState(overrideGeocoreServiceNames, includeFeatureInfo);
   }
 
@@ -1838,11 +1742,13 @@ export class MapViewer {
    * @param removeUnlisted - Optional - Whether or not names not provided should be removed from config
    * @returns Map config with updated names, or undefined if no config is available
    */
+  // TODO: REFACTOR MAPVIEWER - Move this function at the 'application' level, because it has nothing to do with the map itself
   replaceMapConfigLayerNames(
     namePairs: string[][],
     mapConfig?: TypeMapFeaturesConfig,
     removeUnlisted = false
   ): TypeMapFeaturesInstance | undefined {
+    // Redirect to controller
     return this.controllers.mapController.replaceMapConfigLayerNames(namePairs, mapConfig, removeUnlisted);
   }
 
@@ -1860,21 +1766,23 @@ export class MapViewer {
     mapHTMLElement.addEventListener('mouseenter', () => {
       mapHTMLElement.focus({ preventScroll: true });
 
-      // Save to the store
-      setStoreMapIsMouseInsideMap(this.mapId, true);
+      // Emit to the outside
+      this.#emitMapMouseEnter({});
     });
+
     mapHTMLElement.addEventListener('mouseleave', () => {
       mapHTMLElement.blur();
 
-      // Save to the store
-      setStoreMapIsMouseInsideMap(this.mapId, false);
+      // Emit to the outside
+      this.#emitMapMouseLeave({});
     });
 
     // Now that the map dom is loaded, register a handle when size is changing
-    map.on('change:size', this.#handleMapChangeSize.bind(this));
+    map.on('change:size', this.#handleMapSizeChanged.bind(this));
 
     // Register essential map-view handlers
     map.on('moveend', this.#handleMapMoveEnd.bind(this));
+    map.on('postrender', this.#handleMapPostRender.bind(this));
   }
 
   /**
@@ -1912,8 +1820,9 @@ export class MapViewer {
    */
   #registerViewHandlers(view: View): void {
     // Register essential view handlers
-    view.on('change:resolution', debounce(this.#handleMapZoomEnd.bind(this), 100).bind(this));
-    view.on('change:rotation', debounce(this.#handleMapRotation.bind(this), 100).bind(this));
+    view.on('change:center', this.#handleViewCenterChanged.bind(this));
+    view.on('change:resolution', this.#handleViewResolutionChanged.bind(this));
+    view.on('change:rotation', this.#handleViewRotationChanged.bind(this));
   }
 
   /**
@@ -1949,18 +1858,29 @@ export class MapViewer {
    * Handles when the map ends moving.
    *
    * @param event - The map event associated with the ending of the map movement
-   * @returns A promise that resolves when done processing the map move
    */
-  async #handleMapMoveEnd(event: MapEvent): Promise<void> {
+  #handleMapMoveEnd(event: MapEvent): void {
     try {
-      // Update the store
-      await this.#updateMapControls();
-
       // Emit to the outside
       this.#emitMapMoveEnd({ lonlat: this.getView().getCenter()! });
     } catch (error: unknown) {
       // Log
       logger.logError('Failed in MapViewer.#handleMapMoveEnd', error);
+    }
+  }
+
+  /**
+   * Handles when the map has finished rendering a frame.
+   *
+   * @param event - The map event associated with the post-render
+   */
+  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
+  #handleMapPostRender(event: MapEvent): void {
+    try {
+      // Nothing?
+    } catch (error: unknown) {
+      // Log
+      logger.logError('Failed in MapViewer.#handleMapPostRender', error);
     }
   }
 
@@ -1976,9 +1896,6 @@ export class MapViewer {
 
       // Get the pointer position information based on the map event
       const pointerPosition: TypeMapMouseInfo = GeoUtilities.getPointerPositionFromMapEvent(event, projCode);
-
-      // Save to the store
-      setStoreMapPointerPosition(this.mapId, pointerPosition);
 
       // Emit to the outside
       this.#emitMapPointerMove(pointerPosition);
@@ -2022,9 +1939,6 @@ export class MapViewer {
       // Get the pointer position information based on the map event
       const pointerPosition: TypeMapMouseInfo = GeoUtilities.getPointerPositionFromMapEvent(event, projCode);
 
-      // Save to the store
-      this.controllers.mapController.setClickCoordinates(pointerPosition);
-
       // Emit to the outside
       this.#emitMapSingleClick(pointerPosition);
     } catch (error: unknown) {
@@ -2034,43 +1948,37 @@ export class MapViewer {
   }
 
   /**
+   * Handles when the view center changes.
+   *
+   * @param event - The event associated with the center change
+   */
+  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
+  #handleViewCenterChanged(event: ObjectEvent): void {
+    try {
+      // Nothing?
+    } catch (error: unknown) {
+      // Log
+      logger.logError('Failed in MapViewer.#handleViewCenterChanged', error);
+    }
+  }
+
+  /**
    * Handles when the map zoom ends.
    *
    * @param event - The event associated with the zoom end
    */
-  #handleMapZoomEnd(event: ObjectEvent): void {
+  #handleViewResolutionChanged(event: ObjectEvent): void {
     try {
       // Read the zoom value
-      const zoom = this.getView().getZoom();
-      if (zoom === undefined || zoom === null || Number.isNaN(zoom)) return;
-
-      // Save to the store
-      setStoreMapZoom(this.mapId, zoom);
-
-      // Get all layers
-      const allLayers = this.controllers.layerController.getGeoviewLayers();
-
-      // Current map resolution used for resolution-based visibility checks.
-      const currentResolution = this.getView().getResolution() ?? this.getView().getResolutionForZoom(this.getView().getZoom() ?? 0);
-      const currentScale = this.getMapScaleFromZoom(zoom);
-
-      // Get the inVisibleRange property by checking each layer's OL resolution thresholds.
-      allLayers.forEach((layer) => {
-        // Get the effective scales
-        const effectiveScales = MapViewer.computeEffectiveLayerScales(this, layer.getLayerConfig());
-
-        // Check if the layer is in visible range
-        const inVisibleRange = layer.isInVisibleRange(currentResolution, currentScale, effectiveScales);
-
-        // Save to the store
-        this.controllers.layerController.setLayerInVisibleRange(layer.getLayerPath(), inVisibleRange);
-      });
+      const view = event.target;
+      const resolution = view.getResolution();
+      const zoom = view.getZoom();
 
       // Emit to the outside
-      this.#emitMapZoomEnd({ zoom });
+      this.#emitMapResolutionChanged({ resolution, zoom });
     } catch (error: unknown) {
       // Log
-      logger.logError('Failed in MapViewer.#handleMapZoomEnd', error);
+      logger.logError('Failed in MapViewer.#handleViewResolutionChanged', error);
     }
   }
 
@@ -2079,19 +1987,16 @@ export class MapViewer {
    *
    * @param event - The event associated with rotation
    */
-  #handleMapRotation(event: ObjectEvent): void {
+  #handleViewRotationChanged(event: ObjectEvent): void {
     try {
       // Get the map rotation
       const rotation = this.getView().getRotation();
-
-      // Save to the store
-      setStoreMapRotation(this.mapId, rotation);
 
       // Emit to the outside
       this.#emitMapRotation({ rotation });
     } catch (error: unknown) {
       // Log
-      logger.logError('Failed in MapViewer.#handleMapRotation', error);
+      logger.logError('Failed in MapViewer.#handleViewRotationChanged', error);
     }
   }
 
@@ -2099,26 +2004,33 @@ export class MapViewer {
    * Handles when the map changes size.
    *
    * @param event - The event associated with size change
-   * @returns A promise that resolves when done processing the map change size
    */
-  async #handleMapChangeSize(event: ObjectEvent): Promise<void> {
+  #handleMapSizeChanged(event: ObjectEvent): void {
     try {
+      // Get the size
+      const size = this.map.getSize();
+      if (!size) return;
+
       // Get the scale information
       const scale = MapViewer.getScaleInfoFromDomElement(this.mapId);
 
-      // Get the size
-      const size = await this.getMapSize();
-
-      // Save to the store
-      this.controllers.mapController.setMapSize(size);
-      setStoreMapScale(this.mapId, scale);
-
       // Emit to the outside
-      this.#emitMapChangeSize({ size });
+      this.#emitMapSizeChanged({ size, scale });
     } catch (error: unknown) {
       // Log
-      logger.logError('Failed in MapViewer.#handleMapChangeSize', error);
+      logger.logError('Failed in MapViewer.#handleMapSizeChanged', error);
     }
+  }
+
+  /**
+   * Handles basemap errors.
+   *
+   * @param sender - The basemap API instance that triggered the error
+   * @param event - The event containing error details
+   */
+  #handleBasemapError(sender: BasemapApi, event: BasemapErrorEvent): void {
+    // Show the error using the GeoViewError messageKey and params
+    this.notifications.showError(event.error.messageKey, event.error.messageParams);
   }
 
   /**
@@ -2177,16 +2089,6 @@ export class MapViewer {
     // Wait at least the minimum delay before officializing the map as loaded for the UI
     await delay(MapViewer.#MIN_DELAY_LOADING - elapsedMilliseconds); // Negative value will simply resolve immediately
 
-    // Save to the store that the map is loaded
-    // GV This removes the spinning circle overlay and starts showing the map correctly in the html dom
-    setStoreMapLoaded(this.mapId, true);
-
-    // Save to the store that the map is properly being displayed now
-    setStoreMapDisplayed(this.mapId);
-
-    // Update the map controls based on the original map state (equivalent of initMapControls, just later in the process)
-    await this.#updateMapControls();
-
     // Is ready
     this.#mapReady = true;
     this.#emitMapReady();
@@ -2206,6 +2108,12 @@ export class MapViewer {
       logger.logPromiseFailed('in #zoomOnExtentMaybe in #readyMap', error);
     });
 
+    // Zoom on layers ids, if necessary, but don't wait for it
+    this.#zoomOnLayerIdsMaybe().catch((error: unknown) => {
+      // Log
+      logger.logPromiseFailed('in #zoomOnLayerIdsMaybe in initMap', error);
+    });
+
     // If there's a layer path that should be selected in footerBar or appBar configs, select it
     const selectedLayerPath =
       this.mapFeaturesConfig.footerBar?.selectedLayersLayerPath || this.mapFeaturesConfig.appBar?.selectedLayersLayerPath;
@@ -2214,15 +2122,9 @@ export class MapViewer {
     // Await for all layers to be 'loaded'
     await this.#checkMapLayersLoaded();
 
-    // Zoom on layers ids, if necessary, but don't wait for it
-    this.#zoomOnLayerIdsMaybe().catch((error: unknown) => {
-      // Log
-      logger.logPromiseFailed('in #zoomOnLayerIdsMaybe in #readyMap', error);
-    });
-
     // Create and dispatch the resolution change event to force the registration of layers in the
     // inVisibleRange array when layers are loaded.
-    // This is to trigger a 'this.#handleMapZoomEnd' once layers are loaded
+    // This is to trigger a 'this.#handleViewResolutionChanged' once layers are loaded
     this.getView().dispatchEvent(new ObjectEvent('change:resolution', 'visibleRange', null));
   }
 
@@ -2247,42 +2149,6 @@ export class MapViewer {
   }
 
   /**
-   * Updates the map controls (the store) based on the current map view state.
-   *
-   * @returns A promise that resolves when the map controls are updated
-   */
-  async #updateMapControls(): Promise<void> {
-    // Get the center coordinates (await in case the map isn't fully rendered yet)
-    const centerCoordinates = await this.getCenter();
-
-    // Get the projection code
-    const projCode = this.getProjection().getCode();
-
-    // Get the pointer position
-    const pointerPosition = {
-      projected: centerCoordinates,
-      pixel: this.map.getPixelFromCoordinate(centerCoordinates),
-      lonlat: Projection.transformPoints([centerCoordinates], projCode, Projection.PROJECTION_NAMES.LONLAT)[0],
-      dragging: false,
-    };
-
-    // Get the degree rotation
-    const degreeRotation = this.getNorthArrowAngle();
-
-    // Get the north pole visibility
-    const isNorthVisible = this.getNorthPoleVisibility();
-
-    // Get the map Extent
-    const extent = this.getView().calculateExtent();
-
-    // Get the scale information
-    const scale = MapViewer.getScaleInfoFromDomElement(this.mapId);
-
-    // Save to the store
-    setStoreMapMoveEnd(this.mapId, centerCoordinates, pointerPosition, degreeRotation, isNorthVisible, extent, scale);
-  }
-
-  /**
    * Zooms the map on the to the extents of specified layers once they are fully loaded or to the extent specified in initialView and do so right away.
    * - If `initialView.extent` is defined, it tries to create the extent and zoom on it.
    * - If `initialView.extent` is undefined, it won't do anything.
@@ -2299,7 +2165,7 @@ export class MapViewer {
         : this.mapFeaturesConfig.map.viewSettings.initialView.extent;
 
       // Zoom to extent
-      return this.zoomToExtent(extent, {
+      return this.zoomToExtent(extent, false, {
         padding: [0, 0, 0, 0],
       });
     }
@@ -2317,7 +2183,7 @@ export class MapViewer {
    *
    * @returns A promise that resolves when the zoom operation completes
    */
-  #zoomOnLayerIdsMaybe(): Promise<void> {
+  async #zoomOnLayerIdsMaybe(): Promise<void> {
     // If the layerIds property in initialView is defined
     if (this.mapFeaturesConfig.map.viewSettings.initialView?.layerIds) {
       // If the layerIds array is empty, use all layers
@@ -2325,11 +2191,12 @@ export class MapViewer {
         ? this.mapFeaturesConfig.map.viewSettings.initialView.layerIds
         : this.controllers.layerController.getGeoviewLayerIds();
 
-      let layerExtents = this.controllers.layerController.getExtentOfMultipleLayers(layerIdsToZoomTo);
+      let layerExtents = await this.controllers.layerController.getExtentOfMultipleLayers(layerIdsToZoomTo);
 
       // If extents have infinity, use default instead
-      if (!layerExtents || layerExtents.includes(Infinity))
+      if (!layerExtents || layerExtents.includes(Infinity)) {
         layerExtents = this.convertExtentLonLatToMapProj(MAP_EXTENTS[this.mapFeaturesConfig.map.viewSettings.projection]);
+      }
 
       // Zoom to calculated extent
       if (layerExtents.length) {
@@ -2349,7 +2216,7 @@ export class MapViewer {
    */
   async #checkMapLayersProcessed(): Promise<void> {
     // When all layers are processed
-    const layersCount = await this.waitAllLayersStatus('processed');
+    const layersCount = await this.layer.waitForAllLayersStatus('processed');
 
     // Log
     logger.logInfo(`Map is ready with ${layersCount} processed layer entries`, this.mapId);
@@ -2367,7 +2234,7 @@ export class MapViewer {
    */
   async #checkMapLayersLoaded(): Promise<void> {
     // When all layers are loaded
-    const layersCount = await this.waitAllLayersStatus('loaded');
+    const layersCount = await this.layer.waitForAllLayersStatus('loaded');
 
     // Log
     logger.logInfo(`Map is ready with ${layersCount} loaded layer entries`, this.mapId);
@@ -2384,7 +2251,8 @@ export class MapViewer {
    * This is done after the layers are loaded to ensure that the map features depending on the layers (details, geochart) are properly updated with the repeated query.
    */
   #initLastQuery(): void {
-    this.waitForLayersLoaded()
+    this.layer
+      .waitForLayersLoaded()
       .then(() => {
         this.controllers.layerSetController
           .repeatLastQueryIfAny(false)
@@ -2415,7 +2283,7 @@ export class MapViewer {
    */
   #emitMapInit(): void {
     // Emit the event for all handlers
-    EventHelper.emitEvent(this, this.#onMapInitHandlers, undefined);
+    EventHelper.emitEvent(this, this.#onMapInitHandlers, {});
   }
 
   /**
@@ -2444,7 +2312,18 @@ export class MapViewer {
    */
   #emitMapReady(): void {
     // Emit the event for all handlers
-    EventHelper.emitEvent(this, this.#onMapReadyHandlers, undefined);
+    EventHelper.emitEvent(this, this.#onMapReadyHandlers, {});
+  }
+
+  /**
+   * Returns a promise that resolves the next time the map ready event fires.
+   *
+   * @param filter - Optional filter predicate. When provided, only events passing the filter resolve the promise
+   * @returns A promise that resolves with the event payload when map ready fires
+   */
+  onceMapReady(filter?: (event: MapBaseEvent) => boolean): Promise<MapBaseEvent> {
+    // Register a one-shot event handler that resolves a promise
+    return EventHelper.onceEventPromise(this.#onMapReadyHandlers, filter);
   }
 
   /**
@@ -2473,7 +2352,7 @@ export class MapViewer {
    */
   #emitMapLayersProcessed(): void {
     // Emit the event for all handlers
-    EventHelper.emitEvent(this, this.#onMapLayersProcessedHandlers, undefined);
+    EventHelper.emitEvent(this, this.#onMapLayersProcessedHandlers, {});
   }
 
   /**
@@ -2502,7 +2381,7 @@ export class MapViewer {
    */
   #emitMapLayersLoaded(): void {
     // Emit the event for all handlers
-    EventHelper.emitEvent(this, this.#onMapLayersLoadedHandlers, undefined);
+    EventHelper.emitEvent(this, this.#onMapLayersLoadedHandlers, {});
   }
 
   /**
@@ -2532,6 +2411,17 @@ export class MapViewer {
   #emitMapMoveEnd(event: MapMoveEndEvent): void {
     // Emit the event for all handlers
     EventHelper.emitEvent(this, this.#onMapMoveEndHandlers, event);
+  }
+
+  /**
+   * Returns a promise that resolves the next time the map move end event fires.
+   *
+   * @param filter - Optional filter predicate. When provided, only events passing the filter resolve the promise
+   * @returns A promise that resolves with the event payload when map move end fires
+   */
+  onceMapMoveEnd(filter?: (event: MapMoveEndEvent) => boolean): Promise<MapMoveEndEvent> {
+    // Register a one-shot event handler that resolves a promise
+    return EventHelper.onceEventPromise(this.#onMapMoveEndHandlers, filter);
   }
 
   /**
@@ -2584,6 +2474,68 @@ export class MapViewer {
   offMapPointerMove(callback: MapPointerMoveDelegate | undefined): void {
     // Unregister the event handler
     EventHelper.offEvent(this.#onMapPointerMoveHandlers, callback);
+  }
+
+  /**
+   * Emits a map mouse enter event to all handlers.
+   */
+  #emitMapMouseEnter(event: MapBaseEvent): void {
+    // Emit the event for all handlers
+    if (this.#pointerHandlersEnabled) {
+      EventHelper.emitEvent(this, this.#onMapMouseEnterHandlers, event);
+    }
+  }
+
+  /**
+   * Registers a map mouse enter event callback.
+   *
+   * @param callback - The callback to be executed whenever the event is emitted
+   * @returns The callback delegate that was registered
+   */
+  onMapMouseEnter(callback: MapMouseEnterDelegate): MapMouseEnterDelegate {
+    // Register the event handler
+    return EventHelper.onEvent(this.#onMapMouseEnterHandlers, callback);
+  }
+
+  /**
+   * Unregisters a map mouse enter event callback.
+   *
+   * @param callback - The callback to stop being called whenever the event is emitted
+   */
+  offMapMouseEnter(callback: MapMouseEnterDelegate | undefined): void {
+    // Unregister the event handler
+    EventHelper.offEvent(this.#onMapMouseEnterHandlers, callback);
+  }
+
+  /**
+   * Emits a map mouse leave event to all handlers.
+   */
+  #emitMapMouseLeave(event: MapBaseEvent): void {
+    // Emit the event for all handlers
+    if (this.#pointerHandlersEnabled) {
+      EventHelper.emitEvent(this, this.#onMapMouseLeaveHandlers, event);
+    }
+  }
+
+  /**
+   * Registers a map mouse leave event callback.
+   *
+   * @param callback - The callback to be executed whenever the event is emitted
+   * @returns The callback delegate that was registered
+   */
+  onMapMouseLeave(callback: MapMouseLeaveDelegate): MapMouseLeaveDelegate {
+    // Register the event handler
+    return EventHelper.onEvent(this.#onMapMouseLeaveHandlers, callback);
+  }
+
+  /**
+   * Unregisters a map mouse leave event callback.
+   *
+   * @param callback - The callback to stop being called whenever the event is emitted
+   */
+  offMapMouseLeave(callback: MapMouseLeaveDelegate | undefined): void {
+    // Unregister the event handler
+    EventHelper.offEvent(this.#onMapMouseLeaveHandlers, callback);
   }
 
   /**
@@ -2651,9 +2603,9 @@ export class MapViewer {
   /**
    * Emits a map zoom end event to all handlers.
    */
-  #emitMapZoomEnd(event: MapZoomEndEvent): void {
+  #emitMapResolutionChanged(event: MapResolutionChangedEvent): void {
     // Emit the event for all handlers
-    EventHelper.emitEvent(this, this.#onMapZoomEndHandlers, event);
+    EventHelper.emitEvent(this, this.#onMapResolutionChangedHandlers, event);
   }
 
   /**
@@ -2662,9 +2614,9 @@ export class MapViewer {
    * @param callback - The callback to be executed whenever the event is emitted
    * @returns The callback delegate that was registered
    */
-  onMapZoomEnd(callback: MapZoomEndDelegate): MapZoomEndDelegate {
+  onMapResolutionChanged(callback: MapResolutionChangedDelegate): MapResolutionChangedDelegate {
     // Register the event handler
-    return EventHelper.onEvent(this.#onMapZoomEndHandlers, callback);
+    return EventHelper.onEvent(this.#onMapResolutionChangedHandlers, callback);
   }
 
   /**
@@ -2672,9 +2624,9 @@ export class MapViewer {
    *
    * @param callback - The callback to stop being called whenever the event is emitted
    */
-  offMapZoomEnd(callback: MapZoomEndDelegate): void {
+  offMapResolutionChanged(callback: MapResolutionChangedDelegate): void {
     // Unregister the event handler
-    EventHelper.offEvent(this.#onMapZoomEndHandlers, callback);
+    EventHelper.offEvent(this.#onMapResolutionChangedHandlers, callback);
   }
 
   /**
@@ -2709,9 +2661,9 @@ export class MapViewer {
   /**
    * Emits a map change size event to all handlers.
    */
-  #emitMapChangeSize(event: MapChangeSizeEvent): void {
+  #emitMapSizeChanged(event: MapSizeChangedEvent): void {
     // Emit the event for all handlers
-    EventHelper.emitEvent(this, this.#onMapChangeSizeHandlers, event);
+    EventHelper.emitEvent(this, this.#onMapSizeChangedHandlers, event);
   }
 
   /**
@@ -2720,9 +2672,9 @@ export class MapViewer {
    * @param callback - The callback to be executed whenever the event is emitted
    * @returns The callback delegate that was registered
    */
-  onMapChangeSize(callback: MapChangeSizeDelegate): MapChangeSizeDelegate {
+  onMapSizeChanged(callback: MapSizeChangedDelegate): MapSizeChangedDelegate {
     // Register the event handler
-    return EventHelper.onEvent(this.#onMapChangeSizeHandlers, callback);
+    return EventHelper.onEvent(this.#onMapSizeChangedHandlers, callback);
   }
 
   /**
@@ -2730,9 +2682,9 @@ export class MapViewer {
    *
    * @param callback - The callback to stop being called whenever the event is emitted
    */
-  offMapChangeSize(callback: MapChangeSizeDelegate): void {
+  offMapSizeChanged(callback: MapSizeChangedDelegate): void {
     // Unregister the event handler
-    EventHelper.offEvent(this.#onMapChangeSizeHandlers, callback);
+    EventHelper.offEvent(this.#onMapSizeChangedHandlers, callback);
   }
 
   /**
@@ -2856,6 +2808,35 @@ export class MapViewer {
   }
 
   /**
+   * Emits an interaction changed event to all handlers.
+   */
+  #emitMapInteractionChanged(event: MapInteractionChangedEvent): void {
+    // Emit the interaction changed event for all handlers
+    EventHelper.emitEvent(this, this.#onMapInteractionChangedHandlers, event);
+  }
+
+  /**
+   * Registers an interaction changed event callback.
+   *
+   * @param callback - The callback to be executed whenever the event is emitted
+   * @returns The callback delegate that was registered
+   */
+  onMapInteractionChanged(callback: MapInteractionChangedDelegate): MapInteractionChangedDelegate {
+    // Register the interaction changed event handler
+    return EventHelper.onEvent(this.#onMapInteractionChangedHandlers, callback);
+  }
+
+  /**
+   * Unregisters an interaction changed event callback.
+   *
+   * @param callback - The callback to stop being called whenever the event is emitted
+   */
+  offMapInteractionChanged(callback: MapInteractionChangedDelegate): void {
+    // Unregister the interaction changed event handler
+    EventHelper.offEvent(this.#onMapInteractionChangedHandlers, callback);
+  }
+
+  /**
    * Emits a language changed event to all handlers.
    */
   #emitMapLanguageChanged(event: MapLanguageChangedEvent): void {
@@ -2884,6 +2865,35 @@ export class MapViewer {
     EventHelper.offEvent(this.#onMapLanguageChangedHandlers, callback);
   }
 
+  /**
+   * Emits a marker icon showed event to all handlers.
+   */
+  #emitMarkerIconShowed(event: MarkerIconShowedEvent): void {
+    // Emit the event for all handlers
+    EventHelper.emitEvent(this, this.#onMarkerIconShowedHandlers, event);
+  }
+
+  /**
+   * Registers a marker icon showed event callback.
+   *
+   * @param callback - The callback to be executed whenever the event is emitted
+   * @returns The callback delegate that was registered
+   */
+  onMarkerIconShowed(callback: MarkerIconShowedDelegate): MarkerIconShowedDelegate {
+    // Register the event handler
+    return EventHelper.onEvent(this.#onMarkerIconShowedHandlers, callback);
+  }
+
+  /**
+   * Unregisters a marker icon showed event callback.
+   *
+   * @param callback - The callback to stop being called whenever the event is emitted
+   */
+  offMarkerIconShowed(callback: MarkerIconShowedDelegate): void {
+    // Unregister the event handler
+    EventHelper.offEvent(this.#onMarkerIconShowedHandlers, callback);
+  }
+
   // #endregion
 }
 
@@ -2901,32 +2911,35 @@ export type GeometryJsonResponseGeometry = {
   coordinates: number[] | Coordinate[][];
 };
 
+/** Base interface for map events */
+export interface MapBaseEvent {}
+
 /**
  * Delegate for the map init event handler function signature.
  */
-export type MapInitDelegate = EventDelegateBase<MapViewer, undefined, void>;
+export type MapInitDelegate = EventDelegateBase<MapViewer, MapBaseEvent, void>;
 
 /**
  * Delegate for the map ready event handler function signature.
  */
-export type MapReadyDelegate = EventDelegateBase<MapViewer, undefined, void>;
+export type MapReadyDelegate = EventDelegateBase<MapViewer, MapBaseEvent, void>;
 
 /**
  * Delegate for the map layers processed event handler function signature.
  */
-export type MapLayersProcessedDelegate = EventDelegateBase<MapViewer, undefined, void>;
+export type MapLayersProcessedDelegate = EventDelegateBase<MapViewer, MapBaseEvent, void>;
 
 /**
  * Delegate for the map layers loaded event handler function signature.
  */
-export type MapLayersLoadedDelegate = EventDelegateBase<MapViewer, undefined, void>;
+export type MapLayersLoadedDelegate = EventDelegateBase<MapViewer, MapBaseEvent, void>;
 
 /**
  * Event for the map move end delegate.
  */
-export type MapMoveEndEvent = {
+export interface MapMoveEndEvent extends MapBaseEvent {
   lonlat: Coordinate;
-};
+}
 
 /**
  * Delegate for the map move end event handler function signature.
@@ -2936,6 +2949,8 @@ export type MapMoveEndDelegate = EventDelegateBase<MapViewer, MapMoveEndEvent, v
 /**
  * Event for the map pointer move delegate.
  */
+// TODO: REFACTOR - These should be changed to interface and extend from MapBaseEvent, bit of confusion with reuse of the type
+// TO.DOCONT: export interface MapPointerMoveEvent extends MapBaseEvent
 export type MapPointerMoveEvent = TypeMapMouseInfo;
 
 /**
@@ -2944,8 +2959,20 @@ export type MapPointerMoveEvent = TypeMapMouseInfo;
 export type MapPointerMoveDelegate = EventDelegateBase<MapViewer, MapPointerMoveEvent, void>;
 
 /**
+ * Delegate for the map mouse enter event handler function signature.
+ */
+export type MapMouseEnterDelegate = EventDelegateBase<MapViewer, MapBaseEvent, void>;
+
+/**
+ * Delegate for the map mouse leave event handler function signature.
+ */
+export type MapMouseLeaveDelegate = EventDelegateBase<MapViewer, MapBaseEvent, void>;
+
+/**
  * Event for the map single click delegate.
  */
+// TODO: REFACTOR - These should be changed to interface and extend from MapBaseEvent, bit of confusion with reuse of the type
+// TO.DOCONT: export interface MapSingleClickEvent extends MapBaseEvent
 export type MapSingleClickEvent = TypeMapMouseInfo;
 
 /**
@@ -2956,21 +2983,22 @@ export type MapSingleClickDelegate = EventDelegateBase<MapViewer, MapSingleClick
 /**
  * Event for the map zoom end delegate.
  */
-export type MapZoomEndEvent = {
+export interface MapResolutionChangedEvent extends MapBaseEvent {
+  resolution: number;
   zoom: number;
-};
+}
 
 /**
  * Delegate for the map zoom end event handler function signature.
  */
-export type MapZoomEndDelegate = EventDelegateBase<MapViewer, MapZoomEndEvent, void>;
+export type MapResolutionChangedDelegate = EventDelegateBase<MapViewer, MapResolutionChangedEvent, void>;
 
 /**
  * Event for the map rotation delegate.
  */
-export type MapRotationEvent = {
+export interface MapRotationEvent extends MapBaseEvent {
   rotation: number;
-};
+}
 
 /**
  * Delegate for the map rotation event handler function signature.
@@ -2980,22 +3008,23 @@ export type MapRotationDelegate = EventDelegateBase<MapViewer, MapRotationEvent,
 /**
  * Event for the map change size delegate.
  */
-export type MapChangeSizeEvent = {
+export interface MapSizeChangedEvent extends MapBaseEvent {
   size: Size;
-};
+  scale: TypeScaleInfo;
+}
 
 /**
  * Delegate for the map change size event handler function signature.
  */
-export type MapChangeSizeDelegate = EventDelegateBase<MapViewer, MapChangeSizeEvent, void>;
+export type MapSizeChangedDelegate = EventDelegateBase<MapViewer, MapSizeChangedEvent, void>;
 
 /**
  * Event for the map projection changed delegate.
  */
-export type MapProjectionChangedEvent = {
+export interface MapProjectionChangedEvent extends MapBaseEvent {
   projection: OLProjection;
   previousProjection: OLProjection;
-};
+}
 
 /**
  * Delegate for the map projection changed event handler function signature.
@@ -3005,10 +3034,10 @@ export type MapProjectionChangedDelegate = EventDelegateBase<MapViewer, MapProje
 /**
  * Event for the map component added delegate.
  */
-export type MapComponentAddedEvent = {
+export interface MapComponentAddedEvent extends MapBaseEvent {
   mapComponentId: string;
   component: JSX.Element;
-};
+}
 
 /**
  * Delegate for the map component added event handler function signature.
@@ -3018,9 +3047,9 @@ export type MapComponentAddedDelegate = EventDelegateBase<MapViewer, MapComponen
 /**
  * Event for the map component removed delegate.
  */
-export type MapComponentRemovedEvent = {
+export interface MapComponentRemovedEvent extends MapBaseEvent {
   mapComponentId: string;
-};
+}
 
 /**
  * Delegate for the map component removed event handler function signature.
@@ -3030,9 +3059,9 @@ export type MapComponentRemovedDelegate = EventDelegateBase<MapViewer, MapCompon
 /**
  * Event for the map language changed delegate.
  */
-export type MapLanguageChangedEvent = {
+export interface MapLanguageChangedEvent extends MapBaseEvent {
   language: TypeDisplayLanguage;
-};
+}
 
 /**
  * Delegate for the map language changed event handler function signature.
@@ -3040,11 +3069,36 @@ export type MapLanguageChangedEvent = {
 export type MapLanguageChangedDelegate = EventDelegateBase<MapViewer, MapLanguageChangedEvent, void>;
 
 /**
+ * Event for the interaction changed delegate.
+ */
+export interface MapInteractionChangedEvent extends MapBaseEvent {
+  interaction: TypeInteraction;
+}
+
+/**
+ * Delegate for the interaction changed event handler function signature.
+ */
+export type MapInteractionChangedDelegate = EventDelegateBase<MapViewer, MapInteractionChangedEvent, void>;
+
+/**
+ * Event for the marker icon showed delegate.
+ */
+export interface MarkerIconShowedEvent extends MapBaseEvent {
+  /** The projected coordinates of the marker. */
+  projectedCoords: number[];
+}
+
+/**
+ * Delegate for the marker icon showed event handler function signature.
+ */
+export type MarkerIconShowedDelegate = EventDelegateBase<MapViewer, MarkerIconShowedEvent, void>;
+
+/**
  * Define a return type for a map click simulation to be able to await on different promises.
  */
 export type SimulatedMapClick = {
   /** Promise resolving when the query of the map click is complete */
-  promiseQuery: Promise<void>;
+  promiseQuery: Promise<TypeFeatureInfoResultSet>;
   /** Promise resolving when the query of the map click is complete and the UI has been updated */
   promiseQueryBatched: Promise<void>;
 };
