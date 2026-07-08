@@ -114,7 +114,7 @@ labels: ["testing", "release"]
 - [ ] [Left Panel — Layer List](../docs/programming/release-testing/08-layers.md#left-panel--layer-list) (16 tests)
 - [ ] [Add Layer](../docs/programming/release-testing/08-layers.md#add-layer) (36 tests)
 - [ ] [Right Panel — Layer Info & Settings](../docs/programming/release-testing/08-layers.md#right-panel--layer-info--settings) (46 tests)
-- [ ] [Layer Type Configs](../docs/programming/release-testing/08-layers.md#layer-type-configs) (28 tests)
+- [ ] [Layer Type Configs](../docs/programming/release-testing/08-layers.md#layer-type-configs) (25 tests)
 
 ## 09 — Styles
 
@@ -195,6 +195,7 @@ labels: ["testing", "release"]
 - [ ] [Cascading Behavior](../docs/programming/release-testing/16-initial-settings.md#cascading-behavior) (5 tests)
 - [ ] [Opacity Cascading](../docs/programming/release-testing/16-initial-settings.md#opacity-cascading) (3 tests)
 - [ ] [Initial Filters](../docs/programming/release-testing/16-initial-settings.md#initial-filters) (6 tests)
+- [ ] [Filter Combination (Cross-Source)](../docs/programming/release-testing/16-initial-settings.md#filter-combination-cross-source) (10 tests)
 - [ ] [Layer Entry Source Config](../docs/programming/release-testing/16-initial-settings.md#layer-entry-source-config) (5 tests)
 - [ ] [Deep Nesting Cascading](../docs/programming/release-testing/16-initial-settings.md#deep-nesting-cascading-4-levels) (3 tests)
 

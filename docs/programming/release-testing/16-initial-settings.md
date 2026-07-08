@@ -88,6 +88,42 @@ States: `visible`, `legendCollapsed`, `opacity`, `hoverable`, `queryable`
 | GeoJSON filter       | Province filter            | 1. Check Polygons layer (filter: `Province = 'Quebec'`)                       | Only Quebec polygon is visible                                                      | C    |
 | Filter in data table | Filtered features in table | 1. Open the data table for a filtered layer                                   | Data table shows only the filtered features (matching the `layerFilter` expression) | C    |
 
+## Filter Combination (Cross-Source)
+
+> Ref config: `23a-initial-settings-filters.json` (config filters) + time-slider layer via navigator. Use Layers Navigator.
+>
+> Four filter sources exist (`layerFilterClass`, `layerFilterTime`, `tableFilters`, `initialFilter`). The config `layerFilter` is applied on load; the other three are changed via UI (legend class toggles, time slider, data table column filters). All sources combine with AND logic. Changing one must update both map rendering and data table rows.
+
+### Class Filter ↔ Data Table Sync
+
+| Test                           | Description                          | Steps                                                                                                                            | Expected Result                                                                  | Auto |
+| ------------------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---- |
+| Toggle class off updates table | Class filter reflected in data table | 1. Load a uniqueValue-styled layer (e.g., CESI in `23a`)<br>2. In the legend, toggle a style class OFF<br>3. Open the data table | Data table row count decreases — rows matching the toggled-off class are removed | C    |
+| Toggle class on restores table | Re-enabling class restores rows      | 1. Toggle the style class back ON<br>2. Check the data table                                                                     | Data table row count returns to previous value — previously hidden rows reappear | C    |
+| Toggle all classes off         | Empty data table                     | 1. Toggle ALL style classes OFF for the layer                                                                                    | Data table shows zero rows; map shows no features for that layer                 | C    |
+
+### Data Table Filter ↔ Map Sync
+
+| Test                             | Description                       | Steps                                                                                                   | Expected Result                                      | Auto |
+| -------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ---- |
+| Column filter applied to map     | Data table filter updates map     | 1. Open data table for a vector layer<br>2. Apply a column filter<br>3. Toggle "Apply filter to map" ON | Map only renders features matching the column filter | C    |
+| Clear column filter restores map | Removing filter restores features | 1. Clear the column filter or toggle "Apply filter to map" OFF                                          | Map renders all features again                       | C    |
+
+### Combined: Config Filter + Data Table Filter
+
+| Test                                  | Description                   | Steps                                                                                                                                                               | Expected Result                                                                                        | Auto |
+| ------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ---- |
+| Config + data table AND logic         | Both filters applied together | 1. Load `23a` (Esri Feature layer with `layerFilter: "death = 'yes'"`)<br>2. Open data table — confirm only "yes" rows<br>3. Apply a column filter on another field | Data table shows only rows matching BOTH config filter AND column filter; map renders the intersection | C    |
+| Remove data table filter keeps config | Config filter persists        | 1. Clear the column filter                                                                                                                                          | Data table returns to showing only config-filtered rows (config filter still active); map matches      | C    |
+
+### Combined: Class Filter + Data Table Filter
+
+| Test                                | Description                     | Steps                                                                                                                               | Expected Result                                                                                      | Auto |
+| ----------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---- |
+| Class off + column filter           | Both sources narrow results     | 1. Toggle a style class OFF for a uniqueValue layer<br>2. Apply a column filter in data table<br>3. Toggle "Apply filter to map" ON | Map shows only features matching both filters (AND logic); data table shows the intersection         | C    |
+| Re-enable class keeps column filter | Restoring class expands results | 1. Toggle the style class back ON                                                                                                   | Data table shows more rows (class filter removed) but column filter still applied; map reflects both | C    |
+| Clear all filters                   | Everything resets               | 1. Re-enable all style classes<br>2. Clear data table filters<br>3. Toggle "Apply filter to map" OFF                                | All features reappear on map and in data table                                                       | C    |
+
 ## Layer Entry Source Config
 
 > Ref config: `23d-initial-settings-layer-config.json`. Use Layers Navigator.
