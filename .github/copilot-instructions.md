@@ -10,6 +10,8 @@ GeoView is a lightweight React+TypeScript geospatial viewer built on OpenLayers 
 
 **Key Architecture**: Plugins import and use geoview-core APIs. Core is the foundation; plugins extend functionality.
 
+**NEVER reference files from `packages/geoview-core/public/builds/`** — this folder contains old bundled build artifacts (`cgpv-main-*.js`) with stale, outdated code. Always use the actual source files under `packages/geoview-core/src/` as the source of truth.
+
 ## Critical Build & Dev Workflow
 
 ### Rush Commands (NOT npm/pnpm directly)
@@ -149,6 +151,39 @@ cgpv.init();
 - **`cgpv.onMapReady(callback)`** — Event listener that fires when map and UI are fully loaded
 - **`cgpv.api.getMapViewer(mapId)`** — Returns the `MapViewer` instance for a specific map
 - **`cgpv.api.getMapViewerAsync(mapId)`** — Async version that waits for the map to be available
+
+### GeoView Viewer vs Map Element
+
+**Two distinct DOM levels** — always distinguish between the GeoView viewer and the map element:
+
+| Concept            | CSS Class / ID              | Contains                                                                        | Keyboard Focus                                   |
+| ------------------ | --------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------ |
+| **GeoView Viewer** | `.geoview-map` wrapper div  | The shell: app bar, footer bar, nav bar, map element, notifications, focus trap | Always focusable (contains focusable controls)   |
+| **Map element**    | `#mapTargetElement-{mapId}` | The OpenLayers canvas container (`.mapContainer` class)                         | `tabIndex=0` (dynamic) or `tabIndex=-1` (static) |
+
+**Static mode (`interaction: 'static'`):**
+
+- The **map element** is present but NOT keyboard-focusable (`tabIndex=-1`). Ctrl+M is blocked.
+- The **viewer** still renders focusable controls: app bar (notifications, about) and map info bar (attribution, scale).
+- No layers panel, legend, details, data table, or nav bar controls are rendered.
+
+**Dynamic mode (`interaction: 'dynamic'`):**
+
+- The **map element** is keyboard-focusable (`tabIndex=0`). Ctrl+M focuses it and activates the crosshair.
+- The **viewer** renders the full shell: app bar with all tabs, footer bar, nav bar, map info bar.
+
+**Map info bar** — The map info bar (attribution, scale, rotation display) is **separate from the footer bar** and has no schema configuration. It always renders automatically:
+
+- **Dynamic mode**: Displays attribution, scale, and rotation value.
+- **Static mode**: Displays attribution and scale only (no rotation).
+
+**Crosshair activation flow:**
+
+1. `Ctrl+M` (global shortcut) → focuses `#mapTargetElement-{mapId}` → calls `uiController.setCrosshairActive(true)`
+2. Only works when `mapInteraction !== 'static'`
+3. Does NOT toggle — only activates. Deactivation happens via mouse click (focus leaves map element) or `Ctrl+Q` (exit focus trap).
+4. **Escape key does nothing** while crosshair is active — it does NOT deactivate the crosshair.
+5. Arrow keys pan the map (default 128px step). `Shift+ArrowUp` increases step by 10px, `Shift+ArrowDown` decreases by 10px (min 10px).
 
 ### Coordinate Format Pitfall: `NORTH_POLE_POSITION_LONLAT`
 
@@ -742,16 +777,16 @@ Per [best-practices.md](../docs/programming/best-practices.md), order functions 
 
 Each group must be wrapped in `// #region LABEL` / `// #endregion LABEL` markers (UPPER CASE). Common labels:
 
-| Region label | Contents |
-|---|---|
-| `OVERRIDES` | Abstract / override methods |
-| `PUBLIC METHODS` | Public instance methods (sub-regions allowed, e.g., `PUBLIC METHODS - UI RELATED`) |
-| `PROTECTED METHODS` | Protected instance methods |
-| `PRIVATE METHODS` | Private instance methods |
-| `DOMAIN HANDLERS` | Private handlers subscribed to domain events |
-| `EVENTS` | Event emit/on/off methods |
-| `STATIC METHODS` | Static public and private methods |
-| `EVENT TYPES` or `EVENTS & DELEGATES` | Delegate types and event interfaces (outside the class body) |
+| Region label                          | Contents                                                                           |
+| ------------------------------------- | ---------------------------------------------------------------------------------- |
+| `OVERRIDES`                           | Abstract / override methods                                                        |
+| `PUBLIC METHODS`                      | Public instance methods (sub-regions allowed, e.g., `PUBLIC METHODS - UI RELATED`) |
+| `PROTECTED METHODS`                   | Protected instance methods                                                         |
+| `PRIVATE METHODS`                     | Private instance methods                                                           |
+| `DOMAIN HANDLERS`                     | Private handlers subscribed to domain events                                       |
+| `EVENTS`                              | Event emit/on/off methods                                                          |
+| `STATIC METHODS`                      | Static public and private methods                                                  |
+| `EVENT TYPES` or `EVENTS & DELEGATES` | Delegate types and event interfaces (outside the class body)                       |
 
 A region is only needed when the group has at least one member. The `// #endregion` comment should repeat the label.
 
@@ -962,10 +997,36 @@ items.forEach((item) => {
 - Config validation happens via `src/api` files in geoview-core
 - Plugin packages have their own config schemas (default-config-\*.json) but rely on core's validation APIs
 - Use `ConfigApi` and `ConfigValidation` classes from geoview-core for config operations
+- **No localized fields in the schema** — `geoviewLayerName` and `metadataAccessPath` are plain strings, NOT bilingual `{ en, fr }` objects. The viewer resolves language internally (e.g., GeoCore UUID resolution returns language-specific names). Never use `{ 'en': '...', 'fr': '...' }` for these config properties.
+
+### Three Default Value Sources (Must Stay in Sync)
+
+There are three files that declare "default" config values. They serve different purposes but **must stay consistent**:
+
+| File                                                  | Purpose                             | When Used                                                                               |
+| ----------------------------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------- |
+| `schema.json`                                         | JSON Schema `"default"` annotations | Schema validation (AJV); documents valid enum values                                    |
+| `schema-default-config.json`                          | Minimal starter config template     | Rarely used at runtime; serves as documentation/reference                               |
+| `DEFAULT_MAP_FEATURE_CONFIG` in `map-schema-types.ts` | **Actual runtime defaults**         | `MapFeatureConfig` constructor: `deepMerge(DEFAULT_MAP_FEATURE_CONFIG.x, userConfig.x)` |
+
+**The authoritative source for runtime behavior is `DEFAULT_MAP_FEATURE_CONFIG`** in `packages/geoview-core/src/api/types/map-schema-types.ts`. When a user omits a property from their config, `MapFeatureConfig` (in `map-feature-config.ts`) deep-merges the user config over these defaults.
+
+**Related type files:**
+
+- `map-schema-types.ts` — Map-level types, enums, `DEFAULT_MAP_FEATURE_CONFIG`, `DEFAULT_FOOTERBAR_CORE`, `DEFAULT_APPBAR_CORE`, `DEFAULT_NAVBAR_CORE`
+- `layer-schema-types.ts` — Layer entry config types, source types, style types
+
+**Known drift (as of 2026-06):**
+
+All three sources have been synchronized. If you modify defaults in `DEFAULT_MAP_FEATURE_CONFIG`, also update `schema.json` `"default"` annotations and `schema-default-config.json` values.
+
+Previously drifted properties (now fixed): navBar, footerBar core, appBar core, highlightColor, overviewMap.hideOnZoom, maxExtent, zoomAndCenter center, basemapOptions key name (`id` vs `basemapId`), serviceUrls key name (`geolocator` vs `geolocatorUrl`), globalSettings.
+
+**When modifying defaults:** Update all three locations. `schema.json` defaults are advisory (used by AJV for missing fields during validation) but `DEFAULT_MAP_FEATURE_CONFIG` is what the viewer actually uses.
 
 ### Canonical Config Property Order
 
-When creating or editing map configuration JSON files (navigator demos, test configs, inline `data-config` attributes), properties **must** follow the canonical order defined in `packages/geoview-core/schema-default-config.json`. This order groups properties logically — metadata first, then the map definition, then UI chrome, then services and extensions.
+When creating or editing map configuration JSON files (navigator demos, test configs, inline `data-config` attributes), properties **must** follow the canonical order defined in `packages/geoview-core/schema-default-config.json`. This order groups properties logically — metadata first, then the map definition, then UI, then services and extensions.
 
 **Root-level order:**
 
@@ -997,7 +1058,58 @@ When creating or editing map configuration JSON files (navigator demos, test con
 7. extraOptions             — Pass-through OpenLayers map options
 ```
 
+**`map.viewSettings` structure (critical — `zoomAndCenter` is NOT a direct child of `viewSettings`):**
+
+```json
+{
+  "viewSettings": {
+    "projection": 3978,
+    "initialView": {
+      "zoomAndCenter": [4, [-90, 60]]
+    },
+    "homeView": {
+      "zoomAndCenter": [4, [-90, 60]]
+    },
+    "rotation": 0,
+    "maxExtent": [-135, 25, -50, 89],
+    "minZoom": 0,
+    "maxZoom": 20,
+    "enableRotation": true
+  }
+}
+```
+
+**Key rule:** `zoomAndCenter` and `extent` live inside `initialView` (or `homeView`), NEVER directly on `viewSettings`. Placing them directly on `viewSettings` triggers a schema validation error: `"must NOT have additional properties"`.
+
 **Rationale:** The order mirrors the logical sequence: _what kind of map_ → _what it shows_ → _how the UI wraps it_ → _what services back it_ → _what extends it_. Following this order makes configs easier to read, review, and diff.
+
+### Plugin Loading Mechanisms
+
+Plugins are loaded through **different config properties** depending on their type:
+
+| Plugin Type                | Config Property             | Examples                                                    |
+| -------------------------- | --------------------------- | ----------------------------------------------------------- |
+| **NavBar plugin**          | `navBar` array              | `drawer` (only one)                                         |
+| **Footer bar plugin**      | `footerBar.tabs.core` array | `time-slider`, `geochart`                                   |
+| **App bar plugin**         | `appBar.tabs.core` array    | `custom-legend`, `stac-browser`, `aoi-panel`, `about-panel` |
+| **Map plugin** (no UI tab) | `corePackages` array        | `swiper` (only one)                                         |
+
+**Critical:** Do NOT put `drawer`, `time-slider`, or `geochart` in `corePackages`. Only `swiper` uses `corePackages` because it renders directly on the map canvas without a tab.
+
+```json
+// ✅ Correct: each plugin loaded via its proper config property
+{
+  "navBar": ["zoom", "rotation", "fullscreen", "drawer"],
+  "footerBar": { "tabs": { "core": ["legend", "layers", "data-table", "time-slider", "geochart"] } },
+  "appBar": { "tabs": { "core": ["geolocator", "legend", "about-panel", "custom-legend"] } },
+  "corePackages": ["swiper"]
+}
+
+// ❌ Wrong: drawer and time-slider are NOT corePackages
+{
+  "corePackages": ["drawer", "time-slider"]
+}
+```
 
 ### Invalid `geoviewLayerType` Prevalidation
 

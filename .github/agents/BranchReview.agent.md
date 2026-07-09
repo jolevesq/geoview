@@ -97,6 +97,22 @@ These are the most commonly missed issues:
 
 - [ ] Related handlers are grouped with `// #region Handlers` / `// #endregion`
 
+#### 13. Three Default Value Sources (Must Stay in Sync)
+
+If any changed file modifies default config values in one of the three sources below, verify all three are consistent:
+
+| File                                                                                      | Purpose                                                     |
+| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `packages/geoview-core/schema.json`                                                       | JSON Schema `"default"` annotations (AJV validation)        |
+| `packages/geoview-core/schema-default-config.json`                                        | Minimal starter config template (documentation/reference)   |
+| `DEFAULT_MAP_FEATURE_CONFIG` in `packages/geoview-core/src/api/types/map-schema-types.ts` | **Actual runtime defaults** (authoritative source of truth) |
+
+- [ ] If `map-schema-types.ts` (`DEFAULT_MAP_FEATURE_CONFIG`, `DEFAULT_FOOTERBAR_CORE`, `DEFAULT_APPBAR_CORE`, `DEFAULT_NAVBAR_CORE`, `DEFAULT_HIGHLIGHT_COLOR`, `MAP_CENTER`, `MAP_ZOOM_LEVEL`, `MAP_EXTENTS`) was modified → check that `schema.json` and `schema-default-config.json` have matching values
+- [ ] If `schema.json` default annotations were modified → check they match `DEFAULT_MAP_FEATURE_CONFIG` runtime values
+- [ ] If `schema-default-config.json` was modified → check it matches `DEFAULT_MAP_FEATURE_CONFIG` runtime values
+
+**Key properties to watch:** `navBar`, `footerBar.tabs.core`, `appBar.tabs.core`, `basemapOptions.basemapId`, `highlightColor`, `overviewMap.hideOnZoom`, `viewSettings.zoomAndCenter`, `viewSettings.maxExtent`, `globalSettings`, `serviceUrls` key names.
+
 ### Phase 3 — Report
 
 Present findings organized by file with violation counts:
@@ -146,6 +162,44 @@ After applying fixes, review `.github/copilot-instructions.md` and check if the 
 - A new convention observed across the changed files that should be codified
 
 Propose targeted updates to `.github/copilot-instructions.md` and get user approval before applying.
+
+### Phase 6 — Update Release Candidate Tracker
+
+After applying fixes, append an entry to `docs/programming/release-testing/RELEASE-CANDIDATE.md` based on the **branch commit messages** and **linked issue descriptions** (not code violations — those are best-practice, not release notes material).
+
+**Steps:**
+
+1. Run `git log upstream/develop..HEAD --oneline --no-merges` to get the branch commit subjects
+2. Read any linked issue (from commit messages like `#1234` or `fixes #1234`) to understand intent
+3. Classify each commit based on prefix:
+   - `fix(...)` → **Bug Fixes** section
+   - `feat(...)` / `feature(...)` → **New Features** section
+   - `build(...)` / `core(build)` → **Build & Dependencies** section
+   - `doc(...)` / `clean(...)` → **Documentation & Cleanup** section
+   - `optimization(...)` / `structure(...)` → **Architecture & Performance** section
+   - `fix(wcag)` → **Accessibility (WCAG)** section
+   - Issue labels or description for additional context
+   - **If no prefix**: Ask the developer whether the commit is a bug fix, new feature, or which section it belongs to
+4. Check for **Breaking Changes** by diffing the branch against upstream/develop:
+   - `schema.json`, `schema-default-config.json` — config property additions/removals/renames
+   - `map-schema-types.ts`, `layer-schema-types.ts` — type/enum/default changes
+   - **Public API surface diff** — For each of these key files, run `git diff upstream/develop...HEAD -- <file>` and look for:
+     - `map-viewer.ts`: public methods removed, renamed, or with changed signatures
+     - `api/api.ts`: public methods removed, renamed, or with changed signatures
+     - `core/controllers/*.ts`: public controller methods removed, renamed, or with changed parameters
+     - Any public method that existed in upstream/develop but is missing in HEAD = **user-facing breaking change**
+     - Any public method with changed parameter types or count = **user-facing breaking change**
+     - Any renamed method = **user-facing breaking change** (document old → new name)
+   - Event delegate signatures — changed event payload types or renamed events
+   - Store getter/setter renames (e.g., `getStoreX` → `getStoreY`) that plugins may use
+5. Append to the appropriate section in RELEASE-CANDIDATE.md:
+   - **Breaking Changes**: Schema/API/type changes with the old → new mapping
+   - **New Features**: Brief description + PR number
+   - **Bug Fixes**: Brief description + PR number
+   - **Build & Dependencies**: Dependency updates, build config changes + PR number
+   - **Architecture & Performance**: Optimizations, refactors, structural changes + PR number
+   - **Accessibility (WCAG)**: WCAG fixes and improvements + PR number
+   - **Documentation & Cleanup**: Doc updates, demo cleanup, code organization + PR number
 
 ## Constraints
 

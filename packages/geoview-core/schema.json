@@ -103,7 +103,7 @@
       "items": {
         "$ref": "#/definitions/TypeValidNavBarProps"
       },
-      "default": ["zoom", "rotation", "fullscreen", "home", "location", "basemap-select", "measurement", "projection", "drawer"],
+      "default": ["zoom", "rotation", "fullscreen", "home", "basemap-select"],
       "minItems": 0
     },
     "TypeValidFooterBarTabsCoreProps": {
@@ -220,7 +220,7 @@
                 "$ref": "#/definitions/TypeValidAppBarCoreProps"
               },
               "minItems": 0,
-              "default": ["geolocator"],
+              "default": ["geolocator", "legend", "details", "export"],
               "uniqueItems": true
             }
           },
@@ -507,7 +507,7 @@
           "$ref": "#/definitions/TypeZoomAndCenter"
         },
         "extent": {
-          "description": "The extent for the initial view. Called with [minX, minY, maxX, maxY] extent coordinates.",
+          "description": "The extent for the initial view. Called with [minX, minY, maxX, maxY] extent coordinates. The map will fit this extent within the viewport using OpenLayers fit(). Note: the actual displayed extent may be slightly adjusted to match the viewport's aspect ratio (width/height).",
           "type": "array",
           "minItems": 4,
           "maxItems": 4,
@@ -552,7 +552,7 @@
           }
         ]
       ],
-      "default": [4.5, [-90, 67]]
+      "default": [4.5, [-90, 60]]
     },
     "TypeDisplayLanguage": {
       "enum": ["en", "fr"],
@@ -560,7 +560,7 @@
     },
     "TypeHighlightColors": {
       "enum": ["black", "white", "red", "green", "aqua"],
-      "default": "black",
+      "default": "aqua",
       "description": "Color to use for feature highlights."
     },
     "TypeOverlayObjects": {
@@ -651,7 +651,7 @@
           "items": {
             "type": "number"
           },
-          "default": [-125, 30, -60, 89],
+          "default": [-150, -10, -30, 90],
           "description": "The extent that constrains the view. Called with [minX, minY, maxX, maxY] extent coordinates."
         },
         "minZoom": {
@@ -1311,7 +1311,7 @@
         },
         "hover": {
           "type": "boolean",
-          "default": true
+          "default": false
         },
         "opacity": {
           "type": "boolean",
@@ -1319,7 +1319,7 @@
         },
         "query": {
           "type": "boolean",
-          "default": true
+          "default": false
         },
         "remove": {
           "type": "boolean",
