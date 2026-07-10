@@ -301,6 +301,25 @@ function DataTable({ data, layerPath, containerType, unfilteredFeaturesCount }: 
     }
   }, []);
 
+  /**
+   * Handles focusing a table header cell.
+   */
+  const handleTableHeadCellFocus = useCallback((event: React.FocusEvent<HTMLTableCellElement>): void => {
+    const {
+      dataset: { columnId },
+    } = event.currentTarget;
+    if (columnId) {
+      setFocusedCell(`header-${columnId}`);
+    }
+  }, []);
+
+  /**
+   * Handles blurring a table header cell.
+   */
+  const handleTableHeadCellBlur = useCallback((): void => {
+    setFocusedCell(null);
+  }, []);
+
   // #endregion
 
   /**
@@ -327,6 +346,20 @@ function DataTable({ data, layerPath, containerType, unfilteredFeaturesCount }: 
   );
 
   /**
+   * Handles image lightbox button clicks.
+   */
+  const handleLightBoxButtonClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>): void => {
+      const { dataset } = event.currentTarget;
+      const { imageSrc, buttonId } = dataset;
+      if (imageSrc && buttonId) {
+        initLightBox(imageSrc, '', buttonId, 0);
+      }
+    },
+    [initLightBox]
+  );
+
+  /**
    * Creates an image button that triggers the lightbox.
    *
    * @param cellValue - Value to be rendered in the cell
@@ -347,7 +380,9 @@ function DataTable({ data, layerPath, containerType, unfilteredFeaturesCount }: 
             variant="outlined"
             size="small"
             id={uniqueButtonId}
-            onClick={() => initLightBox(cellValue, '', uniqueButtonId, 0)}
+            data-button-id={uniqueButtonId}
+            data-image-src={cellValue}
+            onClick={handleLightBoxButtonClick}
             sx={memoSxClasses.lightboxButton}
             aria-label={`${t('dataTable.openImages')}${featureName}`}
           >
@@ -357,17 +392,23 @@ function DataTable({ data, layerPath, containerType, unfilteredFeaturesCount }: 
       }
 
       // convert string to react component.
-      return (typeof cellValue === 'string' && cellValue.length) || typeof cellValue === 'number' ? (
-        <UseHtmlToReact
-          htmlContent={sanitizeHtmlContent(
-            enhanceLinksAccessibility(linkifyHtml(cellValue.toString(), linkifyOptions), t('general.opensInNewTab'))
-          )}
-        />
-      ) : (
-        cellValue
-      );
+      if ((typeof cellValue === 'string' && cellValue.length) || typeof cellValue === 'number') {
+        try {
+          const reactComponent = (
+            <UseHtmlToReact
+              htmlContent={sanitizeHtmlContent(
+                enhanceLinksAccessibility(linkifyHtml(cellValue.toString(), linkifyOptions), t('general.opensInNewTab'))
+              )}
+            />
+          );
+          return reactComponent;
+        } catch (error) {
+          logger.logError('Error rendering HTML content:', error);
+        }
+      }
+      return cellValue;
     },
-    [initLightBox, t, containerType, mapId, memoSxClasses.lightboxButton]
+    [handleLightBoxButtonClick, t, containerType, mapId, memoSxClasses.lightboxButton]
   );
 
   /**
@@ -915,9 +956,10 @@ function DataTable({ data, layerPath, containerType, unfilteredFeaturesCount }: 
     localization: dataTableLocalization,
     muiTableHeadCellProps: ({ column }) => ({
       sx: memoSxClasses.tableHeadCell,
+      'data-column-id': column.id,
       onKeyDown: handleTableHeadKeyDown,
-      onFocus: () => setFocusedCell(`header-${column.id}`),
-      onBlur: () => setFocusedCell(null),
+      onFocus: handleTableHeadCellFocus,
+      onBlur: handleTableHeadCellBlur,
     }),
     muiColumnActionsButtonProps: {
       onKeyDown: handleColumnActionsKeyDown,

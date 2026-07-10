@@ -589,6 +589,9 @@ export abstract class AbstractGeoViewLayer {
 
     // Set the layer status to error
     layerConfig?.setLayerStatusError();
+
+    // Propagate error to parent group layers, if any
+    layerConfig?.updateLayerStatusParent();
   }
 
   /**
@@ -1461,6 +1464,7 @@ export interface LayerGroupCreatedEvent {
  */
 type LayerGroupCreatedDelegate = EventDelegateBase<AbstractGeoViewLayer, LayerGroupCreatedEvent, void>;
 
+/** Describes a WMS legend style and its associated canvas preview. */
 export interface TypeWmsLegendStyle {
   /** The name of the WMS legend style. */
   name: string;
