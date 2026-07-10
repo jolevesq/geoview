@@ -2,7 +2,7 @@
 
 > **Progress tracking**: Use the [Release Testing Issue Template](../../.github/ISSUE_TEMPLATE/release-testing.md) to track pass/fail status per release.
 >
-> **Test page**: [rt-16-initial-settings.html](../../packages/geoview-core/public/templates/release-testing/rt-16-initial-settings.html) — Map 1 (selected tab & layer), Map 2 (all controls disabled), Map 3 (default controls vs explicit controls query/hover toggle test).
+> **Test page**: [rt-16-initial-settings.html](https://canadian-geospatial-platform.github.io/geoview/public/rt-16-initial-settings.html) — Map 1 (selected tab & layer), Map 2 (all controls disabled), Map 3 (default controls vs explicit controls query/hover toggle test).
 >
 > **Navigator configs** (for detailed tests with multiple layer types): `23-initial-settings.json`, `23a-...-filters.json`, `23b-...-states-controls.json`, `23c-...-cascading.json`, `23d-...-layer-config.json`
 
@@ -42,7 +42,7 @@ States: `visible`, `legendCollapsed`, `opacity`, `hoverable`, `queryable`
 | Test                          | Description                       | Steps                                                                                                             | Expected Result                                                                                    | Auto |
 | ----------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ---- |
 | Visible false                 | Layer hidden, legend greyed       | 1. Load `23b` in navigator, check esriFeature layer (configured with `visible: false`)                            | Layer is hidden on the map but appears in the legend (greyed out, visibility icon shows off state) | A    |
-| Legend collapsed              | Legend entry collapsed            | 1. Load `23b` in navigator, check esriFeature layer (configured with `legendCollapsed: true`)                     | Legend entry is collapsed on load (children/items hidden)                                          | C    |
+| Legend collapsed              | Legend entry collapsed            | 1. Load `23b` in navigator, check esriFeature layer (configured with `legendCollapsed: true`)                     | Legend entry is collapsed on load (children/items hidden)                                          | A    |
 | Opacity applied               | Custom opacity on load            | 1. On Map 3, check the second layer "Historical Flood (controls on, states off)" (configured with `opacity: 0.5`) | Layer renders at 50% opacity on the map                                                            | A    |
 | Queryable false               | Layer not queryable               | 1. On Map 3, click on a feature of the first layer (configured with `queryable: false`)                           | Feature does not appear in the Details panel                                                       | A    |
 | Hoverable false               | No hover tooltip                  | 1. On Map 3, hover over a feature of the first layer (configured with `hoverable: false`)                         | No tooltip appears on hover                                                                        | A    |
@@ -60,10 +60,10 @@ States: `visible`, `legendCollapsed`, `opacity`, `hoverable`, `queryable`
 | Test                          | Description                        | Steps                                                                                   | Expected Result                                                                                                                                            | Auto |
 | ----------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
 | Parent visible false cascades | Children hidden but preserve state | 1. Load `23c` in navigator, check geojsonLYR1 root layer (`visible: false`)             | Parent and all children are hidden on the map; children appear greyed in legend but keep their own `visible: true` state internally                        | A    |
-| Parent controls cascade       | Children inherit controls          | 1. Check children under geojsonLYR1 (root: `highlight: false, zoom: false`)             | Children inherit `highlight: false` and `zoom: false` — no highlight or zoom buttons visible in their settings                                             | C    |
+| Parent controls cascade       | Children inherit controls          | 1. Check children under geojsonLYR1 (root: `highlight: false, zoom: false`)             | Children inherit `highlight: false` and `zoom: false` — no highlight or zoom buttons visible in their settings                                             | A    |
 | Child override                | Child overrides parent             | 1. Check icon_points.json under geojsonLYR1 (child has `remove: false` overriding root) | That specific child has `remove: false` applied while siblings inherit root settings                                                                       | A    |
 | 3-level cascade               | Settings flow through 3 levels     | 1. Check geojsonLYR3: root → group → child settings                                     | Root `remove: false` cascades to group and children; child "lines.json" overrides with `highlight: false, zoom: false`                                     | A    |
-| Group-level override          | Group overrides root               | 1. Check geojsonLYR2 groups (each group has different controls)                         | "line-polygon-group" has `highlight: false, zoom: false`; "point-feature-group" has `remove: false` — each group's children inherit their group's settings | C    |
+| Group-level override          | Group overrides root               | 1. Check geojsonLYR2 groups (each group has different controls)                         | "line-polygon-group" has `highlight: false, zoom: false`; "point-feature-group" has `remove: false` — each group's children inherit their group's settings | A    |
 
 ## Opacity Cascading
 
@@ -81,12 +81,48 @@ States: `visible`, `legendCollapsed`, `opacity`, `hoverable`, `queryable`
 
 | Test                 | Description                | Steps                                                                         | Expected Result                                                                     | Auto |
 | -------------------- | -------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---- |
-| OGC Feature filter   | Named features only        | 1. Load `23a` in navigator, check Large Lakes layer (filter: `name in (...)`) | Only the 4 named lakes are visible on the map                                       | C    |
-| WFS filter           | Single state only          | 1. Check US States layer (filter: `STATE_ABBR = 'NY'`)                        | Only New York state is visible on the map                                           | C    |
-| Esri Dynamic filter  | Province filter            | 1. Check Water Quantity layer (filter: `E_Province = 'Manitoba'`)             | Only Manitoba features are visible                                                  | C    |
-| Esri Feature filter  | Boolean filter             | 1. Check Historical Flood Events layer (filter: `death = 'yes'`)              | Only flood events with deaths are visible                                           | C    |
-| GeoJSON filter       | Province filter            | 1. Check Polygons layer (filter: `Province = 'Quebec'`)                       | Only Quebec polygon is visible                                                      | C    |
+| OGC Feature filter   | Named features only        | 1. Load `23a` in navigator, check Large Lakes layer (filter: `name in (...)`) | Only the 4 named lakes are visible on the map                                       | A    |
+| WFS filter           | Single state only          | 1. Check US States layer (filter: `STATE_ABBR = 'NY'`)                        | Only New York state is visible on the map                                           | A    |
+| Esri Dynamic filter  | Province filter            | 1. Check Water Quantity layer (filter: `E_Province = 'Manitoba'`)             | Only Manitoba features are visible                                                  | A    |
+| Esri Feature filter  | Boolean filter             | 1. Check Historical Flood Events layer (filter: `death = 'yes'`)              | Only flood events with deaths are visible                                           | A    |
+| GeoJSON filter       | Province filter            | 1. Check Polygons layer (filter: `Province = 'Quebec'`)                       | Only Quebec polygon is visible                                                      | A    |
 | Filter in data table | Filtered features in table | 1. Open the data table for a filtered layer                                   | Data table shows only the filtered features (matching the `layerFilter` expression) | C    |
+
+## Filter Combination (Cross-Source)
+
+> Ref config: `23a-initial-settings-filters.json` (config filters) + time-slider layer via navigator. Use Layers Navigator.
+>
+> Four filter sources exist (`layerFilterClass`, `layerFilterTime`, `tableFilters`, `initialFilter`). The config `layerFilter` is applied on load; the other three are changed via UI (legend class toggles, time slider, data table column filters). All sources combine with AND logic. Changing one must update both map rendering and data table rows.
+
+### Class Filter ↔ Data Table Sync
+
+| Test                           | Description                          | Steps                                                                                                                            | Expected Result                                                                  | Auto |
+| ------------------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---- |
+| Toggle class off updates table | Class filter reflected in data table | 1. Load a uniqueValue-styled layer (e.g., CESI in `23a`)<br>2. In the legend, toggle a style class OFF<br>3. Open the data table | Data table row count decreases — rows matching the toggled-off class are removed | C    |
+| Toggle class on restores table | Re-enabling class restores rows      | 1. Toggle the style class back ON<br>2. Check the data table                                                                     | Data table row count returns to previous value — previously hidden rows reappear | C    |
+| Toggle all classes off         | Empty data table                     | 1. Toggle ALL style classes OFF for the layer                                                                                    | Data table shows zero rows; map shows no features for that layer                 | C    |
+
+### Data Table Filter ↔ Map Sync
+
+| Test                             | Description                       | Steps                                                                                                   | Expected Result                                      | Auto |
+| -------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ---- |
+| Column filter applied to map     | Data table filter updates map     | 1. Open data table for a vector layer<br>2. Apply a column filter<br>3. Toggle "Apply filter to map" ON | Map only renders features matching the column filter | C    |
+| Clear column filter restores map | Removing filter restores features | 1. Clear the column filter or toggle "Apply filter to map" OFF                                          | Map renders all features again                       | C    |
+
+### Combined: Config Filter + Data Table Filter
+
+| Test                                  | Description                   | Steps                                                                                                                                                               | Expected Result                                                                                        | Auto |
+| ------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ---- |
+| Config + data table AND logic         | Both filters applied together | 1. Load `23a` (Esri Feature layer with `layerFilter: "death = 'yes'"`)<br>2. Open data table — confirm only "yes" rows<br>3. Apply a column filter on another field | Data table shows only rows matching BOTH config filter AND column filter; map renders the intersection | C    |
+| Remove data table filter keeps config | Config filter persists        | 1. Clear the column filter                                                                                                                                          | Data table returns to showing only config-filtered rows (config filter still active); map matches      | C    |
+
+### Combined: Class Filter + Data Table Filter
+
+| Test                                | Description                     | Steps                                                                                                                               | Expected Result                                                                                      | Auto |
+| ----------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---- |
+| Class off + column filter           | Both sources narrow results     | 1. Toggle a style class OFF for a uniqueValue layer<br>2. Apply a column filter in data table<br>3. Toggle "Apply filter to map" ON | Map shows only features matching both filters (AND logic); data table shows the intersection         | C    |
+| Re-enable class keeps column filter | Restoring class expands results | 1. Toggle the style class back ON                                                                                                   | Data table shows more rows (class filter removed) but column filter still applied; map reflects both | C    |
+| Clear all filters                   | Everything resets               | 1. Re-enable all style classes<br>2. Clear data table filters<br>3. Toggle "Apply filter to map" OFF                                | All features reappear on map and in data table                                                       | C    |
 
 ## Layer Entry Source Config
 

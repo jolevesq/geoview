@@ -2,7 +2,7 @@
 
 > **Progress tracking**: Use the [Release Testing Issue Template](../../.github/ISSUE_TEMPLATE/release-testing.md) to track pass/fail status per release.
 >
-> **Test page**: [rt-08-layers.html](../../packages/geoview-core/public/templates/release-testing/rt-08-layers.html) — Map 1 (groups + uniqueValue/classBreaks layers, collapse/expand/visibility buttons, layers in footer bar), Map 2 (WMS + ESRI Image for settings tests), Maps 3–8 (layer type configs: Esri Dynamic groups, projections, Vector Tiles, WKB, Shapefile, GeoJSON Multi).
+> **Test page**: [rt-08-layers.html](https://canadian-geospatial-platform.github.io/geoview/public/rt-08-layers.html) — Map 1 (groups + uniqueValue/classBreaks layers, collapse/expand/visibility buttons, layers in footer bar), Map 2 (WMS + ESRI Image for settings tests), Maps 3–8 (layer type configs: Esri Dynamic groups, projections, Vector Tiles, WKB, Shapefile, GeoJSON Multi).
 >
 > **Add Layer tests**: Use the [Add Layers demo page](../../packages/geoview-core/public/templates/demos/add-layers.html).
 >
@@ -349,13 +349,7 @@ Config: `configs/navigator/layers/geojson-multi.json`
 
 ### Layer Filter Combination
 
-Tests the four-source filter system (class + time + data + config) combined with AND logic.
-
-| Test                         | Description                     | Steps                                                                                              | Expected Result                                           | Auto |
-| ---------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ---- |
-| Style class filter           | Toggle class filters data table | 1. On Map 1, toggle a style class off for a uniqueValue layer<br>2. Open data table for that layer | Data table rows filtered to exclude the toggled-off class | C    |
-| Combined class + data filter | Both filters apply              | 1. Toggle a style class off<br>2. Apply a column filter in data table<br>3. Check map rendering    | Map shows only features matching both filters (AND logic) | C    |
-| Clear all filters            | Filters reset                   | 1. Re-enable all style classes<br>2. Clear data table filters                                      | All features reappear on map and in data table            | C    |
+> Tested in [16 — Initial Settings — Filter Combination (Cross-Source)](16-initial-settings.md#filter-combination-cross-source).
 
 ### Opacity Hierarchical Capping
 
