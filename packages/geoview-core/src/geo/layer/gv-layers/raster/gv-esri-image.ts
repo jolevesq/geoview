@@ -95,7 +95,7 @@ export class GVEsriImage extends AbstractGVRaster {
    *
    * @returns The ImageArcGISRest source instance associated with this layer.
    */
-  override getOLSource(): ImageArcGISRest {
+  protected override getOLSource(): ImageArcGISRest {
     // Get source from OL
     return super.getOLSource() as ImageArcGISRest;
   }
@@ -181,7 +181,7 @@ export class GVEsriImage extends AbstractGVRaster {
    */
   override onInitBounds(projection: OLProjection, stops: number): Promise<Extent | undefined> {
     // Get the metadata projection
-    const metadataProjection = this.getMetadataProjection();
+    const metadataProjection = this.getDataProjection();
 
     // Get the metadata extent
     let metadataExtent = this.getMetadataExtent();
@@ -363,6 +363,7 @@ export class GVEsriImage extends AbstractGVRaster {
       [feature],
       layerConfig,
       language,
+      true,
       layerConfig.getServiceDateFormat(),
       layerConfig.getServiceDateTimezone(),
       layerConfig.getServiceDateTemporalMode()
@@ -386,6 +387,7 @@ export class GVEsriImage extends AbstractGVRaster {
     features: Feature[],
     layerConfig: EsriImageLayerEntryConfig,
     language: TypeDisplayLanguage,
+    includeNoStyleFeatures: boolean,
     serviceDateFormat: string | undefined,
     serviceDateIANA: string | undefined,
     serviceDateTemporalMode: TemporalMode | undefined
@@ -403,6 +405,7 @@ export class GVEsriImage extends AbstractGVRaster {
       features,
       layerConfig,
       language,
+      includeNoStyleFeatures,
       serviceDateFormat,
       serviceDateIANA,
       serviceDateTemporalMode

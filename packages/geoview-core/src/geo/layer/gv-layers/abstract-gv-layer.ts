@@ -172,6 +172,15 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
   // #region OVERRIDES
 
   /**
+   * Gets the data projection of the layer source, either coming from the data itself or as indicated from the metadata.
+   *
+   * @returns The OpenLayers projection of the layer's source data, or undefined if not available
+   */
+  getDataProjection(): OLProjection | undefined {
+    return this.getLayerConfig().getMetadataProjection();
+  }
+
+  /**
    * Overrides the parent method to return a more specific OpenLayers layer type (covariant return).
    *
    * @returns The OpenLayers generic type.
@@ -573,7 +582,7 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
    *
    * @returns The OpenLayers Layer Source
    */
-  getOLSource(): Source {
+  protected getOLSource(): Source {
     return this.#olSource;
   }
 
@@ -1175,6 +1184,7 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
    * @param features - Array of features to format
    * @param layerConfig - Configuration of the associated layer
    * @param language - The display language, used to guess the best name field if `nameField` is not provided
+   * @param includeNoStyleFeatures - Whether to include features that have no matching style (no icon generated)
    * @param serviceDateFormat - Optional date format used by the service
    * @param serviceDateIANA - Optional IANA time zone identifier used by the service
    * @param serviceDateTemporalMode - Optional temporal mode for date handling
@@ -1184,6 +1194,7 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
     features: Feature[],
     layerConfig: OgcWmsLayerEntryConfig | EsriDynamicLayerEntryConfig | EsriImageLayerEntryConfig | VectorLayerEntryConfig,
     language: TypeDisplayLanguage,
+    includeNoStyleFeatures: boolean,
     serviceDateFormat: string | undefined,
     serviceDateIANA: string | undefined,
     serviceDateTemporalMode: TemporalMode | undefined
@@ -1210,6 +1221,7 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
       true,
       domainsLookup,
       this.getStyle(),
+      includeNoStyleFeatures,
       serviceDateFormat,
       serviceDateIANA,
       serviceDateTemporalMode,
@@ -2354,6 +2366,7 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
    * @param supportZoomTo - Whether zoom-to functionality is supported for these features
    * @param domainsLookup - Optional array of field metadata for domain lookups
    * @param layerStyle - Optional mapping of geometry type to style settings for icons
+   * @param includeNoStyleFeatures - Whether to include features that have no matching style (no icon generated)
    * @param inputFormat - Optional format(s) to prioritize for string inputs
    * @param inputTimezone - Optional IANA timezone the dates are in
    * @param inputTemporalMode - Optional temporal mode for date handling
@@ -2369,6 +2382,7 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
     supportZoomTo: boolean,
     domainsLookup: TypeLayerMetadataFields[] | undefined,
     layerStyle: Partial<Record<TypeStyleGeometry, TypeLayerStyleSettings>> | undefined,
+    includeNoStyleFeatures: boolean,
     inputFormat: string | string[] | undefined,
     inputTimezone: TimeIANA | undefined,
     inputTemporalMode: TemporalMode | undefined,
@@ -2392,33 +2406,40 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
           ? AbstractGVLayer.getFeatureIconSource(feature, layerStyle, domainsLookup, aliasLookup, imageSourceDict)
           : undefined;
 
-        // Get the TypeFeatureInfoEntry object
-        const featureInfoEntry: TypeFeatureInfoEntry = {
-          uid: getUid(feature),
-          featureKey: featureKeyCounter++,
-          geoviewLayerType: schemaTag,
-          feature,
-          geometry: feature.getGeometry(),
-          extent: feature.getGeometry()?.getExtent(),
-          featureIcon: imageSource,
-          fieldInfo: {},
-          nameField,
-          supportZoomTo,
-          layerPath,
-        };
+        // Check if we do want to include the feature when it has no style
+        let includeFeature = true;
+        if (!includeNoStyleFeatures && !imageSource) includeFeature = false;
 
-        // Process the feature fields
-        fieldKeyCounter = this.#helperFeatureFields(
-          feature,
-          outFields,
-          featureInfoEntry,
-          fieldKeyCounter,
-          inputFormat,
-          inputTimezone,
-          inputTemporalMode,
-          callbackGetFieldValue
-        );
-        queryResult.push(featureInfoEntry);
+        // If including the feature
+        if (includeFeature) {
+          // Get the TypeFeatureInfoEntry object
+          const featureInfoEntry: TypeFeatureInfoEntry = {
+            uid: getUid(feature),
+            featureKey: featureKeyCounter++,
+            geoviewLayerType: schemaTag,
+            feature,
+            geometry: feature.getGeometry(),
+            extent: feature.getGeometry()?.getExtent(),
+            featureIcon: imageSource,
+            fieldInfo: {},
+            nameField,
+            supportZoomTo,
+            layerPath,
+          };
+
+          // Process the feature fields
+          fieldKeyCounter = this.#helperFeatureFields(
+            feature,
+            outFields,
+            featureInfoEntry,
+            fieldKeyCounter,
+            inputFormat,
+            inputTimezone,
+            inputTemporalMode,
+            callbackGetFieldValue
+          );
+          queryResult.push(featureInfoEntry);
+        }
       }
 
       return queryResult;
@@ -2533,7 +2554,8 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
     const fieldValue = feature.get(fieldName);
     if (fieldType === 'date') {
       // If the value is null or undefined, return it as-is instead of trying to parse it as a date
-      if (fieldValue === null || fieldValue === undefined) return fieldValue;
+      // GV Some services have date fields with 'Null' in their data.. e.g. https://sampleserver6.arcgisonline.com/arcgis/rest/services/Water_Network/MapServer/6
+      if (fieldValue === null || fieldValue === undefined || fieldValue === 'Null') return fieldValue;
 
       // Read the date
       return DateMgt.createDate(fieldValue, inputFormat, inputTimezone, inputTemporalMode);

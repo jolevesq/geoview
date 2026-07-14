@@ -744,11 +744,47 @@ export const getStoreLayerBounds = (mapId: string, layerPath: string): Extent | 
 /** Hook that returns the bounds extent for a specific layer. */
 export const useStoreLayerBounds = createLayerSelectorHook('bounds');
 
+/**
+ * Gets the minimum scale denominator for a specific layer.
+ *
+ * @param mapId - The map identifier
+ * @param layerPath - The layer path to look up
+ * @returns The minimum scale denominator, or undefined
+ */
+export const getStoreLayerMinScale = (mapId: string, layerPath: string): number | undefined => {
+  return getStoreLayerLegendLayerByPath(mapId, layerPath)?.minScale;
+};
+
 /** Hook that returns the minimum scale denominator for a specific layer. */
 export const useStoreLayerMinScale = createLayerSelectorHook('minScale');
 
+/**
+ * Gets the maximum scale denominator for a specific layer.
+ *
+ * @param mapId - The map identifier
+ * @param layerPath - The layer path to look up
+ * @returns The maximum scale denominator, or undefined
+ */
+export const getStoreLayerMaxScale = (mapId: string, layerPath: string): number | undefined => {
+  return getStoreLayerLegendLayerByPath(mapId, layerPath)?.maxScale;
+};
+
 /** Hook that returns the maximum scale denominator for a specific layer. */
 export const useStoreLayerMaxScale = createLayerSelectorHook('maxScale');
+
+/**
+ * Gets the data projection code for a specific layer.
+ *
+ * @param mapId - The map identifier
+ * @param layerPath - The layer path to look up
+ * @returns The data projection code, or undefined
+ */
+export const getStoreLayerDataProjectionCode = (mapId: string, layerPath: string): string | undefined => {
+  return getStoreLayerLegendLayerByPath(mapId, layerPath)?.dataProjectionCode;
+};
+
+/** Hook that returns the data projection code for a specific layer. */
+export const useStoreLayerDataProjectionCode = createLayerSelectorHook('dataProjectionCode');
 
 /**
  * Gets the layer status for a specific layer.

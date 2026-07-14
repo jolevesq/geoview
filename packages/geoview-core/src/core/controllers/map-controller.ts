@@ -371,6 +371,36 @@ export class MapController extends AbstractMapViewerController {
   }
 
   /**
+   * Converts a zoom level to a map scale denominator.
+   *
+   * @param zoom - The zoom level
+   * @returns The scale denominator (e.g. 50000 for 1:50,000), or undefined if conversion is unavailable
+   */
+  getScaleFromZoom(zoom: number): number | undefined {
+    return this.getMapViewer().getMapScaleFromZoom(zoom);
+  }
+
+  /**
+   * Converts a map scale denominator to the corresponding zoom level.
+   *
+   * @param scale - The scale denominator (e.g. 50000 for 1:50,000)
+   * @returns The zoom level for the given scale, or undefined if conversion is unavailable
+   */
+  getZoomFromScale(scale: number): number | undefined {
+    return this.getMapViewer().getZoomFromScale(scale);
+  }
+
+  /**
+   * Converts a map scale denominator into the corresponding OpenLayers resolution.
+   *
+   * @param scale - The scale denominator (e.g. 50000 for 1:50,000)
+   * @returns The map resolution in map units per pixel, or undefined if conversion is unavailable
+   */
+  getResolutionFromScale(scale: number): number | undefined {
+    return this.getMapViewer().getMapResolutionFromScale(scale);
+  }
+
+  /**
    * Returns to initial view state of map using config.
    *
    * @param useAnimation - Indicates if a zoom animation should be used, default: true
@@ -403,7 +433,7 @@ export class MapController extends AbstractMapViewerController {
         ? Projection.transformExtentFromProj(
             lonlatExtent,
             Projection.getProjectionLonLat(),
-            Projection.getProjectionFromString(`EPSG:${currProjection}`)
+            Projection.getProjectionFromStringOrNumber(currProjection)
           )
         : lonlatExtent;
 
@@ -418,7 +448,7 @@ export class MapController extends AbstractMapViewerController {
       extent = Projection.transformExtentFromProj(
         MAP_EXTENTS[currProjection],
         Projection.getProjectionLonLat(),
-        Projection.getProjectionFromString(`EPSG:${currProjection}`)
+        Projection.getProjectionFromStringOrNumber(currProjection)
       );
 
     return this.zoomToExtent(extent, useAnimation, options);
@@ -427,7 +457,7 @@ export class MapController extends AbstractMapViewerController {
   /**
    * Zooms to geolocation position provided.
    *
-   * @param position - Info on position to zoom to
+   * @param position - lon/lat position to zoom to
    * @returns A promise that resolves when the zoom animation is complete
    */
   zoomToMyLocation(position: GeolocationPosition): Promise<void> {
@@ -1573,11 +1603,11 @@ export class MapController extends AbstractMapViewerController {
       .layerController.getGeoviewLayers()
       .filter((layer) => layer instanceof AbstractGVVectorTile)
       .forEach((layer) => {
-        // Get the config
-        const config = layer.getLayerConfig();
+        // Get the data projection
+        const dataProjection = layer.getDataProjection();
 
         // If the projection of the layer isn't the same of the map projection, it means the vector tile layer won't be reprojected, show a warning
-        if (config.getProjectionCodeEPSG() !== event.projection.getCode()) {
+        if (dataProjection && dataProjection.getCode() !== event.projection.getCode()) {
           // Log
           this.getMapViewer().notifications.showWarning('warning.layer.vectorTileUnsupportedProjection', {
             layerName: layer.getLayerName(),

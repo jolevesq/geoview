@@ -693,18 +693,18 @@ export class MapViewer {
     viewOptions.center = mapViewSettings.initialView?.zoomAndCenter
       ? Projection.transformFromLonLat(
           mapViewSettings.initialView?.zoomAndCenter[1],
-          Projection.getProjectionFromString(viewOptions.projection)
+          Projection.getProjectionFromStringOrNumber(viewOptions.projection)
         )
       : Projection.transformFromLonLat(
           Projection.transformToLonLat(currentView.getCenter()!, currentView.getProjection()),
-          Projection.getProjectionFromString(viewOptions.projection)
+          Projection.getProjectionFromStringOrNumber(viewOptions.projection)
         );
     viewOptions.minZoom = mapViewSettings.minZoom ? mapViewSettings.minZoom : currentView.getMinZoom();
     viewOptions.maxZoom = mapViewSettings.maxZoom ? mapViewSettings.maxZoom : currentView.getMaxZoom();
     viewOptions.rotation = mapViewSettings.rotation ? mapViewSettings.rotation : currentView.getRotation();
 
     if (mapViewSettings.maxExtent) {
-      const projObj = Projection.getProjectionFromString(`EPSG:${mapViewSettings.projection}`);
+      const projObj = Projection.getProjectionFromStringOrNumber(mapViewSettings.projection);
       viewOptions.extent = MapViewer.#computeViewExtent(Number(mapViewSettings.projection), mapViewSettings.maxExtent, projObj);
     }
 
@@ -948,6 +948,18 @@ export class MapViewer {
   }
 
   /**
+   * Converts a map scale denominator to the corresponding zoom level.
+   *
+   * @param scale - The scale denominator (e.g. 50000 for 1:50,000)
+   * @returns The zoom level for the given scale, or undefined if conversion is unavailable
+   */
+  getZoomFromScale(scale: number): number | undefined {
+    const resolution = this.getMapResolutionFromScale(scale);
+    if (resolution === undefined) return undefined;
+    return this.getView().getZoomForResolution(resolution) ?? undefined;
+  }
+
+  /**
    * Converts a map scale denominator (1:X) into the corresponding OpenLayers resolution.
    *
    * Resolution is computed using: resolution = scale / (metersPerUnit * inchesPerMeter * dpi)
@@ -1106,7 +1118,7 @@ export class MapViewer {
    * Shows a marker on the map.
    *
    * @param marker - The marker to add
-   * @returns The projected coordinates of the marker
+   * @returns The projected coordinates of the marker, in the same projection of the map
    */
   clickMarkerIconShow(marker: TypeClickMarker): number[] {
     // Project coords
@@ -1507,7 +1519,7 @@ export class MapViewer {
 
     // Zoom-in limit (maxScale: smaller denominator, e.g. 1:50 000)
     // Most restrictive = largest value (requires being less zoomed-in to be visible)
-    const maxScaleFromConfig = layerConfig.getMaxScale();
+    const maxScaleFromConfig = layerConfig.getMaxScaleIncludingParent();
     const maxScaleFromInitialSettingsZoom =
       initialSettings?.maxZoom !== undefined ? mapViewer.getMapScaleFromZoom(initialSettings.maxZoom) : undefined;
     const effectiveMaxScaleCandidates = [maxScaleFromConfig, maxScaleFromInitialSettingsZoom].filter(
@@ -1517,7 +1529,7 @@ export class MapViewer {
 
     // Zoom-out limit (minScale: larger denominator, e.g. 1:1 000 000)
     // Most restrictive = smallest value (restricts how far out the user can zoom)
-    const minScaleFromConfig = layerConfig.getMinScale();
+    const minScaleFromConfig = layerConfig.getMinScaleIncludingParent();
     const minScaleFromInitialSettingsZoom =
       initialSettings?.minZoom !== undefined ? mapViewer.getMapScaleFromZoom(initialSettings.minZoom) : undefined;
     const effectiveMinScaleCandidates = [minScaleFromConfig, minScaleFromInitialSettingsZoom].filter(
@@ -1535,10 +1547,8 @@ export class MapViewer {
 
     return {
       maxScale: roundedMaxScale,
-      maxScaleTolerance,
       maxScaleZoomAt: maxScaleTolerance, // Same as the tolerance, adjust this to add an additional offset if necessary
       minScale: roundedMinScale,
-      minScaleTolerance,
       minScaleZoomAt: minScaleTolerance, // Same as the tolerance, adjust this to add an additional offset if necessary
     };
   }
@@ -2949,9 +2959,7 @@ export type MapMoveEndDelegate = EventDelegateBase<MapViewer, MapMoveEndEvent, v
 /**
  * Event for the map pointer move delegate.
  */
-// TODO: REFACTOR - These should be changed to interface and extend from MapBaseEvent, bit of confusion with reuse of the type
-// TO.DOCONT: export interface MapPointerMoveEvent extends MapBaseEvent
-export type MapPointerMoveEvent = TypeMapMouseInfo;
+export interface MapPointerMoveEvent extends MapBaseEvent, TypeMapMouseInfo {}
 
 /**
  * Delegate for the map pointer move event handler function signature.
@@ -2971,9 +2979,7 @@ export type MapMouseLeaveDelegate = EventDelegateBase<MapViewer, MapBaseEvent, v
 /**
  * Event for the map single click delegate.
  */
-// TODO: REFACTOR - These should be changed to interface and extend from MapBaseEvent, bit of confusion with reuse of the type
-// TO.DOCONT: export interface MapSingleClickEvent extends MapBaseEvent
-export type MapSingleClickEvent = TypeMapMouseInfo;
+export interface MapSingleClickEvent extends MapBaseEvent, TypeMapMouseInfo {}
 
 /**
  * Delegate for the map single click event handler function signature.

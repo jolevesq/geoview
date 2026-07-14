@@ -25,6 +25,8 @@ import {
   getStoreLayerMosaicRule,
   getStoreLayerHighlightedLayer,
   getStoreLayerLegendLayerByPath,
+  getStoreLayerMaxScale,
+  getStoreLayerMinScale,
   getStoreLayerOrderedLayerIndexByPath,
   getStoreLayerOrderedLayerPaths,
   setStoreLayerAllMapLayerCollapsed,
@@ -96,7 +98,7 @@ import type { TemporalMode, TypeDisplayDateFormat } from '@/core/utils/date-mgt'
 import type { TypeLayersViewDisplayState, TypeLegendItem } from '@/core/components/layers/types';
 import { logger } from '@/core/utils/logger';
 import { NoBoundsError } from '@/core/exceptions/geoview-exceptions';
-import { OL_ZOOM_DURATION, OL_ZOOM_PADDING } from '@/core/utils/constant';
+import { DEFAULT_OL_FITOPTIONS, OL_ZOOM_DURATION } from '@/core/utils/constant';
 import { Projection } from '@/geo/utils/projection';
 import { GeoUtilities } from '@/geo/utils/utilities';
 import {
@@ -106,7 +108,6 @@ import {
   type MapMoveEndDelegate,
   type MapMoveEndEvent,
 } from '@/geo/map/map-viewer';
-import { AbstractGVRaster } from '@/geo/layer/gv-layers/raster/abstract-gv-raster';
 import { GVEsriImage } from '@/geo/layer/gv-layers/raster/gv-esri-image';
 import type { AbstractBaseGVLayer } from '@/geo/layer/gv-layers/abstract-base-layer';
 import { AbstractGVLayer } from '@/geo/layer/gv-layers/abstract-gv-layer';
@@ -743,29 +744,68 @@ export class LayerController extends AbstractMapViewerController {
   }
 
   /**
-   * Retrieves the service (metadata) projection code for a specific raster layer.
+   * Zooms to the full extent of a layer.
    *
-   * Looks up the GeoView layer associated with the provided `layerPath`.
-   * If the layer exists and is an instance of `AbstractGVRaster`, it retrieves the
-   * projection defined in the service metadata via `getMetadataProjection()`.
-   *
-   * @param layerPath - The fully qualified path of the layer
-   * @returns The projection code (e.g., "EPSG:4326") defined in the layer's service metadata,
-   * or `undefined` if the layer does not exist, is not a raster layer, or the metadata projection is not available
+   * @param layerPath - The path of the layer to zoom to
+   * @param useAnimation - Optional flag indicating if a zoom animation should be used
+   * @param fitOptions - Optional OL fit options to configure the zoom
+   * @returns A promise that resolves when the zoom animation is complete
+   * @throws {NoBoundsError} When the layer doesn't have bounds
    */
-  getLayerMetatadaProjectionEPSG(layerPath: string): string | undefined {
-    // Get the layer if it exists
-    const geoviewLayer = this.getGeoviewLayerIfExists(layerPath);
+  zoomToLayerExtent(layerPath: string, useAnimation = true, fitOptions: FitOptions = DEFAULT_OL_FITOPTIONS): Promise<void> {
+    // Get the layer bounds
+    const bounds = getStoreLayerBounds(this.getMapId(), layerPath);
 
-    // If of the right type
-    if (geoviewLayer instanceof AbstractGVRaster) {
-      // Get the projection and return its code
-      const projection = geoviewLayer.getMetadataProjection();
-      return projection?.getCode();
+    // If found
+    if (bounds) {
+      return this.getControllersRegistry().mapController.zoomToExtent(bounds, useAnimation, fitOptions);
     }
 
-    // Layer not found or not a Raster layer or no metadata projection
-    return undefined;
+    // Failed
+    throw new NoBoundsError(layerPath);
+  }
+
+  /**
+   * Zooms to the specified extent, clamping the zoom level to the layer's visible scale range.
+   *
+   * Reads the layer's min/max scale from the store and converts them to OL fit constraints
+   * (maxZoom from maxScale, minResolution from minScale) so the resulting zoom does not exceed
+   * the layer's visibility boundaries.
+   *
+   * @param layerPath - The layer path used to look up scale limits
+   * @param extent - The extent to zoom to
+   * @param useAnimation - Optional flag indicating if a zoom animation should be used
+   * @param fitOptions - Optional OL fit options to merge scale constraints into
+   * @returns A promise that resolves when the zoom animation is complete
+   */
+  zoomToExtentRestricted(
+    layerPath: string,
+    extent: Extent,
+    useAnimation = true,
+    fitOptions: FitOptions = DEFAULT_OL_FITOPTIONS
+  ): Promise<void> {
+    // Read the min/max scales from the store for the corresponding layer path
+    const layerMaxScale = getStoreLayerMaxScale(this.getMapId(), layerPath);
+    const layerMinScale = getStoreLayerMinScale(this.getMapId(), layerPath);
+
+    // Compute zoom constraints from the layer's scale range so we don't zoom beyond the layer's visible range
+    if (layerMaxScale) {
+      const maxZoomFromScale = this.getControllersRegistry().mapController.getZoomFromScale(layerMaxScale);
+      if (maxZoomFromScale !== undefined) {
+        // eslint-disable-next-line no-param-reassign
+        fitOptions.maxZoom = Math.min(fitOptions.maxZoom ?? maxZoomFromScale, maxZoomFromScale);
+      }
+    }
+    if (layerMinScale) {
+      const minResolution = this.getControllersRegistry().mapController.getResolutionFromScale(layerMinScale);
+      if (minResolution !== undefined) {
+        // eslint-disable-next-line no-param-reassign
+        fitOptions.minResolution = Math.floor(minResolution * 100) / 100;
+      }
+    }
+
+    // Zoom to extent and wait for it to finish
+    return this.getControllersRegistry().mapController.zoomToExtent(extent, useAnimation, fitOptions);
   }
 
   /**
@@ -1035,10 +1075,9 @@ export class LayerController extends AbstractMapViewerController {
     // Using resolution directly matches OL rendering behavior and covers both scale-sourced
     // and zoom-sourced limits without any conversion.
     const currentResolution = view.getResolution() ?? view.getResolutionForZoom(view.getZoom() ?? 0);
-    const currentScale = (view.getZoom() ?? undefined) !== undefined ? mapViewer.getMapScaleFromZoom(view.getZoom()!) : undefined;
 
     // Check if the layer falls in visible resolution range
-    const inVisibleRange = currentResolution ? gvLayer.isInVisibleRange(currentResolution, currentScale, effectiveScales) : true;
+    const inVisibleRange = currentResolution ? gvLayer.isInVisibleRange(currentResolution) : true;
 
     // Redirect
     this.setLayerInVisibleRange(gvLayer.getLayerPath(), inVisibleRange);
@@ -1047,7 +1086,7 @@ export class LayerController extends AbstractMapViewerController {
     let parentLayer = gvLayer.getParent();
     while (parentLayer) {
       // Check if the parent layer falls in visible resolution range
-      const parentInVisibleRange = currentResolution ? parentLayer.isInVisibleRange(currentResolution, currentScale) : true;
+      const parentInVisibleRange = currentResolution ? parentLayer.isInVisibleRange(currentResolution) : true;
 
       // Redirect
       this.setLayerInVisibleRange(parentLayer.getLayerPath(), parentInVisibleRange);
@@ -1760,29 +1799,6 @@ export class LayerController extends AbstractMapViewerController {
       resolution: targetResolution,
       duration: OL_ZOOM_DURATION,
     });
-  }
-
-  /**
-   * Zooms to extents of a layer.
-   *
-   * @param layerPath - The path of the layer to zoom to
-   * @param useAnimation - Indicates if a zoom animation should be used, default: true
-   * @throws {NoBoundsError} When the layer doesn't have bounds
-   */
-  zoomToLayerExtent(layerPath: string, useAnimation = true, fitOptions?: FitOptions): Promise<void> {
-    // Define some zoom options
-    const options: FitOptions = fitOptions ?? { padding: OL_ZOOM_PADDING, duration: OL_ZOOM_DURATION };
-
-    // Get the layer bounds
-    const bounds = getStoreLayerBounds(this.getMapId(), layerPath);
-
-    // If found
-    if (bounds) {
-      return this.getControllersRegistry().mapController.zoomToExtent(bounds, useAnimation, options);
-    }
-
-    // Failed
-    throw new NoBoundsError(layerPath);
   }
 
   /**
@@ -2534,15 +2550,11 @@ export class LayerController extends AbstractMapViewerController {
 
     // Current map resolution used for resolution-based visibility checks.
     const currentResolution = mapViewer.getView().getResolution() ?? mapViewer.getView().getResolutionForZoom(zoom);
-    const currentScale = mapViewer.getMapScaleFromZoom(zoom);
 
     // Get the inVisibleRange property by checking each layer's OL resolution thresholds.
     allLayers.forEach((layer) => {
-      // Get the effective scales
-      const effectiveScales = MapViewer.computeEffectiveLayerScales(mapViewer, layer.getLayerConfig());
-
       // Check if the layer is in visible range
-      const inVisibleRange = layer.isInVisibleRange(currentResolution, currentScale, effectiveScales);
+      const inVisibleRange = layer.isInVisibleRange(currentResolution);
 
       // Save to the store
       this.setLayerInVisibleRange(layer.getLayerPath(), inVisibleRange);

@@ -476,7 +476,7 @@ export class LayerSetController extends AbstractMapViewerController {
     // Compute effective layer scales to get the in visible range flag
     const effectiveScales = MapViewer.computeEffectiveLayerScales(this.getMapViewer(), layerConfig);
     const { maxScale, minScale } = effectiveScales;
-    const inVisibleRange = layer?.isInVisibleRange(context.calculatedMapResolution, context.calculatedMapScale, effectiveScales) ?? true; // default: true
+    const inVisibleRange = layer?.isInVisibleRange(context.calculatedMapResolution) ?? true; // default: true
 
     // Reuse existing value to make sure we don't override it when we shouldn't have (should be refactored, view note of this function)
     const schemaTag = existingStoreEntry?.legendSchemaTag ?? layerConfig.getSchemaTag();
@@ -529,6 +529,7 @@ export class LayerSetController extends AbstractMapViewerController {
       legendLayerEntry.displayDateFormat = layerConfigCasted.getDisplayDateFormat();
       legendLayerEntry.displayDateFormatShort = layerConfigCasted.getDisplayDateFormatShort();
       legendLayerEntry.displayDateTimezone = layerConfigCasted.getDisplayDateTimezone();
+      legendLayerEntry.dataProjectionCode = layer?.getDataProjection()?.getCode();
 
       // If the layer is vector
       if (layer instanceof AbstractGVVector) {
@@ -594,8 +595,8 @@ export class LayerSetController extends AbstractMapViewerController {
     // Show zoom-to-visible-scale control whenever the layer has any scale or zoom range constraint.
     // Do not rely only on layer min/max zoom because constraints can be provided as minScale/maxScale.
     const visibleScale: boolean =
-      layerConfig.getMinScale() !== undefined ||
-      layerConfig.getMaxScale() !== undefined ||
+      layerConfig.getMinScaleIncludingParent() !== undefined ||
+      layerConfig.getMaxScaleIncludingParent() !== undefined ||
       initialSettings?.minZoom !== undefined ||
       initialSettings?.maxZoom !== undefined;
 
@@ -609,7 +610,7 @@ export class LayerSetController extends AbstractMapViewerController {
       table: initialSettings?.controls?.table ?? true, // default: true
       visibility: initialSettings?.controls?.visibility ?? true, // default: true
       zoom: initialSettings?.controls?.zoom ?? true, // default: true
-      visibleScale, // default: false
+      visibleScale,
     };
   }
 
