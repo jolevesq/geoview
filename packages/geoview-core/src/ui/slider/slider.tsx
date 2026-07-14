@@ -30,6 +30,7 @@ type SliderProps = {
   onChangeCommitted?: (value: number | number[]) => void;
   onValueLabelFormat?: (value: number, index: number) => string;
   onValueDisplayAriaLabel?: (value: number, index: number) => string;
+  onKeyDown?: (event: React.KeyboardEvent) => void;
 
   // MUI optional props
   disabled?: boolean;
@@ -40,7 +41,7 @@ type SliderProps = {
   track?: 'inverted' | 'normal' | false;
   ariaLabelledby?: string;
   valueLabelFormat?: string | ((value: number, index: number) => ReactNode);
-  valueLabelDisplay?: 'auto' | 'on';
+  valueLabelDisplay?: 'auto' | 'on' | 'off';
   slotProps?: MuiSliderProps['slotProps'];
 };
 
@@ -87,6 +88,7 @@ function SliderUI(props: SliderProps): JSX.Element {
     onChangeCommitted,
     onValueLabelFormat,
     onValueDisplayAriaLabel,
+    onKeyDown,
     disabled,
     slotProps,
     ...properties
@@ -112,7 +114,7 @@ function SliderUI(props: SliderProps): JSX.Element {
 
   const containerId = generateId(18);
 
-  const valueLabelDisplayOption = valueLabelDisplay === undefined ? 'on' : 'auto';
+  const valueLabelDisplayOption = valueLabelDisplay === undefined ? 'on' : valueLabelDisplay;
 
   // TODO: Refactor - when refactor time slider, re work logic for marks and label to have all of them inside slider (geochart-time slider)
   /**
@@ -244,8 +246,11 @@ function SliderUI(props: SliderProps): JSX.Element {
         }
         focusSlider();
       }
+
+      // Call custom handler if provided
+      onKeyDown?.(event);
     },
-    [focusSlider]
+    [focusSlider, onKeyDown]
   );
 
   // #endregion
