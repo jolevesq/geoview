@@ -552,7 +552,7 @@ appBar?: {
   selectedTimeSliderLayerPath: string;
 };
 
-TypeValidAppBarCoreProps = "about-panel" | "geolocator" | "export" | "aoi-panel" | "custom-legend" | "guide" | "legend" | "details" | "data-table" | "layers" | "stac-browser";
+TypeValidAppBarCoreProps = "about-panel" | "geolocator" | "export" | "aoi-panel" | "custom-legend" | "guide" | "legend" | "details" | "data-table" | "layers" | "stac-browser" | "filter-panel";
 ```
 
 **Properties:**
@@ -564,6 +564,7 @@ TypeValidAppBarCoreProps = "about-panel" | "geolocator" | "export" | "aoi-panel"
     - `"export"` - Map export functionality
     - `"aoi-panel"` - **AOI Panel package** - Area of interest selection
     - `"custom-legend"` - **Custom Legend package** - Custom legend display
+    - `"filter-panel"` - **Filter Panel package** - Layer attribute filtering
     - `"stac-browser"` - **Custom Stac Browser package** - Browse Stac
     - `"guide"` - User guide tab
     - `"legend"` - Layer legend display
@@ -2336,6 +2337,7 @@ Configuration schemas for GeoView packages. Packages are loaded and configured t
 - **[Custom Legend](#custom-legend-package)**: Loaded via `appBar.tabs.core: ["custom-legend"]`
 - **[Drawer](#drawer-package)**: Loaded via `navBar: ["drawer"]`
 - **[About Panel](#about-panel-package)**: Loaded via `appBar.tabs.core: ["about-panel"]`
+- **[Filter Panel](#filter-panel-package)**: Loaded via `appBar.tabs.core: ["filter-panel"]`
 
 ### Package Configuration Methods
 
@@ -3088,6 +3090,238 @@ When using `mdPath` or `mdContent`, the About Panel supports standard Markdown s
 - The `aboutTitle` property customizes the panel header and accessibility label
 - Custom icons should be 24x24 pixels for best display
 - If no content is provided, the panel will be empty but functional
+
+---
+
+### Filter Panel Package
+
+Layer attribute filtering panel with support for multiple filter types.
+
+**Loading:** Include `"filter-panel"` in `appBar.tabs.core` array to enable this package.
+
+#### Schema
+
+The schema uses a discriminated union based on `filterType`. Each filter type has specific properties:
+
+```typescript
+interface FilterPanelConfig {
+  isOpen?: boolean;
+  version?: string;
+  title?: string;
+  layers?: Array<{
+    layerPath: string;
+    filterName?: string;
+    enabled?: boolean;
+    collapsible?: boolean;
+    defaultCollapsed?: boolean;
+    attributes?: Array<
+      | SelectFilterAttribute
+      | MultiselectFilterAttribute
+      | RangeFilterAttribute
+      | DateFilterAttribute
+    >;
+  }>;
+}
+
+// Each filter type has its own specific properties
+type DateFilterAttribute = {
+  fieldName: string;
+  displayLabel: string;
+  filterType: 'date';
+  enabled?: boolean;
+  dateStep?: 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
+  defaultValues?: { start: string | null; end: string | null } | null;
+};
+// ... (similar types for select, multiselect, range)
+```
+
+#### Properties
+
+- **isOpen**: Initial panel state (default: false)
+- **version**: Schema version (default: "1.0")
+- **title**: Panel header title (default: "Filter Layers")
+- **layers**: Array of layer configurations for filtering
+  - **layerPath** (required): Unique layer path identifier
+  - **filterName** (optional): Display name for the layer (if not provided, layer path is used)
+  - **enabled**: Whether filtering is enabled for this layer (default: true)
+  - **collapsible**: Allow collapsing/expanding this layer section (default: true)
+  - **defaultCollapsed**: Default collapsed state for this layer section. If `collapsible` is false, this is ignored and the section is forced open (default: false)
+  - **attributes**: Array of filterable attributes (each attribute must specify one of the four filter types)
+
+**Common attribute properties:**
+- **fieldName** (required): Field name from the layer schema
+- **displayLabel** (required): Label displayed in the UI
+- **filterType** (required): One of: `"select"`, `"multiselect"`, `"range"`, `"date"`
+- **enabled**: Whether this filter is enabled (default: true)
+
+**Date filter-specific properties:**
+- **dateStep** (optional): Keyboard arrow key increment. Uses calendar-aware stepping. One of: `"second"`, `"minute"`, `"hour"`, `"day"` (default), `"week"`, `"month"`, `"year"`
+- **defaultValues** (optional): Object with `start` and `end` date strings (YYYY-MM-DD format)
+
+**Select/Multiselect filter-specific properties:**
+- **domain** (optional): Array of objects with:
+  - **value** (required): The raw value from the layer (string or number)
+  - **label** (required): The display label for this value
+- **filterMissingDomainValues** (optional): If true, filter out values not in domain (default: false)
+
+**Range filter-specific properties:**
+- **rangeStep** (optional): Keyboard arrow key increment for range slider navigation (default: 1). Useful for large ranges (e.g., 0-100000 with step of 1000) or small/decimal ranges (e.g., 0.0-1.0 with step of 0.01). Must be a positive number.
+- **defaultValues** (optional): Object with `min` and `max` numeric properties
+
+#### Filter Types
+
+1. **Select** - Single-value dropdown
+2. **Multiselect** - Multiple-value checkbox list with "All" option
+3. **Range** - Numeric min/max range with slider
+4. **Date** - Date range picker with start/end dates and calendar-aware keyboard stepping
+
+#### Examples
+
+**Basic Multiselect:**
+
+```json
+"corePackagesConfig": [
+  {
+    "filter-panel": {
+      "isOpen": false,
+      "title": "Filter Layers",
+      "layers": [
+        {
+          "layerPath": "cities-layer",
+          "filterName": "Canadian Cities",
+          "enabled": true,
+          "collapsible": true,
+          "defaultCollapsed": false,
+          "attributes": [
+            {
+              "fieldName": "province",
+              "displayLabel": "Province",
+              "filterType": "multiselect"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]
+```
+
+**Multiple Filter Types:**
+
+```json
+"corePackagesConfig": [
+  {
+    "filter-panel": {
+      "isOpen": false,
+      "title": "Population Filters",
+      "layers": [
+        {
+          "layerPath": "population-data",
+          "filterName": "Population Data",
+          "enabled": true,
+          "collapsible": true,
+          "defaultCollapsed": false,
+          "attributes": [
+            {
+              "fieldName": "city_name",
+              "displayLabel": "City",
+              "filterType": "select"
+            },
+            {
+              "fieldName": "population",
+              "displayLabel": "Population Range",
+              "filterType": "range",
+              "rangeStep": 10000
+            },
+            {
+              "fieldName": "census_date",
+              "displayLabel": "Census Date",
+              "filterType": "date"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]
+```
+
+**Custom Settings:**
+
+```json
+"corePackagesConfig": [
+  {
+    "filter-panel": {
+      "layers": [
+        {
+          "layerPath": "environmental-data",
+          "filterName": "Environmental Monitoring",
+          "enabled": true,
+          "collapsible": false,
+          "attributes": [
+            {
+              "fieldName": "pollutant_type",
+              "displayLabel": "Pollutant Type",
+              "filterType": "multiselect"
+            },
+            {
+              "fieldName": "concentration",
+              "displayLabel": "Concentration (ppm)",
+              "filterType": "range"
+            }
+          ]
+        }
+      ]
+      "settings": {
+        "title": "Environmental Filters",
+        "collapsible": false,
+        "showResetButton": true
+      }
+    }
+  }
+]
+```
+
+**Domain Mapping (Custom Labels for Coded Values):**
+
+```json
+"corePackagesConfig": [
+  {
+    "filter-panel": {
+      "layers": [
+        {
+          "layerPath": "land-use",
+          "attributes": [
+            {
+              "fieldName": "use_code",
+              "displayLabel": "Land Use Type",
+              "filterType": "select",
+              "domain": [
+                { "value": "RES", "label": "Residential" },
+                { "value": "COM", "label": "Commercial" },
+                { "value": "AGR", "label": "Agricultural" }
+              ],
+              "filterMissingDomainValues": true
+            }
+          ]
+        }
+      ]
+    }
+  }
+]
+```
+
+Domain mapping displays user-friendly labels instead of raw codes. When `filterMissingDomainValues: true`, only features with domain values are shown.
+
+#### Notes
+
+- Layer paths must reference existing layers in the map configuration
+- Layer names are optional - if not provided, the layer path will be used as the display name
+- Field names must match actual field names in the layer schema
+- When `autoApply: true`, filters apply immediately on every change
+- UI automatically adapts to the map's theme (geo.ca, light, dark)
+- Range and date filters are optimized for large datasets
+- **Domain mapping**: Use the `domain` property on attributes to display custom labels for coded values. Values are ordered according to the domain array order (not alphabetically). Set `filterMissingDomainValues: true` to hide features with values outside the domain
 
 ---
 
