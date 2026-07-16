@@ -16,6 +16,7 @@ export class GeoCore {
    * Gets GeoView layer configurations list from the UUIDs of the list of layer entry configurations.
    *
    * @param uuid - The UUID of the layer
+   * @param currentLayerIds - The current layer ids already registered on the map
    * @param language - The language
    * @param mapId - Optional map id
    * @param layerConfig - Optional layer configuration
@@ -34,7 +35,7 @@ export class GeoCore {
     layerConfig?: GeoCoreLayerConfig,
     abortSignal?: AbortSignal
   ): Promise<GeoCoreLayerConfigResponse> {
-    // If there's a mapId provided, validate the uuid
+    // Resolve GeoCore URL and duplicate-safe UUID in map context.
     let { geocoreUrl } = DEFAULT_MAP_FEATURE_CONFIG.serviceUrls;
 
     if (mapId) {
@@ -64,13 +65,17 @@ export class GeoCore {
     // Collect all time-slider configs from the response
     const timeSliderConfigs = response.timeSliderConfigs ?? [];
 
-    // Use user supplied listOfLayerEntryConfig if provided
-    if (layerConfig?.listOfLayerEntryConfig || layerConfig?.initialSettings) {
+    const selectedListOfLayerEntryConfig =
+      layerConfig?.listOfLayerEntryConfig ?? response.customListOfLayerEntryConfig ?? response.layers[0].listOfLayerEntryConfig;
+
+    // Use custom layer entry config (inline config has precedence over GCS custom config).
+    if (layerConfig?.listOfLayerEntryConfig || response.customListOfLayerEntryConfig || layerConfig?.initialSettings) {
       // TODO: CHECK - Should we really spread here and create a 'new' TypeGeoviewLayerConfig json object here?
       const tempLayerConfig = { ...layerConfig } as unknown as TypeGeoviewLayerConfig;
+      tempLayerConfig.geoviewLayerId = layerConfig?.geoviewLayerId ?? response.layers[0].geoviewLayerId;
       tempLayerConfig.metadataAccessPath = response.layers[0].metadataAccessPath;
       tempLayerConfig.geoviewLayerType = response.layers[0].geoviewLayerType;
-      tempLayerConfig.listOfLayerEntryConfig ??= response.layers[0].listOfLayerEntryConfig ?? [];
+      tempLayerConfig.listOfLayerEntryConfig = selectedListOfLayerEntryConfig ?? [];
       if (response.layers[0].isTimeAware === true || response.layers[0].isTimeAware === false)
         tempLayerConfig.isTimeAware = response.layers[0].isTimeAware;
 
@@ -81,6 +86,12 @@ export class GeoCore {
         // When an error happens, raise the exception, we handle it higher in this case
         throw error;
       });
+
+      // Make sure if it's a duplicate, the response has the duplicates safe ID.
+      if (uuid.includes(':') && uuid.split(':')[0] === newLayerConfig[0].geoviewLayerId) {
+        newLayerConfig[0].geoviewLayerId = uuid;
+      }
+
       // Return the created layer config from the merged config informations
       return { config: newLayerConfig[0] as TypeGeoviewLayerConfig, geocharts, timeSliderConfigs };
     }
