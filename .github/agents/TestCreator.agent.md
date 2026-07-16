@@ -249,8 +249,8 @@ After generating all test code, update both documentation sources:
 
 **Manual tests — `docs/programming/release-testing/`:**
 
-1. **Tests moved to automation**: Add a cross-reference note (e.g., `> Covered by automated suite: suite-layer testAddEsriDynamic`) and remove the manual test row
-2. **New manual tests identified**: Add them to the appropriate file following the table format (see [Manual Test Format Rules](#manual-test-format-rules))
+1. **Tests moved to automation**: Change the Auto column from `C` (candidate) or `M` (manual) to `A` (automated) in the release-testing MD file where the test is defined. Do NOT remove the row — keep it as documentation with the `A` flag so testers know it's covered by the automated suite.
+2. **New manual tests identified**: Add them to the appropriate file following the table format (see Manual Test Format Rules section below)
 3. **New automation candidates identified**: Add them to `27-automation-candidates.md` with priority and description
 
 **Three-way sync check (CRITICAL — do this on EVERY change to test files):**
@@ -301,8 +301,24 @@ After generating all code:
 2. Verify all imports resolve correctly
 3. Confirm the test is wired into the suite's `onLaunchTestSuite()`
 4. Confirm constants exist for all URLs and IDs used
-5. Confirm `docs/app/testing/test-catalog.md` is updated with the new/changed tests
-6. **Confirm three-way sync**: test files ↔ issue template ↔ README (see Phase 5)
+5. Confirm `docs/app/testing/` folder is kept in sync — update the relevant files when tests change:
+   - `test-catalog.md` — Add/remove/rename test rows, renumber, update summary table count
+   - `test-architecture.md` — Update if suites, testers, class hierarchy, or execution patterns changed
+   - `available-suites.md` — Update if new suites or testers are added/removed
+   - `creating-tests.md` — Update if new patterns, helpers, or conventions are introduced
+   - `api-reference.md` — Update if new assertion methods or helper APIs are added
+   - `test-templates.md` — Update if template patterns change
+6. Confirm `docs/programming/release-testing/00-automated-suite.md` suite counts are updated (e.g., `suite-map-config` count, total)
+7. Confirm `docs/programming/release-testing/README.md` per-file counts `(A/C/M)` and TOTAL row are updated — run the PowerShell count command to get accurate numbers
+8. **Confirm three-way sync**: test files ↔ issue template ↔ README (see Phase 5)
+
+**CRITICAL — Count verification command (run after EVERY change):**
+
+```powershell
+$dir = "docs/programming/release-testing"; Get-ChildItem "$dir\[0-2]*.md" | Where-Object { $_.Name -ne 'README.md' -and $_.Name -ne 'RELEASE-CANDIDATE.md' -and $_.Name -ne '00-automated-suite.md' -and $_.Name -ne '27-automation-candidates.md' } | ForEach-Object { $a = (Select-String -Path $_.FullName -Pattern '\| A\s*\|?\s*$' -AllMatches).Count; $c = (Select-String -Path $_.FullName -Pattern '\| C\s*\|?\s*$' -AllMatches).Count; $m = (Select-String -Path $_.FullName -Pattern '\| M\s*\|?\s*$' -AllMatches).Count; Write-Host "$($_.Name): A=$a C=$c M=$m Total=$($a+$c+$m)" }
+```
+
+Run this and compare with the README table. Fix any discrepancy immediately.
 
 ---
 
@@ -313,15 +329,20 @@ After generating all code:
 - DO NOT use `if/else` for assertions — use `Test.assertXxx()` static methods only
 - DO NOT skip `test.addStep()` calls — they are required for test UI visibility
 - For zoom operations, use `this.getMapViewer().setMapZoomLevel()` (direct, no animation) or `this.getControllersRegistry().mapController.zoomMap()` (animated)
+- **After `await promiseQueryBatched`** — The store state is immediately available (highlights, features, etc.). Do NOT add extra `delay()` calls to "wait for the store to settle" — the `await` already guarantees completion.
 - DO NOT hardcode URLs or layer IDs — add them as `static readonly` constants on the appropriate tester class or `GVAbstractTester`
+- **DO NOT guess field names, property names, or data values** — always verify against the actual data source (metadata files, service responses, GeoJSON files). If unsure, **ask the user** rather than making a false assumption. Getting a field name wrong causes a test that passes for the wrong reason or fails with a confusing error.
+- **DO NOT remove assertions to fix failing tests** — when an assertion fails, find an alternative approach to verify the behavior (e.g., use DOM queries for UI-level state that isn't reflected in the store). Removing the check just hides the problem.
+- **Store vs DOM assertions** — Some behaviors only manifest in the React UI, not in the store. When the store doesn't reflect a UI state (e.g., a toggle being disabled), use DOM queries (`document.querySelector`, `document.querySelectorAll`) to check element attributes like `disabled`, `aria-checked`, class names, or text content.
 - DO NOT create tests that modify shared state without cleanup in `callbackFinalize`
 - ALWAYS use `generateId()` for layer IDs in layer/config tests
 - ALWAYS ask clarifying questions before generating test code — do not guess test requirements
 - ALWAYS follow the JSDoc, comment, and TypeScript conventions from `.github/copilot-instructions.md`
-- When a `useStore*` hook exists but no corresponding `getStore*` getter is available, **create the getter** in the same store file (immediately after the hook) rather than working around it via `getStoreLayerLegendLayerByPath()?.property`. Tests run outside React and cannot use hooks — they need `getStore*` getters. Follow the naming convention `getStore{Slice}{Property}(mapId, ...)` and match the return type of the hook.
-  - Getter location: same file as the hook, immediately after it.
+- When a `useStore*` hook exists but no corresponding `getStore*` getter is available, **create the getter** in the same store file (immediately before the hook, so the pair reads getter-then-hook) rather than working around it via `getStoreLayerLegendLayerByPath()?.property`. Tests run outside React and cannot use hooks — they need `getStore*` getters. Follow the naming convention `getStore{Slice}{Property}(mapId, ...)` and match the return type of the hook.
+  - Getter location: same file as the hook, immediately before it.
   - Pattern: `export const getStore{Slice}{Property} = (mapId: string, ...args): ReturnType => { return getStoreLayer...(...); };`
   - Example: Created `getStoreLayerControls(mapId, layerPath)` alongside existing `useStoreLayerControls` hook.
+  - **Region rule**: Store files have two regions — `#region STATE GETTERS & HOOKS` (matched getter+hook pairs) and `#region STATE GETTERS & HOOKS - OTHERS` (orphan hooks with no getter). When you create a getter for a hook in the OTHERS region, **move both** to the main region. The OTHERS region is exclusively for items without a matching pair.
 
 ## Creating a New Suite & Tester (Full Stack)
 
@@ -700,7 +721,7 @@ Test definitions (markdown files in `docs/programming/release-testing/`) are **s
 
 ## Assertion API Reference
 
-See the full assertion API in [docs/app/testing/test-templates.md](../../../docs/app/testing/test-templates.md#assertion-api-quick-reference).
+See the full assertion API in [docs/app/testing/test-templates.md](../../docs/app/testing/test-templates.md#assertion-api-quick-reference).
 
 ## Files Reference
 

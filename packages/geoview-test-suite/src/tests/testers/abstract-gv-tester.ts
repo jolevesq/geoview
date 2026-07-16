@@ -22,8 +22,11 @@ export abstract class GVAbstractTester extends AbstractTester {
   /** Some long lat coordinates for map investigations */
   static readonly QUEBEC_LONLAT: Coordinate = [-71.356054449131, 46.78077550041052];
   static readonly OTTAWA_LONLAT: Coordinate = [-75.8, 45.24];
-  static readonly ONTARIO_CENTER_LONLAT: Coordinate = [-87, 51];
+  static readonly ONTARIO_CENTER_LONLAT: Coordinate = [-88.31, 51.97];
   static readonly ALBERTA_CENTER_LONLAT: Coordinate = [-112, 51];
+
+  /** Extent covering Ontario province in lonlat [minX, minY, maxX, maxY]. */
+  static readonly ONTARIO_EXTENT: [number, number, number, number] = [-100, 50, -80, 57];
 
   /** Indicates if using animation to perform zoom operations */
   static readonly USE_ZOOM_ANIMATION = false;
@@ -449,6 +452,11 @@ export abstract class GVAbstractTester extends AbstractTester {
   static readonly GEOTIFF_VEGETATION: string =
     'https://datacube-prod-data-public.s3.ca-central-1.amazonaws.com/store/eo4ce/vegetation/vegetation-2020-fCOVER.tif';
   static readonly GEOTIFF_VEGETATION_FILE: string = 'vegetation-2020-fCOVER.tif';
+
+  /** Vector Tiles (EPSG:3978 — CBMT Canadian Basemap Transport). */
+  static readonly VECTOR_TILES_CBMT_3978_URL: string =
+    'https://tiles.arcgis.com/tiles/HsjBaDykC1mjhXz9/arcgis/rest/services/CBMT_CBCT_3978_V_OSM/VectorTileServer';
+  static readonly VECTOR_TILES_CBMT_3978_LAYER_NAME: string = 'CBMT 3978 Vector Tiles';
 
   /** Water Network (has fields with coded value domains, e.g. "material" on layer 16). */
   static readonly WATER_NETWORK_MAP_SERVER: string = 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Water_Network/MapServer';

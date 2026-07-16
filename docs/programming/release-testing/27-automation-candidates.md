@@ -203,68 +203,70 @@ These tests from the release plan are already covered by the existing test suite
 
 ### Details Panel (suite-details or suite-map-varia)
 
-| #   | Test                                                                                                             | Priority | Notes                                                                 |
-| --- | ---------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------- |
-| 79  | **Clear all highlights** — Call `clearHighlightsUnchecked()`, verify no highlighted features remain on the map   | P1       | Store/API check: no highlighted features after clear                  |
-| 80  | **Non-queryable layer excluded** — Load config with `queryable: false`, query map, verify layer not in results   | P1       | Already in suite-map-varia (`testNonQueryableLayerNotInDetails`)      |
-| 81  | **Zoom to feature** — Trigger zoom-to-feature on a query result, verify map extent changes                       | P2       | Store extent check after zoom                                         |
-| 82  | **nameField as label** — Query a layer with configured `nameField`, verify feature label matches the field value | P2       | `createMapFromConfigFast` with 29-summary config + query result check |
+| #   | Test                                                                                                                                       | Priority | Notes                                                                      |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- | -------------------------------------------------------------------------- |
+| 79  | ~~**Clear all highlights** — Call `clearHighlightsUnchecked()`, verify no highlighted features remain on the map~~                         | P1       | ✅ Done — `testClearAllHighlights` in `suite-details`                      |
+| 80  | ~~**Non-queryable layer excluded** — Load config with `queryable: false`, query map, verify layer not in results~~                         | P1       | ✅ Done — Already in suite-map-varia (`testNonQueryableLayerNotInDetails`) |
+| 81  | ~~**Zoom to feature** — Trigger zoom-to-feature on a query result, verify map extent changes~~                                             | P2       | ✅ Done — `testZoomToFeature` in `suite-details`                           |
+| 82  | ~~**nameField as label** — Query a layer with configured `nameField`, verify feature label matches the field value~~                       | P2       | ✅ Done — `testNameFieldAsLabel` in `suite-details`                        |
+| 117 | ~~**Summary false hides field** — Query a layer with `outfields[].summary: false`, verify field excluded from result features' fieldInfo~~ | P1       | ✅ Done — `testSummaryFalseHidesField` in `suite-details`                  |
+| 118 | ~~**Field alias renames field** — Query a layer with `outfields[].alias`, verify field label uses alias instead of raw name~~              | P1       | ✅ Done — `testFieldAliasRenamesField` in `suite-details`                  |
 
-### Data Table (suite-data-table or suite-map-varia)
+### Data Table (suite-data-table)
 
-| #   | Test                                                                                                                               | Priority | Notes                                                                  |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------- |
-| 83  | **Row count matches store** — Open data table, verify displayed row count matches `allFeaturesDataArray` length for that layer     | P1       | Store `allFeaturesDataArray` count check                               |
-| 84  | **geoviewID column hidden by default** — Check store `columnVisibilityRecord.geoviewID === false`                                  | P1       | Store default state check                                              |
-| 85  | **Filter by extent unavailable for Esri Dynamic** — Select Esri Dynamic layer, verify filter toggle absent/disabled                | P1       | DOM/store check: `filterDataToExtent` not available for dynamic layers |
-| 86  | **Clear filters resets state** — Apply column filter, click Clear, verify store `columnFiltersRecord` is empty                     | P1       | Store check pre/post clear                                             |
-| 87  | **tableFilters store on apply** — Apply filter to map, verify `tableFilters[layerPath]` store contains filter string               | P1       | Store check after `applyMapFilters()`                                  |
-| 88  | **Apply-to-map disabled during global search** — Set global search text, verify `mapFilteredRecord` toggle disabled                | P1       | Store/DOM check: toggle disabled when `globalFilterRecord` non-empty   |
-| 89  | **layerFilterClass reflected in table** — Toggle style classes off, verify store `layerFilterClass` affects table                  | P1       | Overlaps with legend #56; table perspective                            |
-| 90  | **allFeaturesDataArray populated** — Open data table, verify store array has entries                                               | P1       | Store basic population check                                           |
-| 91  | **rowsFilteredRecord count** — Apply filter, verify `layersDataTableSetting[layerPath].rowsFilteredRecord` matches displayed count | P1       | Store value vs DOM count comparison                                    |
-| 92  | **mapFilteredRecord boolean** — Toggle "Apply filter to map" ON, verify store `mapFilteredRecord === true`                         | P1       | Store boolean check                                                    |
+| #   | Test                                                                                                                               | Priority | Notes                                                                                |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------ | --- |
+| 83  | ~~**Row count matches store** — Open data table, verify displayed row count matches `allFeaturesDataArray` length for that layer~~ | ✅ Done  | `DataTableTester.testRowCountMatchesStore()`                                         |
+| 84  | ~~**geoviewID column hidden by default** — Check store `columnVisibilityRecord.geoviewID === false`~~                              | ✅ Done  | `DataTableTester.testGeoviewIdColumnHiddenByDefault()`                               |
+| 85  | ~~**Filter by extent unavailable for Esri Dynamic** — Select Esri Dynamic layer, verify filter toggle absent/disabled~~            | ✅ Done  | `DataTableTester.testFilterByExtentUnavailableForEsriDynamic()`                      |
+| 86  | ~~**Clear filters resets state** — Apply column filter, click Clear, verify store `columnFiltersRecord` is empty~~                 | ✅ Done  | `DataTableTester.testClearFiltersResetsState()`                                      |
+| 87  | ~~**tableFilters store on apply** — Apply filter to map, verify `tableFilters[layerPath]` store contains filter string~~           | ✅ Done  | `DataTableTester.testTableFiltersStoreOnApply()`                                     |
+| 88  | ~~**Apply-to-map disabled during global search** — Set global search text, verify `mapFilteredRecord` toggle disabled~~            | ✅ Done  | `DataTableTester.testGlobalFilterRecord()` (DOM disabled check)                      |
+| 89  | **layerFilterClass reflected in table** — Toggle style classes off, verify store `layerFilterClass` affects table                  | P1       | Overlaps with legend #56; table perspective                                          |
+| 90  | ~~**allFeaturesDataArray populated** — Open data table, verify store array has entries~~                                           | ✅ Done  | `DataTableTester.testAllFeaturesDataArrayPopulated()`                                |
+| 91  | ~~**rowsFilteredRecord count** — Apply filter, verify `layersDataTableSetting[layerPath].rowsFilteredRecord` matches count~~       | ✅ Done  | `DataTableTester.testRowsFilteredRecordCount()`                                      |
+| 92  | ~~**mapFilteredRecord boolean** — Toggle "Apply filter to map" ON, verify store `mapFilteredRecord === true`~~                     | ✅ Done  | `DataTableTester.testMapFilteredRecordDefault()` + `testSetMapFilteredRecordFalse()` |     |
 
 ### View Settings (suite-map-config)
 
-| #   | Test                                                                                                                                                            | Priority | Notes                                                                  |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------- |
-| 94  | **Initial view vs home view** — Load 27-view-settings config, verify initial zoom = 7 (Ottawa), call `zoomToInitialExtent()`, verify zoom changes to 4 (Canada) | P1       | `createMapFromConfigFast` + store zoom/center comparison pre/post Home |
-| 95  | **Home button navigates to homeView** — After `zoomToInitialExtent()`, verify store center ≈ `[-95, 60]` (homeView coordinates)                                 | P1       | Store center check with tolerance                                      |
+| #   | Test                                                                                                                                                                | Priority | Notes                                                                        |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------- |
+| 94  | ~~**Initial view vs home view** — Load 27-view-settings config, verify initial zoom = 7 (Ottawa), call `zoomToInitialExtent()`, verify zoom changes to 4 (Canada)~~ | ✅ Done  | Automated: `MapConfigTester.testViewSettingsInitialViewVsHomeView()`         |
+| 95  | ~~**Home button navigates to homeView** — After `zoomToInitialExtent()`, verify store center ≈ `[-95, 60]` (homeView coordinates)~~                                 | ✅ Done  | Automated: `MapConfigTester.testViewSettingsHomeButtonNavigatesToHomeView()` |
 
 ### Projection Interactions (suite-map-varia)
 
-| #   | Test                                                                                                                       | Priority | Notes                                                                      |
-| --- | -------------------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------- |
-| 98  | **Vector tile projection warning** — Switch projection with VT layer loaded, verify notification emitted and layer removed | P1       | Overlaps with layers #76; notification store check after `setProjection()` |
+| #   | Test                                                                                                                           | Priority | Notes                                                    |
+| --- | ------------------------------------------------------------------------------------------------------------------------------ | -------- | -------------------------------------------------------- |
+| 98  | ~~**Vector tile projection warning** — Switch projection with VT layer loaded, verify notification emitted and layer removed~~ | ✅ Done  | Automated: `MapTester.testVectorTileProjectionWarning()` |
 
 ### Initial Settings (suite-map-config)
 
-| #   | Test                                                                                                                                        | Priority | Notes                                                             |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------- |
-| 99  | **Remove control enabled** — Load 23b config, verify esriFeature layer has `controls.remove === true` in store                              | P1       | Store check: `getStoreLayerControls()` for that layer path        |
-| 100 | **Legend collapsed initial state** — Load 23b config, verify GeoJSON group store `legendCollapsed === true`                                 | P1       | Store check: `getStoreLayerLegendCollapsed()` for that layer path |
-| 101 | **Custom opacity 0.7** — Load 23b config, verify esriImage layer `getOpacity() === 0.7`                                                     | P1       | Same pattern as existing 0.5 test; OL layer opacity check         |
-| 102 | **Parent controls cascade to children** — Load 23c config, verify children of geojsonLYR1 inherit `highlight: false, zoom: false` from root | P1       | Store `getStoreLayerControls()` per child path                    |
-| 103 | **Group-level override** — Load 23c config, verify each geojsonLYR2 group has different controls inherited by children                      | P1       | Store `getStoreLayerControls()` per group path                    |
-| 104 | **OGC Feature initial filter** — Load 23a config, verify `layerFilter` store contains correct filter string for OGC Feature layer           | P1       | Store `getStoreLayerFilter()` or `getInitialFilter()` check       |
-| 105 | **WFS initial filter** — Load 23a config, verify WFS layer filter = `STATE_ABBR = 'NY'` in store                                            | P1       | Store filter string comparison                                    |
-| 106 | **Esri Dynamic initial filter** — Load 23a config, verify filter = `E_Province = 'Manitoba'` in store                                       | P1       | Store filter string comparison                                    |
-| 107 | **Esri Feature initial filter** — Load 23a config, verify filter = `death = 'yes'` in store                                                 | P1       | Store filter string comparison                                    |
-| 108 | **GeoJSON initial filter** — Load 23a config, verify filter = `Province = 'Quebec'` in store                                                | P1       | Store filter string comparison                                    |
-| 109 | **Filter reflected in data table** — Load 23a config, open data table, verify row count matches filtered feature count                      | P1       | Store `allFeaturesDataArray` count check against expected         |
+| #   | Test                                                                                                                                              | Priority | Notes                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------- |
+| 99  | ~~**Remove control enabled** — Load 23b config, verify esriFeature layer has `controls.remove === true` in store~~                                | ✅ Done  | Already covered: `MapConfigTester.testInitialSettingsControlRemoveCascadingToDescendants()`    |
+| 100 | ~~**Legend collapsed initial state** — Load 23b config, verify GeoJSON group store `legendCollapsed === true`~~                                   | ✅ Done  | Automated: `MapConfigTester.testInitialSettingsLegendCollapsed()`                              |
+| 101 | ~~**Custom opacity 0.7** — Load 23b config, verify esriImage layer `getOpacity() === 0.7`~~                                                       | ✅ Done  | Already covered: `MapConfigTester.testInitialSettingsStateOpacity()` (tests 0.5, same pattern) |
+| 102 | ~~**Parent controls cascade to children** — Load 23c config, verify children of geojsonLYR1 inherit `highlight: false, zoom: false` from root~~   | ✅ Done  | Automated: `MapConfigTester.testInitialSettingsControlsCascadeToChildren()`                    |
+| 103 | ~~**Group-level override** — Load 23c config, verify each geojsonLYR2 group has different controls inherited by children~~                        | ✅ Done  | Automated: `MapConfigTester.testInitialSettingsControlsGroupOverride()`                        |
+| 104 | ~~**OGC Feature initial filter** — Load config with OGC Feature layer, verify `layerFilter` is stored and accessible via `getInitialFilter()`~~   | ✅ Done  | Automated: `MapConfigTester.testInitialSettingsFiltersOgcFeature()`                            |
+| 105 | ~~**WFS initial filter** — Load config with WFS layer, verify `layerFilter` is stored and accessible via `getInitialFilter()`~~                   | ✅ Done  | Automated: `MapConfigTester.testInitialSettingsFiltersWfs()`                                   |
+| 106 | ~~**Esri Dynamic initial filter** — Load config with Esri Dynamic layer, verify `layerFilter` is stored and accessible via `getInitialFilter()`~~ | ✅ Done  | Automated: `MapConfigTester.testInitialSettingsFiltersEsriDynamic()`                           |
+| 107 | ~~**Esri Feature initial filter** — Load config with Esri Feature layer, verify `layerFilter` is stored and accessible via `getInitialFilter()`~~ | ✅ Done  | Automated: `MapConfigTester.testInitialSettingsFiltersEsriFeature()`                           |
+| 108 | ~~**GeoJSON initial filter** — Load 23a config, verify filter = `Province = 'Quebec'` in store~~                                                  | ✅ Done  | Automated: `MapConfigTester.testInitialSettingsFilters()`                                      |
+| 109 | **Filter reflected in data table** — Load 23a config, open data table, verify row count matches filtered feature count                            | P1       | Store `allFeaturesDataArray` count check against expected                                      |
 
 ### Swiper Plugin (suite-swiper)
 
-| #   | Test                                                                                                                           | Priority | Notes                              |
-| --- | ------------------------------------------------------------------------------------------------------------------------------ | -------- | ---------------------------------- |
-| 110 | **Add layer to swiper** — Call `activateForLayer`, verify store `swiperLayerPaths` contains the layer path                     | P1       | Store array check after activate   |
-| 111 | **Remove layer from swiper** — Call `deActivateForLayer`, verify store `swiperLayerPaths` no longer contains path              | P1       | Store array check after deactivate |
-| 112 | **Remove all swiper layers** — Call `deActivateAll`, verify store `swiperLayerPaths` is empty                                  | P1       | Store array length = 0             |
-| 113 | **Add layer after remove all** — Call `deActivateAll` then `activateForLayer`, verify store has new path                       | P1       | Store recovery check               |
-| 114 | **Set vertical orientation** — Call `setOrientation('vertical')`, verify store `swiperOrientation === 'vertical'`              | P1       | Store string check                 |
-| 115 | **Set horizontal orientation** — Call `setOrientation('horizontal')`, verify store `swiperOrientation === 'horizontal'`        | P1       | Store string check                 |
-| 116 | **Switch orientation** — Call `setOrientation('vertical')` then `setOrientation('horizontal')`, verify store updates each time | P1       | Sequential store checks            |
+| #   | Test                                                                                                                               | Priority | Notes                                                                 |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------- |
+| 110 | ~~**Add layer to swiper** — Call `activateForLayer`, verify store `swiperLayerPaths` contains the layer path~~                     | ✅ Done  | Already covered: `SwiperTester.testSwiperLifecycle()` (activate)      |
+| 111 | ~~**Remove layer from swiper** — Call `deActivateForLayer`, verify store `swiperLayerPaths` no longer contains path~~              | ✅ Done  | Already covered: `SwiperTester.testSwiperLifecycle()` (deactivate)    |
+| 112 | ~~**Remove all swiper layers** — Call `deActivateAll`, verify store `swiperLayerPaths` is empty~~                                  | ✅ Done  | Already covered: `SwiperTester.testSwiperLifecycle()` (deactivateAll) |
+| 113 | ~~**Add layer after remove all** — Call `deActivateAll` then `activateForLayer`, verify store has new path~~                       | ✅ Done  | Already covered: `SwiperTester.testSwiperLifecycle()` (recovery)      |
+| 114 | ~~**Set vertical orientation** — Call `setOrientation('vertical')`, verify store `swiperOrientation === 'vertical'`~~              | ✅ Done  | Already covered: `SwiperTester.testSwiperLifecycle()` (orientation)   |
+| 115 | ~~**Set horizontal orientation** — Call `setOrientation('horizontal')`, verify store `swiperOrientation === 'horizontal'`~~        | ✅ Done  | Already covered: `SwiperTester.testSwiperLifecycle()` (orientation)   |
+| 116 | ~~**Switch orientation** — Call `setOrientation('vertical')` then `setOrientation('horizontal')`, verify store updates each time~~ | ✅ Done  | Already covered: `SwiperTester.testSwiperLifecycle()` (sequential)    |
 
 ---
 

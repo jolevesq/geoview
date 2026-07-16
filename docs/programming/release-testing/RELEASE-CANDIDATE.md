@@ -90,6 +90,14 @@ _(User-facing features added or enabled)_
 
 _(Fixes discovered or applied during this cycle)_
 
+- Fixed WMS layer querying through WFS to also consider filtering when layer has style but feature is not symbolized (Cities query) without breaking behavior when no symbologies could be read for WFS (Major Projects query) (#3555)
+- Improved projection information reading from metadata for all layer types — now stored in store for layer-info panel (#3555)
+- Greatly improved `Projection` class flexibility in function parameters and stability (#3555)
+- Fixed layer min/max scale inherited from parent: layer still turns visible/invisible at those scales, so zoomToVisibleScale button is now shown (#3555)
+- Added stability for badly formatted date values like `'Null'` as a string in data reading (#3555)
+- Added stability in data-table component for undefined dates in a `'date'` field (#3555)
+- Simplified zoom-to-visible-scale check and function, adding precision for services like Illinois Water Network (#3555)
+- Clamping zoom-to-extent for a particular layer to its min/max scale visible range when any (#3555)
 - Fixed group layers visible despite metadata setting `visible: false` (#3544)
 - Fixed map waiting for ALL layers before zooming to `layerIds` extent — now zooms as soon as bounds are ready (#3544)
 - Fixed custom time-slider `field` property applied to layers that don't have that field — now uses layer's own metadata date field as fallback (#3544)
@@ -133,12 +141,23 @@ _(Doc updates, demo cleanup, code organization)_
 - Standardized 30+ component `memo` utilizations to use arrow function syntax (#3544)
 - Categorized many TODOs for better organization (#3544)
 - Branch review follow-up cleanup and hardening edits across data table and add-layer flows (6694b74ab, aee29d274)
+- Updated copilot-instructions.md: store region organization rule (getter-then-hook pairs), zoomToExtent/promiseQueryBatched patterns, no-guess/no-remove-assertion rules
+- Updated TestCreator agent: store region rule, zoomToExtent no-await rule, DOM fallback for UI state verification, no-guess field names constraint
+- Updated 27-automation-candidates.md: marked data table tests #83-92 as Done, added filter-by-extent and showUnsymbolizedFeatures tests
+- Fixed broken test page links in tests.html navigation
+- Updated dependency documentation (release-testing docs)
 
 ## Test Plan Changes
 
 _(Tests added, moved, removed, or reorganized)_
 
 - New automated test case for group layer with `defaultVisibility: false` (#3544)
+- New `suite-data-table` test suite (13 tests): allFeaturesDataArray populated, row count, geoviewID hidden, mapFilteredRecord, global filter + DOM disabled check, column filters set/clear, tableFilters on apply, column visibility toggle, rowsFilteredRecord, filter-by-extent absent for esriDynamic, filter-by-extent on GeoJSON, showUnsymbolizedFeatures pre-filter
+- New `suite-details` tests (6 total): details panel query, clear all highlights, zoom to feature, nameField as label, summary false hides field, field alias renames field
+- Added `getStoreDataTableLayerSettings` getter to `data-table-state.ts` (moved paired hook from OTHERS region to main region)
+- Added `getStoreMapClickMarker` and `getStoreMapNorthArrow` getters to `map-state.ts` (moved from OTHERS to main region)
+- Map 11 test page added for `suite-data-table` (GeoJSON + Commemorative Map + Esri Dynamic + Permafrost layers)
+- Updated test-catalog.md: total 196 tests, 00-automated-suite.md: ~200, README: 901 (60/169/672)
 
 ## Config Schema Changes
 
@@ -148,10 +167,10 @@ _(Properties added, renamed, or with changed defaults)_
 
 | Metric        | Before | After |
 | ------------- | ------ | ----- |
-| Total tests   | —      | —     |
-| Automated (A) | —      | —     |
-| Candidate (C) | —      | —     |
-| Manual (M)    | —      | —     |
+| Total tests   | 900    | 901   |
+| Automated (A) | 59     | 60    |
+| Candidate (C) | 169    | 169   |
+| Manual (M)    | 672    | 672   |
 
 ## Notes for Release Notes Author
 
