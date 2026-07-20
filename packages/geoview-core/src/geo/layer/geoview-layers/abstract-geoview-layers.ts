@@ -9,7 +9,7 @@ import type { AbstractBaseLayerEntryConfig } from '@/api/config/validation-class
 import { GroupLayerEntryConfig } from '@/api/config/validation-classes/group-layer-entry-config';
 import type { EventDelegateBase } from '@/api/events/event-helper';
 import EventHelper from '@/api/events/event-helper';
-import type { DisplayDateMode } from '@/api/types/map-schema-types';
+import type { DisplayDateMode, TypeServiceUrls } from '@/api/types/map-schema-types';
 import type {
   TypeGeoviewLayerConfig,
   TypeLayerEntryConfig,
@@ -102,6 +102,12 @@ export abstract class AbstractGeoViewLayer {
 
   /** The service metadata. */
   #metadata?: unknown;
+
+  /** The map-level service URLs configuration (proxy, geocore, geolocator, etc.) for this layer's map instance. */
+  #configServiceUrls?: TypeServiceUrls;
+
+  /** The proxy to use, when one is being used */
+  #proxy?: string;
 
   /** Callback delegates for the layer entry register init event */
   #onLayerEntryRegisterInitHandlers: LayerEntryRegisterInitDelegate[] = [];
@@ -283,6 +289,74 @@ export abstract class AbstractGeoViewLayer {
    */
   getGeoviewLayerConfig(): TypeGeoviewLayerConfig {
     return this.#geoviewLayerConfig;
+  }
+
+  /**
+   * Gets the map-level service URLs configuration for this layer's map instance.
+   *
+   * @returns The service URLs configuration, or undefined if not set
+   */
+  getConfigServiceUrls(): TypeServiceUrls | undefined {
+    return this.#configServiceUrls;
+  }
+
+  /**
+   * Sets the map-level service URLs configuration for this layer's map instance.
+   *
+   * @param serviceUrls - The service URLs configuration from the map features config
+   */
+  setConfigServiceUrls(serviceUrls: TypeServiceUrls): void {
+    this.#configServiceUrls = serviceUrls;
+  }
+
+  /**
+   * Gets the proxy URL from the map-level service URLs configuration.
+   *
+   * @returns The proxy URL, or undefined if not configured
+   */
+  getConfigProxyUrl(): string | undefined {
+    return this.getConfigServiceUrls()?.proxyUrl;
+  }
+
+  /**
+   * Sets the proxy URL in the map-level service URLs configuration.
+   *
+   * @param configProxyUrl - The proxy URL to set, or undefined to clear it
+   */
+  setConfigProxyUrl(configProxyUrl: string | undefined): void {
+    this.#configServiceUrls ??= {};
+    this.#configServiceUrls.proxyUrl = configProxyUrl;
+  }
+
+  /**
+   * Gets the proxy URL used for the layer's processing.
+   * GV Not to be confused with the layer entry config function of the same name.
+   *
+   *
+   * @returns The proxy URL, or undefined if no proxy is being used
+   */
+  getProxyUrl(): string | undefined {
+    return this.#proxy;
+  }
+
+  /**
+   * Sets the proxy URL to be used for the layer's processing.
+   * GV Not to be confused with the layer entry config function of the same name.
+   *
+   * @param proxy - The proxy URL to set
+   */
+  setProxyUrl(proxy: string | undefined): void {
+    this.#proxy = proxy;
+  }
+
+  /**
+   * Indicates whether the layer is using a proxy to connect to its service.
+   * GV Not to be confused with the layer entry config function of the same name.
+   *
+   * @returns `true` if the layer is using a proxy; otherwise, `false`
+   */
+  getIsUsingProxy(): boolean {
+    return !!this.#proxy;
   }
 
   /**
@@ -588,10 +662,7 @@ export abstract class AbstractGeoViewLayer {
     this.#layerLoadError.push(error);
 
     // Set the layer status to error
-    layerConfig?.setLayerStatusError();
-
-    // Propagate error to parent group layers, if any
-    layerConfig?.updateLayerStatusParent();
+    layerConfig?.setLayerStatusError(true);
   }
 
   /**
@@ -692,8 +763,10 @@ export abstract class AbstractGeoViewLayer {
    */
   async #fetchAndSetServiceMetadata(abortSignal?: AbortSignal): Promise<void> {
     try {
-      // If there's no metadata access path
-      // GV e.g.: CSV (csvLYR2) and some outlier demos, we want to skip those (not fail)
+      // If there's no metadata access path, we want to skip those
+      // GV e.g.: XYZ Tiles added via configuration without a metadataAccessPath
+      // GV e.g.: XYZ Tiles added via add-new-layer component like 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+      // GV e.g.: CSV (csvLYR2) and some outlier demos
       if (!this.hasMetadataAccessPath()) return;
 
       // Log
@@ -1329,13 +1402,13 @@ export abstract class AbstractGeoViewLayer {
         // Recursively set the status to the children
         AbstractGeoViewLayer.#setStatusErrorAll(error, layerConfig.listOfLayerEntryConfig);
         // Set the layer status to error
-        layerConfig?.setLayerStatusError();
+        layerConfig?.setLayerStatusError(false);
       } else {
         // If already set to error, don't touch it
         if (layerConfig.layerStatus === 'error') return;
 
         // Set the layer status to error
-        layerConfig?.setLayerStatusError();
+        layerConfig?.setLayerStatusError(false);
       }
     });
   }

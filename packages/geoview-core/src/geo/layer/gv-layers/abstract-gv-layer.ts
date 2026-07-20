@@ -115,6 +115,9 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
   /** Indicates if the layer is currently hoverable. */
   #hoverable: boolean;
 
+  /** Indicates if a message about a tile error has been emitted. */
+  #emittedMessageAboutTileError = false;
+
   /** Callback delegates for the layer style changed event. */
   #onLayerStyleChangedHandlers: StyleChangedDelegate[] = [];
 
@@ -1322,10 +1325,10 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
 
     if (!wasLast) return;
 
-    // Decipher the error, allowing children classes to be more specific (ex: Vector specific errors)
+    // Decipher the error, allowing children classes to be more specific
     const gvError = this.onErrorDecipherError(event);
 
-    // Call overridable method (sets layer status to error)
+    // Call overridable method
     this.onFeaturesLoadError(gvError);
   }
 
@@ -1357,7 +1360,7 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
     // Decipher the error, allowing children classes to be more specific (ex: WMS GetMap specific errors)
     const gvError = this.onImageLoadErrorDecipherError(event);
 
-    // Call overridable method (sets layer status to error)
+    // Call overridable method
     this.onImageLoadError(gvError);
   }
 
@@ -1387,10 +1390,10 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
 
     if (!wasLast) return;
 
-    // Decipher the error, allowing children classes to be more specific (ex: Vector specific errors)
+    // Decipher the error, allowing children classes to be more specific
     const gvError = this.onErrorDecipherError(event);
 
-    // Call overridable method (does not flip status to error)
+    // Call overridable method
     this.onImageTileLoadError(gvError);
   }
 
@@ -1511,10 +1514,7 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
     const layerConfig = this.getLayerConfig();
 
     // Set the layer has loading
-    layerConfig.setLayerStatusLoading();
-
-    // Update the parent group if any
-    this.getLayerConfig().updateLayerStatusParent();
+    layerConfig.setLayerStatusLoading(true);
 
     // Emit event for all layer load events
     this.#emitLayerLoading();
@@ -1530,15 +1530,12 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
     const layerConfig = this.getLayerConfig();
 
     // Set the layer config status to loaded to keep mirroring the AbstractGeoViewLayer for now
-    layerConfig.setLayerStatusLoaded();
-
-    // Update the parent group if any
-    this.getLayerConfig().updateLayerStatusParent();
+    layerConfig.setLayerStatusLoaded(true);
 
     // If first time
     if (!this.loadedOnce) {
       // If it's a basemap layer, put it at the bottom of the stack to avoid any issue with layers order on map.
-      if (this.getLayerConfig().getGeoviewLayerConfig().useAsBasemap === true) this.getOLLayer().setZIndex(-1);
+      if (layerConfig.getGeoviewLayerConfig().useAsBasemap === true) this.getOLLayer().setZIndex(-1);
       // Now that the layer is loaded, set its visibility correctly (had to be done in the loaded event, not before, per prior note in pre-refactor)
       this.setVisible(layerConfig.getInitialSettings()?.states?.visible ?? true); // default: true
 
@@ -1566,13 +1563,10 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
     // If we were not error before
     if (layerStatusBefore !== 'error') {
       // Set the layer config status to error to keep mirroring the AbstractGeoViewLayer for now
-      this.getLayerConfig().setLayerStatusError();
+      this.getLayerConfig().setLayerStatusError(true);
 
-      // Update the parent group if any
-      this.getLayerConfig().updateLayerStatusParent();
-
-      // Emit about the error
-      this.#emitError(error);
+      // Emits a user-facing error message
+      this.emitMessage(error.messageKey, error.messageParams, 'error');
     } else {
       // We've already emitted an error to the user about the layer being in error, skip so that we don't spam
     }
@@ -1593,8 +1587,27 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
 
     // If we were not error before
     if (layerStatusBefore !== 'error') {
-      // Tile errors are non-fatal => at this point it was the last tile in flight, we can process the layer as loaded
-      this.#processLoaded();
+      // If loaded once already
+      if (this.loadedOnce) {
+        // Tile errors are non-fatal => at this point it was the last tile in flight, we can process the layer as loaded
+        // GV For example, Circompolar view, we don't want a error to pop for the user all the time
+        this.#processLoaded();
+      } else {
+        // Never got loaded, ever
+        // GV For example, a service that is reachable, but fails to return actual tiles on the map
+
+        // Set the layer config status to error to keep mirroring the AbstractGeoViewLayer for now
+        this.getLayerConfig().setLayerStatusError(true);
+
+        // If we never warned the user about a tile issue for that layer, warn them once
+        if (!this.#emittedMessageAboutTileError) {
+          // Flag
+          this.#emittedMessageAboutTileError = true;
+
+          // Emits a user-facing error message
+          this.emitMessage(error.messageKey, error.messageParams, 'error');
+        }
+      }
     }
 
     // Emit event for all layer error events
@@ -1614,13 +1627,10 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
     // If we were not error before
     if (layerStatusBefore !== 'error') {
       // Set the layer config status to error to keep mirroring the AbstractGeoViewLayer for now
-      this.getLayerConfig().setLayerStatusError();
+      this.getLayerConfig().setLayerStatusError(true);
 
-      // Update the parent group if any
-      this.getLayerConfig().updateLayerStatusParent();
-
-      // Emit about the error
-      this.#emitError(error);
+      // Emits a user-facing error message
+      this.emitMessage(error.messageKey, error.messageParams, 'error');
     } else {
       // We've already emitted an error to the user about the layer being in error, skip so that we don't spam
     }
@@ -1653,7 +1663,7 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
 
         // If still loading
         if (layerStatus === 'loading') {
-          // Emit about the delay
+          // Emits a user-facing error message
           this.emitMessage('warning.layer.slowRender', { layerName: this.getLayerName() }, 'warning');
         }
 
@@ -1661,16 +1671,6 @@ export abstract class AbstractGVLayer extends AbstractBaseGVLayer {
       },
       (error: unknown) => logger.logPromiseFailed('Delay in #startLoadingPeriodWatcher failed', error)
     );
-  }
-
-  /**
-   * Emits a user-facing error message for a source loading error.
-   *
-   * @param gvError - The GeoView Error containing the message to emit
-   */
-  #emitError(gvError: GeoViewError): void {
-    // Emit about the error
-    this.emitMessage(gvError.messageKey, gvError.messageParams, 'error');
   }
 
   /**

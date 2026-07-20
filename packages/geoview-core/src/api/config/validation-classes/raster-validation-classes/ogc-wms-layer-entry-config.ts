@@ -356,9 +356,10 @@ export class OgcWmsLayerEntryConfig extends AbstractBaseLayerEntryConfig {
    * 3. Modifying each generated entry to include the current WMS layer ID.
    * 4. Returning the first generated WFS layer configuration.
    *
+   * @param configProxyUrl - Proxy URL to use when necessary
    * @returns A promise that resolves with the first generated WFS layer entry configuration
    */
-  async createGeoviewLayerConfigWfs(): Promise<OgcWfsLayerEntryConfig> {
+  async createGeoviewLayerConfigWfs(configProxyUrl: string | undefined): Promise<OgcWfsLayerEntryConfig> {
     // The base url
     let url = this.getMetadataAccessPath()!;
 
@@ -370,6 +371,7 @@ export class OgcWmsLayerEntryConfig extends AbstractBaseLayerEntryConfig {
       'wfsConfigForWms',
       `Temporary WFS layer config for the WMS layer '${this.getLayerNameCascade()}'`,
       url,
+      configProxyUrl,
       [this.getWfsStylesLayerId() || this.layerId],
       false,
       'all',
@@ -395,7 +397,7 @@ export class OgcWmsLayerEntryConfig extends AbstractBaseLayerEntryConfig {
    */
   override async onRefreshMetadata(displayDateMode: DisplayDateMode): Promise<void> {
     // Refetch the metadata again with the new date mode and update the config
-    const layerMetadata = await WMS.fetchMetadataWMSForLayer(this.getMetadataAccessPath()!, this.layerId);
+    const layerMetadata = await WMS.fetchMetadataWMSForLayer(this.getMetadataAccessPath()!, this.getProxyUrl(), this.layerId);
 
     // Read the capabilities
     const layerCapabilities = WMS.findLayerMetadataInCapability(this.layerId, layerMetadata.Capability.Layer);

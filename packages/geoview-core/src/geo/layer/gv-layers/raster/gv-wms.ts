@@ -23,7 +23,6 @@ import type {
   TypeDisplayLanguage,
   TypeLayerStyleConfig,
 } from '@/api/types/map-schema-types';
-import { CONFIG_PROXY_URL } from '@/api/types/map-schema-types';
 import type { TypeLegend, TypeMetadataFeatureInfo } from '@/api/types/layer-schema-types';
 import { CONST_LAYER_TYPES } from '@/api/types/layer-schema-types';
 import { GeoviewRenderer } from '@/geo/utils/renderer/geoview-renderer';
@@ -35,7 +34,7 @@ import {
   LayerInvalidLayerFilterError,
 } from '@/core/exceptions/layer-exceptions';
 import { encodeLayersParam } from '@/core/utils/ogc-url-helper';
-import { formatError, NetworkError, RequestAbortedError, ResponseContentError } from '@/core/exceptions/core-exceptions';
+import { formatError, RequestAbortedError, ResponseContentError } from '@/core/exceptions/core-exceptions';
 import { AbstractGVLayer } from '@/geo/layer/gv-layers/abstract-gv-layer';
 import type { EsriImageLayerEntryConfig } from '@/api/config/validation-classes/raster-validation-classes/esri-image-layer-entry-config';
 import { WfsRenderer } from '@/geo/utils/renderer/wfs-renderer';
@@ -127,6 +126,12 @@ export class GVWMS extends AbstractGVRaster {
       // Assign the src to the image, this is the regular behavior
       let theUrl = src;
 
+      // If we're behind a proxy
+      if (layerConfig.getIsUsingProxy()) {
+        // Tweak the url to use the proxy
+        theUrl = `${layerConfig.getProxyUrl()}?${theUrl}`;
+      }
+
       // If we're overriding the CRS for the layer as an attempt to do on-the-fly projection for tricky layers
       const overridingCRS = this.getOverrideCRS();
       if (overridingCRS) {
@@ -139,7 +144,7 @@ export class GVWMS extends AbstractGVRaster {
         );
 
         // Replace the BBOX param in the src url
-        theUrl = GeoUtilities.replaceCRSandBBOXParam(src, overridingCRS.layerProjection, supportedBBOX);
+        theUrl = GeoUtilities.replaceCRSandBBOXParam(theUrl, overridingCRS.layerProjection, supportedBBOX);
       }
 
       // eslint-disable-next-line no-param-reassign
@@ -1599,10 +1604,16 @@ export class GVWMS extends AbstractGVRaster {
     params.FI_POLYGON_TOLERANCE = qgisServerTolerance;
 
     // Generate the url
-    const featureInfoUrl = wmsSource?.getFeatureInfoUrl(clickCoordinate, viewResolution, projectionCode, params);
+    let featureInfoUrl = wmsSource?.getFeatureInfoUrl(clickCoordinate, viewResolution, projectionCode, params);
 
     // If generated a url
     if (featureInfoUrl) {
+      // If using a proxy
+      if (layerConfig.getIsUsingProxy()) {
+        // Tweak the url to use the proxy
+        featureInfoUrl = `${layerConfig.getProxyUrl()}?${featureInfoUrl}`;
+      }
+
       // Get the response data as text
       return Fetch.fetchText(featureInfoUrl, { signal: abortController?.signal });
     }
@@ -1799,7 +1810,7 @@ export class GVWMS extends AbstractGVRaster {
    * @returns A promise that resolves to an image blob or null if it fails to retrieve the legend image
    * @throws {ResponseContentError} When no URL is available to fetch the legend image
    */
-  static async #getLegendImage(layerConfig: OgcWmsLayerEntryConfig, chosenStyle?: string): Promise<string | ArrayBuffer | null> {
+  static #getLegendImage(layerConfig: OgcWmsLayerEntryConfig, chosenStyle?: string): Promise<string | ArrayBuffer | null> {
     // Get the legend URL from the layer metadata
     let queryUrl = layerConfig.getLegendUrl(chosenStyle);
 
@@ -1824,28 +1835,19 @@ export class GVWMS extends AbstractGVRaster {
       queryUrl = `https${queryUrl.slice(4)}`;
     }
 
-    try {
-      // Fetch the image (must await so CORS/network errors are caught below)
-      return await Fetch.fetchBlobImage(queryUrl);
-    } catch (error) {
-      // Retry with proxy if it's a network error (e.g., CORS)
-      if (error instanceof NetworkError) {
-        // Read the blob again, using the proxy this time
-        let proxyUrl = `${CONFIG_PROXY_URL}?${queryUrl}`;
+    // If we know that the layer is using a proxy, use it right away instead of even attempting to fetch the image directly (which would fail due to CORS)
+    if (layerConfig.getIsUsingProxy()) {
+      queryUrl = `${layerConfig.getProxyUrl()}?${queryUrl}`;
 
-        // If need to double layer encoding
-        if (GeoUtilities.DOUBLE_ENCODING_LAYERS_WHEN_BEHIND_PROXY) {
-          // Encode the layers parameter if present
-          proxyUrl = encodeLayersParam(proxyUrl);
-        }
-
-        // Requery
-        return Fetch.fetchBlobImage(proxyUrl);
+      // If the proxy to use is the Esri proxy
+      if (layerConfig.getIsUsingEsriProxy()) {
+        // Encode the layers parameter if present
+        queryUrl = encodeLayersParam(queryUrl);
       }
-
-      // Failed
-      throw error;
     }
+
+    // Fetch the image (must await so CORS/network errors are caught below)
+    return Fetch.fetchBlobImage(queryUrl);
   }
 
   /**
