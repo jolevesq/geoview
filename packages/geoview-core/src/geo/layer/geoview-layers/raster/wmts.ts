@@ -6,23 +6,28 @@ import type { Projection as OLProjection } from 'ol/proj';
 import WMTSTileGrid from 'ol/tilegrid/WMTS';
 
 import { AbstractGeoViewRaster } from '@/geo/layer/geoview-layers/raster/abstract-geoview-raster';
-import type { TypeSourceTileInitialConfig, TypeGeoviewLayerConfig } from '@/api/types/layer-schema-types';
-import { CONST_LAYER_TYPES } from '@/api/types/layer-schema-types';
 import type {
-  TypeMetadataWMTS,
+  TypeSourceTileInitialConfig,
+  TypeGeoviewLayerConfig,
+  TypeMetadataWMTSCapabilities,
   TypeMetadataWMTSLayer,
   TypeWMTSTileMatrixSet,
-} from '@/api/config/validation-classes/raster-validation-classes/ogc-wmts-layer-entry-config';
+} from '@/api/types/layer-schema-types';
+import { CONST_LAYER_TYPES } from '@/api/types/layer-schema-types';
+import type { DisplayDateMode } from '@/api/types/map-schema-types';
 import { OgcWmtsLayerEntryConfig } from '@/api/config/validation-classes/raster-validation-classes/ogc-wmts-layer-entry-config';
 import { GVWMTS } from '@/geo/layer/gv-layers/tile/gv-wmts';
 import type { ConfigBaseClass, TypeLayerEntryShell } from '@/api/config/validation-classes/config-base-class';
 import { AbstractGeoViewLayer } from '@/geo/layer/geoview-layers/abstract-geoview-layers';
 import { GeoUtilities, type CallbackNewMetadataDelegate } from '@/geo/utils/utilities';
-import { LayerServiceMetadataUnableToFetchError, LayerWMTSMetadataError } from '@/core/exceptions/layer-exceptions';
-import { formatError } from '@/core/exceptions/core-exceptions';
+import {
+  LayerNoCapabilitiesError,
+  LayerServiceMetadataUnableToFetchError,
+  LayerWMTSMetadataError,
+} from '@/core/exceptions/layer-exceptions';
+import { formatError, ResponseEmptyError } from '@/core/exceptions/core-exceptions';
 import type { GroupLayerEntryConfig } from '@/api/config/validation-classes/group-layer-entry-config';
 import { Projection } from '@/geo/utils/projection';
-import type { DisplayDateMode } from '@/api/types/map-schema-types';
 
 export interface TypeSourceImageWMTSInitialConfig extends TypeSourceTileInitialConfig {
   // The style identifier to use for this WMTS layer, will use "default" if not specified.
@@ -69,8 +74,8 @@ export class WMTS extends AbstractGeoViewRaster {
    *
    * @returns The strongly-typed metadata specific to this layer
    */
-  override getMetadata(): TypeMetadataWMTS | undefined {
-    return super.getMetadata() as TypeMetadataWMTS | undefined;
+  override getMetadata(): TypeMetadataWMTSCapabilities | undefined {
+    return super.getMetadata() as TypeMetadataWMTSCapabilities | undefined;
   }
 
   /**
@@ -83,27 +88,30 @@ export class WMTS extends AbstractGeoViewRaster {
    *   - If no specific layer configs are provided, a single metadata fetch is made.
    *   - If layer configs are present (e.g., Geomet use case), individual layer metadata is merged.
    *
-   * @param abortSignal - Optional abort signal to handle cancelling of the process
+   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
    * @returns A promise that resolves to the parsed metadata object,
    * or `undefined` if metadata could not be retrieved or no capabilities were found.
    * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
+   * @throws {LayerNoCapabilitiesError} When the metadata is empty (no Capabilities)
    */
-  protected override onFetchServiceMetadata<T = TypeMetadataWMTS | undefined>(abortSignal?: AbortSignal): Promise<T> {
+  protected override onFetchServiceMetadata<T = TypeMetadataWMTSCapabilities>(abortSignal?: AbortSignal): Promise<T> {
     // Redirect
-    return this.fetchServiceMetadataWMTS(true, abortSignal) as Promise<T>;
+    return this.fetchServiceMetadataWMTS(abortSignal) as Promise<T>;
   }
 
   /**
    * Overrides the way a geoview layer config initializes its layer entries.
    *
    * @returns A promise that resolves once the layer entries have been initialized
+   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
+   * @throws {LayerNoCapabilitiesError} When the metadata is empty (no Capabilities)
    */
   protected override async onInitLayerEntries(): Promise<TypeGeoviewLayerConfig> {
     // Fetch the metadata
-    const metadata = await this.fetchServiceMetadataWMTS(false);
+    const metadata = await this.onFetchServiceMetadata();
 
     // Now that we have metadata
-    const layers = metadata?.Capabilities?.Contents.Layer;
+    const layers = metadata?.Contents.Layer;
 
     // Get all entries
     const entries = Array.isArray(layers)
@@ -138,10 +146,8 @@ export class WMTS extends AbstractGeoViewRaster {
    * @param layerConfig - The layer entry config to validate
    */
   protected override onValidateLayerEntryConfig(layerConfig: ConfigBaseClass): void {
-    const metadata = this.getMetadata();
-    const layerMetadata = Array.isArray(metadata?.Capabilities?.Contents?.Layer)
-      ? metadata?.Capabilities?.Contents?.Layer.find((layer) => layer['ows:Identifier'] === layerConfig.layerId)
-      : metadata?.Capabilities?.Contents?.Layer;
+    // Find the layer
+    const layerMetadata = WMTS.findLayerMetadataInCapability(layerConfig.layerId, this.getMetadata());
 
     // Initialize the layer name by filling the blanks with the name from the metadata
     layerConfig.initLayerNameFromMetadata(layerMetadata?.['ows:Title']);
@@ -152,7 +158,7 @@ export class WMTS extends AbstractGeoViewRaster {
    *
    * @param layerConfig - The layer entry configuration to process
    * @param mapProjection - Optional map projection
-   * @param abortSignal - Optional abort signal to handle cancelling of the process
+   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
    * @returns A promise that resolves once the layer entry configuration has gotten its metadata processed
    * @throws {LayerWMTSMetadataError} When the metadata is missing necessary information or contains an error
    */
@@ -170,6 +176,12 @@ export class WMTS extends AbstractGeoViewRaster {
 
     // Init the layer metadata
     await WMTS.initLayerMetadata(layerConfig, metadata);
+
+    // If a proxy was necessary when the metadata were fetched
+    if (this.getIsUsingProxy()) {
+      // Indicate the proxy that was used
+      layerConfig.setProxyUrl(this.getProxyUrl());
+    }
 
     // Return the layer config
     return layerConfig;
@@ -202,8 +214,10 @@ export class WMTS extends AbstractGeoViewRaster {
    * @param updateMetadataAccessPath - Whether to update the layer's metadata access path if a proxy is required to fetch the metadata
    * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
    * @returns A promise that resolves to the parsed metadata object, or `undefined` if metadata could not be retrieved or no capabilities were found.
+   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
+   * @throws {LayerNoCapabilitiesError} When the metadata is empty (no Capabilities)
    */
-  protected fetchServiceMetadataWMTS(updateMetadataAccessPath: boolean, abortSignal?: AbortSignal): Promise<TypeMetadataWMTS> {
+  protected fetchServiceMetadataWMTS(abortSignal?: AbortSignal): Promise<TypeMetadataWMTSCapabilities> {
     // Construct a proper WMTS GetCapabilities URL
     let url = this.getMetadataAccessPath();
     // Ensure HTTPS
@@ -214,15 +228,9 @@ export class WMTS extends AbstractGeoViewRaster {
     // Fetch the XML
     return this.#fetchXmlServiceMetadata(
       url,
-      (proxiedUrl, proxyUsed) => {
-        // If updating the metadataAccessPath as we go
-        if (updateMetadataAccessPath) {
-          // Indicate the proxy that was used
-          this.setProxyUrl(proxyUsed);
-
-          // Update the access path to use the proxy if one was required
-          this.setMetadataAccessPath(proxiedUrl);
-        }
+      (proxyUsed) => {
+        // Keep in mind a proxy was used for the request
+        this.setProxyUrl(proxyUsed);
       },
       abortSignal
     );
@@ -235,30 +243,37 @@ export class WMTS extends AbstractGeoViewRaster {
    *
    * @param metadataUrl - The metadataAccessPath
    * @param callbackNewMetadataUrl - Optional callback executed when a proxy had to be used to fetch the metadata
-   * @param abortSignal - Optional abort signal to handle cancelling of the process
+   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
    * @returns A promise that resolves once the execution is completed
    * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
+   * @throws {LayerNoCapabilitiesError} When the metadata is empty (no Capabilities)
    */
   async #fetchXmlServiceMetadata(
     metadataUrl: string,
     callbackNewMetadataUrl: CallbackNewMetadataDelegate,
     abortSignal?: AbortSignal
-  ): Promise<TypeMetadataWMTS> {
+  ): Promise<TypeMetadataWMTSCapabilities> {
     let metadata;
     try {
       // Fetch it
-      metadata = await WMTS.fetchMetadata(metadataUrl, this.getConfigProxyUrl(), callbackNewMetadataUrl, abortSignal);
+      metadata = await WMTS.fetchMetadataWMTS(metadataUrl, this.getConfigProxyUrl(), callbackNewMetadataUrl, abortSignal);
+
+      // Return the metadata
+      return metadata;
     } catch (error: unknown) {
-      // Throw
+      // If empty response
+      if (error instanceof ResponseEmptyError) {
+        // Throw no capabilities response
+        throw new LayerNoCapabilitiesError(this.getGeoviewLayerId(), this.getLayerEntryNameOrGeoviewLayerName());
+      }
+
+      // Throw standard
       throw new LayerServiceMetadataUnableToFetchError(
         this.getGeoviewLayerId(),
         this.getLayerEntryNameOrGeoviewLayerName(),
         formatError(error)
       );
     }
-
-    // Return the metadata
-    return metadata;
   }
 
   // #endregion PRIVATE METHODS
@@ -334,6 +349,23 @@ export class WMTS extends AbstractGeoViewRaster {
   }
 
   /**
+   * Recursively gets the layer capability for a given layer id.
+   *
+   * @param layerId - The layer identifier to get the capabilities for
+   * @param layer - Optional current layer entry from the capabilities that will be recursively searched
+   * @returns The found layer from the capabilities or undefined if not found
+   */
+  static findLayerMetadataInCapability(
+    layerId: string,
+    layerCapability: TypeMetadataWMTSCapabilities | undefined
+  ): TypeMetadataWMTSLayer | undefined {
+    // Find the TileMatrixSet and Layer in the metadata that corresponds to the layer entry config
+    return layerCapability && Array.isArray(layerCapability?.Contents?.Layer)
+      ? layerCapability?.Contents?.Layer.find((layer) => layer['ows:Identifier'] === layerId)
+      : (layerCapability?.Contents?.Layer as TypeMetadataWMTSLayer | undefined);
+  }
+
+  /**
    * Initializes the layer metadata for a WMTS layer entry configuration.
    *
    * This method takes a layer entry configuration and the corresponding metadata,
@@ -343,16 +375,14 @@ export class WMTS extends AbstractGeoViewRaster {
    *
    * @param layerConfig - The layer entry configuration
    * @param metadata - The WMTS metadata
+   * @throws {LayerWMTSMetadataError} When the metadata is missing necessary information (TileMatrixSet, Layer, TileMatrixSetLink, or KVP GetTile)
    */
-  static async initLayerMetadata(layerConfig: OgcWmtsLayerEntryConfig, metadata: TypeMetadataWMTS | undefined): Promise<void> {
+  static async initLayerMetadata(layerConfig: OgcWmtsLayerEntryConfig, metadata: TypeMetadataWMTSCapabilities | undefined): Promise<void> {
     // If no metadata (e.g. no metadataAccessPath was provided), skip metadata processing entirely
     if (!metadata) return;
 
     // Find the TileMatrixSet and Layer in the metadata that corresponds to the layer entry config
-    const metadataLayerFound: TypeMetadataWMTSLayer | undefined =
-      metadata && Array.isArray(metadata?.Capabilities?.Contents?.Layer)
-        ? metadata?.Capabilities?.Contents?.Layer.find((layer) => layer['ows:Identifier'] === layerConfig.layerId)
-        : (metadata?.Capabilities?.Contents?.Layer as TypeMetadataWMTSLayer | undefined);
+    const metadataLayerFound = this.findLayerMetadataInCapability(layerConfig.layerId, metadata);
 
     let tileMatrixIdentifier = layerConfig.tileMatrixSet;
     if (!tileMatrixIdentifier && metadataLayerFound?.TileMatrixSetLink) {
@@ -364,9 +394,9 @@ export class WMTS extends AbstractGeoViewRaster {
     }
 
     const metadataTileMatrixFound: TypeWMTSTileMatrixSet | undefined =
-      metadata && Array.isArray(metadata?.Capabilities?.Contents?.TileMatrixSet)
-        ? metadata?.Capabilities?.Contents?.TileMatrixSet?.find((tileMatrix) => tileMatrix['ows:Identifier'] === tileMatrixIdentifier)
-        : (metadata?.Capabilities?.Contents?.TileMatrixSet as TypeWMTSTileMatrixSet | undefined);
+      metadata && Array.isArray(metadata?.Contents?.TileMatrixSet)
+        ? metadata?.Contents?.TileMatrixSet?.find((tileMatrix) => tileMatrix['ows:Identifier'] === tileMatrixIdentifier)
+        : (metadata?.Contents?.TileMatrixSet as TypeWMTSTileMatrixSet | undefined);
 
     // If not found
     if (!metadataTileMatrixFound || !metadataLayerFound) {
@@ -389,7 +419,7 @@ export class WMTS extends AbstractGeoViewRaster {
 
     // If the layer entry config doesn't have a data access path, try to get it from the metadata's GetTile operation
     if (!layerConfig.hasDataAccessPath()) {
-      const getTileOperation = metadata?.Capabilities?.['ows:OperationsMetadata']?.['ows:Operation']?.find(
+      const getTileOperation = metadata?.['ows:OperationsMetadata']?.['ows:Operation']?.find(
         (operation) => operation['@attributes'].name === 'GetTile'
       );
 
@@ -430,7 +460,7 @@ export class WMTS extends AbstractGeoViewRaster {
   }
 
   /**
-   * Processes an  WMTS GeoviewLayerConfig and returns a promise
+   * Processes a WMTS GeoviewLayerConfig and returns a promise
    * that resolves to an array of `ConfigBaseClass` layer entry configurations.
    *
    * This method:
@@ -471,12 +501,12 @@ export class WMTS extends AbstractGeoViewRaster {
   }
 
   /**
-   * Fetches the metadata for WMS Capabilities.
+   * Fetches the metadata for WMTS Capabilities.
    *
    * @param url - The url to query the metadata from
    * @param configProxyUrl - Proxy URL to use when necessary
    * @param callbackNewMetadataUrl - Optional callback executed when a proxy had to be used to fetch the metadata
-   * @param abortSignal - Optional abort signal to handle cancelling of the process
+   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
    * @returns A promise that resolves to the parsed metadata object
    * @throws {RequestTimeoutError} When the request exceeds the timeout duration
    * @throws {RequestAbortedError} When the request was aborted by the caller's signal
@@ -484,7 +514,7 @@ export class WMTS extends AbstractGeoViewRaster {
    * @throws {ResponseEmptyError} When the JSON response is empty
    * @throws {NetworkError} When a network issue happened
    */
-  static override fetchMetadata<T = TypeMetadataWMTS>(
+  static fetchMetadataWMTS<T = TypeMetadataWMTSCapabilities>(
     url: string,
     configProxyUrl: string | undefined,
     callbackNewMetadataUrl?: CallbackNewMetadataDelegate,
@@ -502,9 +532,7 @@ export class WMTS extends AbstractGeoViewRaster {
    * @throws {LayerWMTSMetadataError} When we don't have enough info to create a source
    */
   static createWMTSSource(layerConfig: OgcWmtsLayerEntryConfig): WMTSSource {
-    const metadata = layerConfig.getLayerMetadata();
-    const tileMatrixSet = metadata?.TileMatrixSet as TypeWMTSTileMatrixSet | undefined;
-    const layer = metadata?.Layer as TypeMetadataWMTSLayer | undefined;
+    const layerMetadata = layerConfig.getLayerMetadata();
 
     // If layerConfig has values, prioritize config over metadata
     if (
@@ -516,8 +544,8 @@ export class WMTS extends AbstractGeoViewRaster {
     }
 
     // If metadata with TileMatrixSet and Layer info is available, create source from metadata
-    if (layer && tileMatrixSet) {
-      return WMTS.#createWMTSSourceFromMetadata(layerConfig, layer, tileMatrixSet);
+    if (layerMetadata?.Layer && layerMetadata?.TileMatrixSet) {
+      return WMTS.#createWMTSSourceFromMetadata(layerConfig, layerMetadata.Layer, layerMetadata.TileMatrixSet);
     }
 
     // If we don't have enough info to create a source, throw
@@ -547,7 +575,7 @@ export class WMTS extends AbstractGeoViewRaster {
       const foundStyle = Array.isArray(layer.Style)
         ? layer.Style.find((layerStyle) => layerStyle['@attributes'].isDefault === 'true') || layer.Style[0]
         : layer.Style;
-      style = foundStyle['ows:Identifier'] || 'default';
+      style = foundStyle?.['ows:Identifier'] || 'default';
     }
 
     // Get the projection from the metadata
@@ -591,6 +619,7 @@ export class WMTS extends AbstractGeoViewRaster {
     });
 
     // Construct the source options for the WMTS source.
+    // GV The proxy is handled in the setTileLoadFunction callback in GVWMTS constructor.
     const sourceOptions: SourceOptions = {
       url: layerConfig.getDataAccessPath(),
       crossOrigin: layerConfig.getSource().crossOrigin ?? 'Anonymous',

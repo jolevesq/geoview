@@ -19,7 +19,6 @@ import { EsriUtilities } from '@/geo/layer/geoview-layers/esri-layer-common';
 import {
   LayerEntryConfigLayerIdEsriMustBeNumberError,
   LayerFeatureParsingError,
-  LayerServiceMetadataUnableToFetchError,
   LayerTooManyEsriFeatures,
 } from '@/core/exceptions/layer-exceptions';
 import { AbstractGeoViewRaster } from '@/geo/layer/geoview-layers/raster/abstract-geoview-raster';
@@ -84,11 +83,11 @@ export class EsriFeature extends AbstractGeoViewVector {
    * @returns A promise that resolves with the metadata or undefined when no metadata for the particular layer type
    * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    */
-  protected override onFetchServiceMetadata<
-    T = TypeMetadataEsriDynamic | TypeMetadataEsriDynamicLayer | TypeMetadataEsriFeature | undefined,
-  >(abortSignal?: AbortSignal): Promise<T> {
+  protected override onFetchServiceMetadata<T = TypeMetadataEsriDynamic | TypeMetadataEsriDynamicLayer | TypeMetadataEsriFeature>(
+    abortSignal?: AbortSignal
+  ): Promise<T> {
     // Redirect
-    return this.fetchServiceMetadataEsriFeature(abortSignal) as Promise<T>;
+    return this.helperFetchServiceMetadataWithFJson(abortSignal);
   }
 
   /**
@@ -99,7 +98,7 @@ export class EsriFeature extends AbstractGeoViewVector {
    */
   protected override async onInitLayerEntries(): Promise<TypeGeoviewLayerConfig> {
     // Fetch metadata, in this init context we fetch either via /MapServer/{layerId} or /FeatureServer url endpoints
-    const metadata = await this.fetchServiceMetadataEsriFeature();
+    const metadata = await this.onFetchServiceMetadata();
 
     // If metadata was fetched successfully
     const entries = [];
@@ -199,10 +198,11 @@ export class EsriFeature extends AbstractGeoViewVector {
     // Cast it to proper type
     const layerConfigEsriFeature = layerConfig as EsriFeatureLayerEntryConfig;
 
+    // Get the url to fetch features
+    const url = `${layerConfigEsriFeature.getDataAccessPathProxiedWhenNecessary(true)}${layerConfigEsriFeature.layerId}`;
+
     // Use the basic fetch
-    const responseDataCount = await Fetch.fetchEsriJson<{ count: number }>(
-      `${layerConfigEsriFeature.getDataAccessPath(true)}${layerConfigEsriFeature.layerId}/query?f=json&where=1=1&returnCountOnly=true`
-    );
+    const responseDataCount = await Fetch.fetchEsriJson<{ count: number }>(`${url}/query?f=json&where=1=1&returnCountOnly=true`);
 
     // Check if feature count is too large
     if (responseDataCount.count > AbstractGeoViewVector.MAX_ESRI_FEATURES) {
@@ -219,7 +219,7 @@ export class EsriFeature extends AbstractGeoViewVector {
 
     // Retrieve the full ESRI feature data
     const responseData = await EsriFeature.#fetchEsriFeaturesByChunk(
-      `${layerConfigEsriFeature.getDataAccessPath(true)}${layerConfigEsriFeature.layerId}/query?f=json&where=1=1&outfields=*&geometryPrecision=1&maxAllowableOffset=5`,
+      `${url}/query?f=json&where=1=1&outfields=*&geometryPrecision=1&maxAllowableOffset=5`,
       responseDataCount.count,
       maxRecords
     );
@@ -275,48 +275,6 @@ export class EsriFeature extends AbstractGeoViewVector {
   }
 
   // #endregion OVERRIDES
-
-  // #region PROTECTED METHODS
-
-  /**
-   * Fetches and processes service metadata for the EsriFeature layer.
-   *
-   * Resolves with the Json object or undefined when no metadata is to be expected for a particular layer type.
-   * Returns TypeMetadataEsriDynamic | TypeMetadataEsriDynamicLayer | TypeMetadataEsriFeature because sometimes
-   * the url is MapServer/?f=json, sometimes MapServer/{layerId}?f=json and sometimes FeatureServer/?f=json
-   * which all return different payloads.
-   *
-   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
-   * @returns A promise that resolves with the metadata or undefined when no metadata for the particular layer type
-   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
-   */
-  protected async fetchServiceMetadataEsriFeature(
-    abortSignal?: AbortSignal
-  ): Promise<TypeMetadataEsriDynamic | TypeMetadataEsriDynamicLayer | TypeMetadataEsriFeature> {
-    let responseJson;
-    try {
-      // Query
-      responseJson = await Fetch.fetchJson<TypeMetadataEsriDynamic | TypeMetadataEsriDynamicLayer | TypeMetadataEsriFeature>(
-        `${this.getMetadataAccessPath()}?f=json`,
-        { signal: abortSignal }
-      );
-    } catch (error: unknown) {
-      // Throw
-      throw new LayerServiceMetadataUnableToFetchError(
-        this.getGeoviewLayerId(),
-        this.getLayerEntryNameOrGeoviewLayerName(),
-        formatError(error)
-      );
-    }
-
-    // Validate the metadata response
-    AbstractGeoViewRaster.throwIfMetatadaHasError(this.getGeoviewLayerId(), this.getLayerEntryNameOrGeoviewLayerName(), responseJson);
-
-    // Return it
-    return responseJson;
-  }
-
-  // #endregion PROTECTED METHDOS
 
   // #region STATIC METHODS
 

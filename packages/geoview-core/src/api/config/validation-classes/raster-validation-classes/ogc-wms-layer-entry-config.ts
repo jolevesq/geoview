@@ -3,7 +3,7 @@ import type { Extent } from 'ol/extent';
 import type {
   ConfigClassOrType,
   TypeGeoviewLayerConfig,
-  TypeMetadataWMS,
+  TypeMetadataWMSCapabilities,
   TypeMetadataWMSCapabilityLayer,
   TypeMetadataWMSCapabilityLayerStyle,
   TypeOfServer,
@@ -18,6 +18,7 @@ import { WMS, type TypeWMSLayerConfig } from '@/geo/layer/geoview-layers/raster/
 import { normalizeDatacubeAccessPath } from '@/core/utils/utilities';
 import { Projection } from '@/geo/utils/projection';
 import { WFS } from '@/geo/layer/geoview-layers/vector/wfs';
+import { ServicesManagement } from '@/geo/utils/services-management';
 
 export interface OgcWmsLayerEntryConfigProps extends AbstractBaseLayerEntryConfigProps {
   /** Source settings to apply to the GeoView layer source at creation time. */
@@ -82,8 +83,8 @@ export class OgcWmsLayerEntryConfig extends AbstractBaseLayerEntryConfig {
    *
    * @returns The strongly-typed service metadata specific to this layer entry config
    */
-  override getServiceMetadata(): TypeMetadataWMS | undefined {
-    return super.getServiceMetadata() as TypeMetadataWMS | undefined;
+  override getServiceMetadata(): TypeMetadataWMSCapabilities | undefined {
+    return super.getServiceMetadata() as TypeMetadataWMSCapabilities | undefined;
   }
 
   /**
@@ -121,6 +122,28 @@ export class OgcWmsLayerEntryConfig extends AbstractBaseLayerEntryConfig {
     return super.getAttributions();
   }
 
+  /**
+   * Refreshes the layer metadata information by re-fetching the WMS GetCapabilities response and updating the layer configuration accordingly.
+   *
+   * This method is typically used when the display date mode changes, as the metadata may contain time-sensitive information that needs to be updated on-the-fly.
+   *
+   * @param displayDateMode - The display date mode that should be used
+   * @returns A promise that resolves when the metadata refresh operation has completed
+   * @throws {RequestTimeoutError} When the request exceeds the timeout duration
+   * @throws {ResponseEmptyError} When the capabilities response is empty
+   * @throws {NetworkError} When a network issue happened
+   */
+  override async onRefreshMetadata(displayDateMode: DisplayDateMode): Promise<void> {
+    // Refetch the metadata again with the new date mode and update the config
+    const layerMetadata = await WMS.fetchMetadataWMSForLayer(this.getMetadataAccessPath()!, this.getProxyUrl(), this.layerId);
+
+    // Read the capabilities
+    const layerCapabilities = WMS.findLayerMetadataInCapability(this.layerId, layerMetadata.Capability.Layer);
+
+    // Init the layer metadata
+    await WMS.initLayerMetadata(this, layerCapabilities, displayDateMode);
+  }
+
   // #endregion OVERRIDES
 
   // #region METHODS
@@ -131,6 +154,7 @@ export class OgcWmsLayerEntryConfig extends AbstractBaseLayerEntryConfig {
    * @returns The service version as read from the metadata attribute
    */
   getVersion(): string | undefined {
+    // Read the version from the metadata information
     return this.getServiceMetadata()?.version;
   }
 
@@ -140,6 +164,7 @@ export class OgcWmsLayerEntryConfig extends AbstractBaseLayerEntryConfig {
    * @returns The service version as read from the metadata attribute, or '1.1.0' if not available
    */
   getVersionOrDefault(): string {
+    // Redirect
     return this.getVersion() ?? '1.1.0';
   }
 
@@ -363,8 +388,8 @@ export class OgcWmsLayerEntryConfig extends AbstractBaseLayerEntryConfig {
     // The base url
     let url = this.getMetadataAccessPath()!;
 
-    // Tweak url, all the time, typical wms/wfs url
-    url = url.replaceAll('cgi-bin/wms', 'cgi-bin/wfs');
+    // Tweak url when switching from WMS to WFS
+    url = ServicesManagement.checkUrlSwitchWMSToWFS(url);
 
     // Initializes a WFS layer config
     const layerConfigs = await WFS.processGeoviewLayerConfig(
@@ -385,25 +410,6 @@ export class OgcWmsLayerEntryConfig extends AbstractBaseLayerEntryConfig {
 
     // Get the first layer config
     return layerConfigs[0] as OgcWfsLayerEntryConfig;
-  }
-
-  /**
-   * Refreshes the layer metadata information by re-fetching the WMS GetCapabilities response and updating the layer configuration accordingly.
-   *
-   * This method is typically used when the display date mode changes, as the metadata may contain time-sensitive information that needs to be updated on-the-fly.
-   *
-   * @param displayDateMode - The display date mode that should be used
-   * @returns A promise that resolves when the metadata refresh operation has completed
-   */
-  override async onRefreshMetadata(displayDateMode: DisplayDateMode): Promise<void> {
-    // Refetch the metadata again with the new date mode and update the config
-    const layerMetadata = await WMS.fetchMetadataWMSForLayer(this.getMetadataAccessPath()!, this.getProxyUrl(), this.layerId);
-
-    // Read the capabilities
-    const layerCapabilities = WMS.findLayerMetadataInCapability(this.layerId, layerMetadata.Capability.Layer);
-
-    // Init the layer metadata
-    await WMS.initLayerMetadata(this, layerCapabilities, displayDateMode);
   }
 
   /**
@@ -458,5 +464,5 @@ export class OgcWmsLayerEntryConfig extends AbstractBaseLayerEntryConfig {
     return this.isClassOrTypeSchemaTag(layerConfig, CONST_LAYER_TYPES.WMS);
   }
 
-  // #region STATIC METHODS
+  // #endregion STATIC METHODS
 }

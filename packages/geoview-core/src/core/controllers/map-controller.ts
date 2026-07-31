@@ -112,34 +112,34 @@ import {
   isStoreGeochartInitialized,
   getStoreGeochartChartsConfig,
 } from '@/core/stores/states/geochart-state';
-import { DEFAULT_OL_FITOPTIONS, OL_ZOOM_DURATION, OL_ZOOM_PADDING, TIMEOUT } from '@/core/utils/constant';
+import { TIMEOUT, type GVFitOptions } from '@/core/utils/constant';
 import { DateMgt, type TimeDimension } from '@/core/utils/date-mgt';
 import { doTimeout, isValidUUID } from '@/core/utils/utilities';
 import { Fetch } from '@/core/utils/fetch-helper';
 import { logger } from '@/core/utils/logger';
-import {
-  type MapInteractionChangedDelegate,
-  type MapInteractionChangedEvent,
-  type MapBaseEvent,
-  type MapMouseEnterDelegate,
-  type MapMouseLeaveDelegate,
-  type MapProjectionChangedDelegate,
-  type MapProjectionChangedEvent,
-  MapViewer,
-  type MapReadyDelegate,
-  type MapMoveEndDelegate,
-  type MapResolutionChangedDelegate,
-  type MapResolutionChangedEvent,
-  type MapRotationEvent,
-  type MapRotationDelegate,
-  type MapPointerMoveEvent,
-  type MapPointerMoveDelegate,
-  type MapSizeChangedDelegate,
-  type MapSizeChangedEvent,
-  type MarkerIconShowedDelegate,
-  type MarkerIconShowedEvent,
-  type MapSingleClickDelegate,
-  type MapSingleClickEvent,
+import type { MapViewer } from '@/geo/map/map-viewer';
+import type {
+  MapInteractionChangedDelegate,
+  MapInteractionChangedEvent,
+  MapBaseEvent,
+  MapMouseEnterDelegate,
+  MapMouseLeaveDelegate,
+  MapProjectionChangedDelegate,
+  MapProjectionChangedEvent,
+  MapReadyDelegate,
+  MapMoveEndDelegate,
+  MapResolutionChangedDelegate,
+  MapResolutionChangedEvent,
+  MapRotationEvent,
+  MapRotationDelegate,
+  MapPointerMoveEvent,
+  MapPointerMoveDelegate,
+  MapSizeChangedDelegate,
+  MapSizeChangedEvent,
+  MarkerIconShowedDelegate,
+  MarkerIconShowedEvent,
+  MapSingleClickDelegate,
+  MapSingleClickEvent,
 } from '@/geo/map/map-viewer';
 import { Projection } from '@/geo/utils/projection';
 import { AbstractBaseLayerEntryConfig } from '@/api/config/validation-classes/abstract-base-layer-entry-config';
@@ -148,7 +148,6 @@ import { ConfigBaseClass } from '@/api/config/validation-classes/config-base-cla
 import type { TypeFeatureStyle } from '@/geo/layer/geometry/geometry-types';
 import type { Draw } from '@/geo/interaction/draw';
 import type { TypeClickMarker } from '@/core/components/click-marker/click-marker';
-import type { FitOptions } from 'ol/View';
 import { GeoUtilities } from '@/geo/utils/utilities';
 import { AbstractGVVectorTile } from '@/geo/layer/gv-layers/vector/abstract-gv-vector-tile';
 import type { EventDelegateBase } from '@/api/events/event-helper';
@@ -206,6 +205,9 @@ export class MapController extends AbstractMapViewerController {
 
   /** Callback delegates for the geolocator search event. */
   #onGeolocatorSearchHandlers: GeolocatorSearchDelegate[] = [];
+
+  /** Callback delegates for the feature highlighted event. */
+  #onFeatureHighlightedHandlers: FeatureHighlightedDelegate[] = [];
 
   /** The active measurement Draw interaction, if any. */
   #activeMeasurementDraw?: Draw;
@@ -361,11 +363,11 @@ export class MapController extends AbstractMapViewerController {
    *
    * @param extent - The extent to zoom to (in map projection)
    * @param useAnimation - Indicates if a zoom animation should be used, default: true
-   * @param options - The options to configure the zoomToExtent (default: { padding: [100, 100, 100, 100], maxZoom: 13, duration: 500 })
+   * @param fitOptions - Optional fit options for the zoom
    * @returns A promise that resolves when the zoom animation is complete
    * @throws {InvalidExtentError} When the extent is invalid
    */
-  zoomToExtent(extent: Extent, useAnimation = true, options: FitOptions = DEFAULT_OL_FITOPTIONS): Promise<void> {
+  zoomToExtent(extent: Extent, useAnimation = true, options?: GVFitOptions): Promise<void> {
     // Redirect to the MapViewer
     return this.getMapViewer().zoomToExtent(extent, useAnimation, options);
   }
@@ -412,7 +414,7 @@ export class MapController extends AbstractMapViewerController {
 
     const currProjection = this.getMapViewer().getProjectionNumber();
     let extent: Extent | undefined = MAP_EXTENTS[currProjection];
-    const options: FitOptions = { padding: OL_ZOOM_PADDING, duration: OL_ZOOM_DURATION };
+    const options: GVFitOptions = {};
     const homeView = getStoreMapHomeView(mapId) || getStoreMapInitialView(mapId);
 
     // Transform center coordinates and update options if zoomAndCenter are in config
@@ -437,6 +439,7 @@ export class MapController extends AbstractMapViewerController {
           )
         : lonlatExtent;
 
+      // Precise zooming, no default padding to be applied in this case
       options.padding = [0, 0, 0, 0];
     }
 
@@ -483,7 +486,7 @@ export class MapController extends AbstractMapViewerController {
    * @param duration - Optional animation duration in ms
    * @returns A promise that resolves when the zoom animation is complete
    */
-  zoomMap(zoom: number, useAnimation = true, duration: number = OL_ZOOM_DURATION): Promise<void> {
+  zoomMap(zoom: number, useAnimation = true, duration?: number): Promise<void> {
     // Redirect to the MapViewer
     return this.getMapViewer().zoomMap(zoom, useAnimation, duration);
   }
@@ -497,7 +500,7 @@ export class MapController extends AbstractMapViewerController {
    * @param useAnimation - Indicates if a zoom animation should be used, default: true
    * @param duration - Optional animation duration in ms
    */
-  zoomMapAndForget(zoom: number, useAnimation = true, duration: number = OL_ZOOM_DURATION): void {
+  zoomMapAndForget(zoom: number, useAnimation = true, duration?: number): void {
     // Redirect
     this.zoomMap(zoom, useAnimation, duration).catch((error: unknown) => {
       logger.logError('Map-State Failed to zoom map', error);
@@ -509,10 +512,10 @@ export class MapController extends AbstractMapViewerController {
    *
    * @param extent - The extent or coordinate to zoom to
    * @param useAnimation - Indicates if a zoom animation should be used, default: true
-   * @param options - Optional options to configure the zoomToExtent (default: { padding: [100, 100, 100, 100], maxZoom: 11 })
+   * @param options - Optional options to configure the zoomToExtent
    * @returns A promise that resolves when the zoom operation completes
    */
-  zoomToLonLatExtentOrCoordinate(extent: Extent | Coordinate, useAnimation = true, options?: FitOptions): Promise<void> {
+  zoomToLonLatExtentOrCoordinate(extent: Extent | Coordinate, useAnimation = true, options?: GVFitOptions): Promise<void> {
     // Redirect to the MapViewer
     return this.getMapViewer().zoomToLonLatExtentOrCoordinate(extent, useAnimation, options);
   }
@@ -555,9 +558,7 @@ export class MapController extends AbstractMapViewerController {
 
       // Zoom to extent and await
       await this.zoomToExtent(convertedExtent, useAnimation, {
-        padding: [50, 50, 50, 50],
         maxZoom: 16,
-        duration: OL_ZOOM_DURATION,
       });
 
       // Now show the click marker icon
@@ -617,6 +618,9 @@ export class MapController extends AbstractMapViewerController {
       // TODO: CHECK - What is this doing? Just refreshing the highlighted features with the same list?
       setStoreMapHighlightedFeatures(this.getMapId(), [...getStoreMapHighlightedFeatures(this.getMapId()), feature]);
     }
+
+    // Emit about it
+    this.#emitHighlightedFeature({ feature });
   }
 
   /**
@@ -720,6 +724,19 @@ export class MapController extends AbstractMapViewerController {
     // Set the pointMarkers and update on map
     setStoreMapPointMarkers(this.getMapId(), curMarkers);
     this.getMapViewer().featureHighlight.pointMarkers?.updatePointMarkers(curMarkers);
+  }
+
+  /**
+   * Returns a promise that resolves the next time a feature highlighted event fires.
+   *
+   * When a filter is provided, the handler keeps listening until the filter returns true.
+   *
+   * @param filter - Optional filter predicate. When provided, only events passing the filter resolve the promise
+   * @returns A promise that resolves with the feature highlighted event payload
+   */
+  waitForFeatureHighlighted(filter?: (event: FeatureHighlightedEvent) => boolean): Promise<FeatureHighlightedEvent> {
+    // Wait for the next feature highlighted event
+    return EventHelper.onceEventPromise(this.#onFeatureHighlightedHandlers, filter);
   }
 
   // #endregion PUBLIC METHODS - HIGHLIGHT FEATURES
@@ -1470,6 +1487,9 @@ export class MapController extends AbstractMapViewerController {
     // Save to the store that the map is properly being displayed now
     setStoreMapDisplayed(sender.mapId);
 
+    // Set interaction (enable/disables map controls)
+    sender.setInteraction(getStoreMapInteraction(sender.mapId));
+
     // Update the map controls based on the original map state
     this.#updateMapControls();
   }
@@ -1495,6 +1515,9 @@ export class MapController extends AbstractMapViewerController {
   #handleMapMoveEnd(sender: MapViewer, event: MapBaseEvent): void {
     // Update the map controls based on the original map state
     this.#updateMapControls();
+
+    // On map center coord change, hide click marker
+    this.clickMarkerIconHide();
   }
 
   /**
@@ -1920,11 +1943,7 @@ export class MapController extends AbstractMapViewerController {
     const extent = mapViewer.getView().calculateExtent();
 
     // Get the scale information
-    const scale = MapViewer.getScaleInfoFromDomElement(mapViewer.mapId);
-
-    // Set interaction (enable/disables map controls)
-    // TODO: CHECK - This line should likely happen elsewhere in the initialization of the map, not really updating a map control per-se
-    mapViewer.setInteraction(getStoreMapInteraction(mapViewer.mapId));
+    const scale = mapViewer.getScaleInfoFromDomElement();
 
     // Save in store
     setStoreMapSize(mapViewer.mapId, size);
@@ -2125,6 +2144,54 @@ export class MapController extends AbstractMapViewerController {
     EventHelper.offEvent(this.#onGeolocatorSearchHandlers, callback);
   }
 
+  /**
+   * Emits a feature highlighted event to all handlers.
+   *
+   * @param event - The feature highlighted event payload
+   */
+  #emitHighlightedFeature(event: FeatureHighlightedEvent): void {
+    // Emit the feature highlighted event for all handlers
+    EventHelper.emitEvent(this, this.#onFeatureHighlightedHandlers, event);
+  }
+
+  /**
+   * Registers a one-shot feature highlighted event callback that automatically unsubscribes after the first firing.
+   *
+   * When a filter is provided, the handler keeps listening until the filter returns true.
+   *
+   * @param callback - The callback to execute once when the event fires (and passes the filter)
+   * @param filter - Optional filter predicate. When provided, only events passing the filter trigger the callback
+   * @returns The wrapper callback reference (can be used with offFeatureHighlighted to cancel before it fires)
+   */
+  onceFeatureHighlighted(
+    callback: FeatureHighlightedDelegate,
+    filter?: (event: FeatureHighlightedEvent) => boolean
+  ): FeatureHighlightedDelegate {
+    // Register a one-shot feature highlighted event handler
+    return EventHelper.onceEvent(this.#onFeatureHighlightedHandlers, callback, filter);
+  }
+
+  /**
+   * Registers a feature highlighted event callback.
+   *
+   * @param callback - The callback to be executed whenever the event is emitted
+   * @returns The callback delegate that was registered
+   */
+  onFeatureHighlighted(callback: FeatureHighlightedDelegate): FeatureHighlightedDelegate {
+    // Register the feature highlighted event handler
+    return EventHelper.onEvent(this.#onFeatureHighlightedHandlers, callback);
+  }
+
+  /**
+   * Unregisters a feature highlighted event callback.
+   *
+   * @param callback - The callback to stop being called whenever the event is emitted
+   */
+  offFeatureHighlighted(callback: FeatureHighlightedDelegate): void {
+    // Unregister the feature highlighted event handler
+    EventHelper.offEvent(this.#onFeatureHighlightedHandlers, callback);
+  }
+
   // #endregion EVENTS
 }
 
@@ -2144,3 +2211,16 @@ export interface GeolocatorSearchEvent {
  * Delegate for the geolocator search event handler function signature.
  */
 export type GeolocatorSearchDelegate = EventDelegateBase<MapController, GeolocatorSearchEvent, void>;
+
+/**
+ * Event for the feature highlighted delegate.
+ */
+export interface FeatureHighlightedEvent {
+  /** The feature being highlighted. */
+  feature: TypeFeatureInfoEntry;
+}
+
+/**
+ * Delegate for the feature highlighted event handler function signature.
+ */
+export type FeatureHighlightedDelegate = EventDelegateBase<MapController, FeatureHighlightedEvent, void>;

@@ -32,7 +32,7 @@ import { Fetch } from '@/core/utils/fetch-helper';
 import type { ConfigBaseClass } from '@/api/config/validation-classes/config-base-class';
 import { GroupLayerEntryConfig } from '@/api/config/validation-classes/group-layer-entry-config';
 import type { EsriRelatedRecordsJsonResponse, EsriRelatedRecordsJsonResponseRelatedRecord } from '@/geo/layer/gv-layers/utils';
-import { AbstractGeoViewRaster } from '@/geo/layer/geoview-layers/raster/abstract-geoview-raster';
+import { AbstractGeoViewLayer } from '@/geo/layer/geoview-layers/abstract-geoview-layers';
 import { EsriRenderer } from '@/geo/utils/renderer/esri-renderer';
 import { EsriDynamic } from '@/geo/layer/geoview-layers/raster/esri-dynamic';
 import { EsriFeature } from '@/geo/layer/geoview-layers/vector/esri-feature';
@@ -74,17 +74,23 @@ export class EsriUtilities {
     // User-defined groups do not have metadata provided by the service endpoint.
     if (layerConfig.getEntryTypeIsGroup() && !layerConfig.getIsMetadataLayerGroup()) return layerConfig;
 
+    // If a proxy was necessary when the metadata were fetched
+    if (layer.getIsUsingProxy()) {
+      // Indicate the proxy that was used
+      layerConfig.setProxyUrl(layer.getProxyUrl());
+    }
+
     // If the layer is EsriDynamic or EsriFeature (basically not EsriImage)
     let layerMetadata: TypeMetadataEsriDynamicLayer | TypeMetadataEsriFeatureLayer | TypeMetadataEsriImage;
     if (layerConfig instanceof EsriDynamicLayerEntryConfig || layerConfig instanceof EsriFeatureLayerEntryConfig) {
       // The url
-      const baseUrl = layer.getMetadataAccessPath().replace(/\/$/, '');
-      const queryUrl = `${baseUrl}/${layerConfig.layerId}`;
+      const baseUrl = layerConfig.getMetadataAccessPathProxiedWhenNecessary(false);
+      const queryUrl = `${baseUrl}/${layerConfig.layerId}?f=json`;
 
       try {
         // Fetch the layer metadata
         layerMetadata = await Fetch.fetchJson<TypeMetadataEsriDynamicLayer | TypeMetadataEsriFeatureLayer | TypeMetadataEsriImage>(
-          `${queryUrl}?f=json`,
+          queryUrl,
           {
             signal: abortSignal,
           }
@@ -101,7 +107,7 @@ export class EsriUtilities {
     }
 
     // Validate the metadata response
-    AbstractGeoViewRaster.throwIfMetatadaHasError(layerConfig.getGeoviewLayerId(), layerConfig.getLayerName(), layerMetadata);
+    AbstractGeoViewLayer.throwIfMetatadaHasError(layerConfig.getGeoviewLayerId(), layerConfig.getLayerName(), layerMetadata);
 
     // Set the layer metadata
     layerConfig.setLayerMetadata(layerMetadata);

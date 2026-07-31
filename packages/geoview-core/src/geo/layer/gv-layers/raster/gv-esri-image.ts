@@ -74,6 +74,18 @@ export class GVEsriImage extends AbstractGVRaster {
     // Init the layer options with initial settings
     AbstractGVRaster.initOptionsWithInitialSettings(imageLayerOptions, layerConfig);
 
+    // Hook a custom function to the ImageLoadFunction of the source object to apply proxy when needed
+    olSource.setImageLoadFunction((image, src) => {
+      // Tweak url with the proxy if necessary
+      const theUrl = src;
+      // TODO: Fix support for proxy for Esri Image services with rasterMosaic parameters and uncomment this line below replacing the line above, search id 2436f2b1
+      // const theUrl = layerConfig.getUrlWithProxyWhenNeeded(src);
+
+      // Assign the src to the image
+      // eslint-disable-next-line no-param-reassign
+      (image.getImage() as HTMLImageElement).src = theUrl;
+    });
+
     // Create and set the OpenLayer layer
     this.setOLLayer(new ImageLayer(imageLayerOptions));
   }
@@ -121,7 +133,7 @@ export class GVEsriImage extends AbstractGVRaster {
       if (!layerConfig) return null;
 
       // Build legend URL with optional raster function
-      let legendUrl = `${layerConfig.getMetadataAccessPath()}/legend?f=json`;
+      let legendUrl = `${layerConfig.getMetadataAccessPath(true)}legend?f=json`;
       const rasterFunction = this.#rasterFunction;
       if (rasterFunction) {
         const renderingRule = encodeURIComponent(JSON.stringify({ rasterFunction }));
@@ -132,6 +144,9 @@ export class GVEsriImage extends AbstractGVRaster {
       if (mosaicRule) {
         legendUrl += `&mosaicRule=${encodeURIComponent(JSON.stringify(mosaicRule))}`;
       }
+
+      // TODO: Fix support for proxy for Esri Image services with rasterMosaic parameters and uncomment this line below, search id 2436f2b1
+      // legendUrl = layerConfig.getUrlWithProxyWhenNeeded(legendUrl);
 
       const legendJson = await Fetch.fetchEsriJson<TypeEsriImageLayerLegend>(legendUrl);
       const layerInfo = legendJson.layers?.find((lyr) => lyr.layerId.toString() === layerConfig.layerId) ?? legendJson.layers?.[0];
@@ -306,7 +321,7 @@ export class GVEsriImage extends AbstractGVRaster {
 
     // Construct the identify URL
     const identifyUrl =
-      `${layerConfig.getMetadataAccessPath()}/identify?f=json` +
+      `${layerConfig.getMetadataAccessPathProxiedWhenNecessary(true)}identify?f=json` +
       `&geometryType=esriGeometryPoint` +
       `&geometry=${geometryParam}` +
       `${renderingRulesParam}` +
@@ -587,7 +602,7 @@ export class GVEsriImage extends AbstractGVRaster {
     const bounds = this.getMetadataExtent();
     if (!bounds) return promises;
 
-    const baseUrl = layerConfig.getMetadataAccessPath();
+    const baseUrl = layerConfig.getMetadataAccessPathProxiedWhenNecessary(true);
     const bbox = bounds.join(',');
 
     rasterFunctionInfos.forEach((info) => {
@@ -601,7 +616,7 @@ export class GVEsriImage extends AbstractGVRaster {
       const promise = (async () => {
         try {
           const renderingRule = encodeURIComponent(JSON.stringify({ rasterFunction: info.name }));
-          const previewUrl = `${baseUrl}/exportImage?bbox=${bbox}&size=${size},${size}&f=image&renderingRule=${renderingRule}`;
+          const previewUrl = `${baseUrl}exportImage?bbox=${bbox}&size=${size},${size}&f=image&renderingRule=${renderingRule}`;
 
           // Cache the result
           const result = await Fetch.fetchBlobImage(previewUrl);

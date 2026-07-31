@@ -9,15 +9,24 @@ export const GEO_URL_TEXT = {
   text: 'Geo.ca',
 };
 
+/**
+ * OpenLayers default maximum zoom level.
+ * @deprecated Doesn't seem used anymore
+ */
+export const OL_ZOOM_MAXZOOM = 13;
+
 /** OpenLayers zoom animation duration in milliseconds. */
 export const OL_ZOOM_DURATION = 500;
-/** OpenLayers default maximum zoom level. */
-export const OL_ZOOM_MAXZOOM = 13;
-/** OpenLayers zoom padding values [top, right, bottom, left]. */
-export const OL_ZOOM_PADDING: [number, number, number, number] = [100, 100, 100, 100];
+
+/** OpenLayers zoom padding values as percentage of the map size dimensions [width, height] (both sides!). */
+export const OL_ZOOM_PERCENT_PADDING: [number, number] = [0.05, 0.05];
+
+/** The extended FitOptions for Geoview. */
+export type GVFitOptions = FitOptions & { percentPadding?: [number, number] };
+
 /** Default OpenLayers fit options combining padding, max zoom, and duration. */
-export const DEFAULT_OL_FITOPTIONS: FitOptions = {
-  padding: OL_ZOOM_PADDING,
+export const DEFAULT_OL_GVFITOPTIONS: GVFitOptions = {
+  percentPadding: OL_ZOOM_PERCENT_PADDING,
   duration: OL_ZOOM_DURATION,
 };
 

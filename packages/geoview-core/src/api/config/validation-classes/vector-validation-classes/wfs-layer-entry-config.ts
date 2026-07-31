@@ -1,7 +1,7 @@
 ﻿import type {
   ConfigClassOrType,
   TypeGeoviewLayerConfig,
-  TypeMetadataWFS,
+  TypeMetadataWFSCapabilities,
   TypeMetadataWFSFeatureTypeListFeatureType,
   TypeMetadataWFSTextOnly,
 } from '@/api/types/layer-schema-types';
@@ -41,8 +41,8 @@ export class OgcWfsLayerEntryConfig extends VectorLayerEntryConfig {
    *
    * @returns The strongly-typed service metadata specific to this layer entry config
    */
-  override getServiceMetadata(): TypeMetadataWFS | undefined {
-    return super.getServiceMetadata() as TypeMetadataWFS | undefined;
+  override getServiceMetadata(): TypeMetadataWFSCapabilities | undefined {
+    return super.getServiceMetadata() as TypeMetadataWFSCapabilities | undefined;
   }
 
   /**
@@ -71,8 +71,9 @@ export class OgcWfsLayerEntryConfig extends VectorLayerEntryConfig {
     const metadata = this.getServiceMetadata();
 
     // If no metadata
-    if (!metadata || !metadata.FeatureTypeList || !metadata.FeatureTypeList.FeatureType)
+    if (!metadata || !metadata.FeatureTypeList || !metadata.FeatureTypeList.FeatureType) {
       throw new LayerServiceMetadataEmptyError(this.getGeoviewLayerId(), this.getLayerNameCascade());
+    }
 
     // If metadata FeatureType isn't an array
     let featureTypes: TypeMetadataWFSFeatureTypeListFeatureType[] = metadata.FeatureTypeList
@@ -161,8 +162,8 @@ export class OgcWfsLayerEntryConfig extends VectorLayerEntryConfig {
    * @returns The service version as read from the metadata attribute
    */
   getVersion(): string | undefined {
-    // Redirect
-    return this.getServiceMetadata()?.['@attributes'].version;
+    // Read the version from the metadata information
+    return this.getServiceMetadata()?.version;
   }
 
   /**
@@ -171,6 +172,7 @@ export class OgcWfsLayerEntryConfig extends VectorLayerEntryConfig {
    * @returns The service version as read from the metadata attribute, or '1.3.0' if not available
    */
   getVersionOrDefault(): string {
+    // Redirect
     return this.getVersion() ?? '1.3.0';
   }
 

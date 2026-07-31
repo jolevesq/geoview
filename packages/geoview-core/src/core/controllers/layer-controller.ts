@@ -1,9 +1,14 @@
 import type BaseLayer from 'ol/layer/Base';
 import type { GeoJSONObject } from 'ol/format/GeoJSON';
-import type { FitOptions } from 'ol/View';
 import type { Projection as OLProjection } from 'ol/proj';
+import { getCenter } from 'ol/extent';
 
-import { VALID_PROJECTION_CODES, type Extent, type TypeFeatureInfoEntryPartial } from '@/api/types/map-schema-types';
+import {
+  VALID_PROJECTION_CODES,
+  type Extent,
+  type TypeFeatureInfoEntry,
+  type TypeFeatureInfoEntryPartial,
+} from '@/api/types/map-schema-types';
 import type {
   TypeGeoviewLayerConfig,
   TypeLayerEntryConfig,
@@ -98,7 +103,7 @@ import type { TemporalMode, TypeDisplayDateFormat } from '@/core/utils/date-mgt'
 import type { TypeLayersViewDisplayState, TypeLegendItem } from '@/core/components/layers/types';
 import { logger } from '@/core/utils/logger';
 import { NoBoundsError } from '@/core/exceptions/geoview-exceptions';
-import { DEFAULT_OL_FITOPTIONS, OL_ZOOM_DURATION } from '@/core/utils/constant';
+import { OL_ZOOM_DURATION, type GVFitOptions } from '@/core/utils/constant';
 import { Projection } from '@/geo/utils/projection';
 import { GeoUtilities } from '@/geo/utils/utilities';
 import {
@@ -748,11 +753,11 @@ export class LayerController extends AbstractMapViewerController {
    *
    * @param layerPath - The path of the layer to zoom to
    * @param useAnimation - Optional flag indicating if a zoom animation should be used
-   * @param fitOptions - Optional OL fit options to configure the zoom
+   * @param fitOptions - Optional fit options to configure the zoom
    * @returns A promise that resolves when the zoom animation is complete
    * @throws {NoBoundsError} When the layer doesn't have bounds
    */
-  zoomToLayerExtent(layerPath: string, useAnimation = true, fitOptions: FitOptions = DEFAULT_OL_FITOPTIONS): Promise<void> {
+  zoomToLayerExtent(layerPath: string, useAnimation = true, fitOptions?: GVFitOptions): Promise<void> {
     // Get the layer bounds
     const bounds = getStoreLayerBounds(this.getMapId(), layerPath);
 
@@ -773,39 +778,72 @@ export class LayerController extends AbstractMapViewerController {
    * the layer's visibility boundaries.
    *
    * @param layerPath - The layer path used to look up scale limits
-   * @param extent - The extent to zoom to
+   * @param extent - The extent to zoom to (in current map projection)
    * @param useAnimation - Optional flag indicating if a zoom animation should be used
-   * @param fitOptions - Optional OL fit options to merge scale constraints into
+   * @param fitOptions - Optional fit options to merge scale constraints into
    * @returns A promise that resolves when the zoom animation is complete
    */
-  zoomToExtentRestricted(
-    layerPath: string,
-    extent: Extent,
-    useAnimation = true,
-    fitOptions: FitOptions = DEFAULT_OL_FITOPTIONS
-  ): Promise<void> {
+  zoomToExtentRestricted(layerPath: string, extent: Extent, useAnimation = true, fitOptions?: GVFitOptions): Promise<void> {
     // Read the min/max scales from the store for the corresponding layer path
     const layerMaxScale = getStoreLayerMaxScale(this.getMapId(), layerPath);
     const layerMinScale = getStoreLayerMinScale(this.getMapId(), layerPath);
 
     // Compute zoom constraints from the layer's scale range so we don't zoom beyond the layer's visible range
+    const theFitOptions: GVFitOptions = fitOptions ?? {};
     if (layerMaxScale) {
       const maxZoomFromScale = this.getControllersRegistry().mapController.getZoomFromScale(layerMaxScale);
       if (maxZoomFromScale !== undefined) {
-        // eslint-disable-next-line no-param-reassign
-        fitOptions.maxZoom = Math.min(fitOptions.maxZoom ?? maxZoomFromScale, maxZoomFromScale);
+        theFitOptions.maxZoom = Math.min(theFitOptions.maxZoom ?? maxZoomFromScale, maxZoomFromScale);
       }
     }
     if (layerMinScale) {
       const minResolution = this.getControllersRegistry().mapController.getResolutionFromScale(layerMinScale);
       if (minResolution !== undefined) {
-        // eslint-disable-next-line no-param-reassign
-        fitOptions.minResolution = Math.floor(minResolution * 100) / 100;
+        theFitOptions.minResolution = Math.floor(minResolution * 100) / 100;
       }
     }
 
     // Zoom to extent and wait for it to finish
-    return this.getControllersRegistry().mapController.zoomToExtent(extent, useAnimation, fitOptions);
+    return this.getControllersRegistry().mapController.zoomToExtent(extent, useAnimation, theFitOptions);
+  }
+
+  /**
+   * Zooms to a feature's extent clamped to the layer's visible scale range, then highlights the feature.
+   *
+   * After the zoom completes, adds a click marker at the feature center, highlights the bounding box
+   * with a fade-out effect, and sets the feature as the active highlight.
+   *
+   * @param layerPath - The layer path used to look up scale limits
+   * @param feature - The feature info entry to zoom to and highlight
+   * @param extent - The extent to restrictively zoom to
+   * @param useAnimation - Optional flag indicating if a zoom animation should be used
+   * @param fitOptions - Optional fit options to merge scale constraints into
+   * @returns A promise that resolves when the zoom and highlight are complete
+   */
+  async zoomToExtentRestrictedAndHighlight(
+    layerPath: string,
+    feature: TypeFeatureInfoEntry,
+    extent: Extent,
+    useAnimation = true,
+    fitOptions?: GVFitOptions
+  ): Promise<void> {
+    // Get extent and center
+    const center = getCenter(extent);
+
+    // Transform the coordinate and use a state getter here, because we don't need to hook on value changes in this callback function.
+    const lonlatCenter = Projection.transformToLonLat(
+      center,
+      Projection.getProjectionFromStringOrNumber(this.getMapViewer().getProjection())
+    );
+
+    // Zoom to extent and wait for it to finish
+    await this.zoomToExtentRestricted(layerPath, extent, useAnimation, fitOptions);
+
+    // Add a click marker, a bbox extent who will disappear and remove/add higlight the zoomed feature
+    this.getControllersRegistry().mapController.clickMarkerIconShow({ lonlat: lonlatCenter });
+    this.getControllersRegistry().mapController.highlightBBox(extent, false);
+    this.getControllersRegistry().mapController.removeHighlightedFeature('all');
+    this.getControllersRegistry().mapController.addHighlightedFeature(feature);
   }
 
   /**
@@ -2393,7 +2431,7 @@ export class LayerController extends AbstractMapViewerController {
    * @param event - The event containing the layer and filter information
    */
   #handleDomainLayerFilterApplied(sender: LayerDomain, event: DomainLayerFilterAppliedEvent): void {
-    // TODO: REFACTOR - Ideally, this handler wouldn't exist and the layer would have custom events when adjusting their data/time filters.
+    // TODO: REFACTOR FILTERS - Ideally, this handler wouldn't exist and the layer would have custom events when adjusting their data/time filters.
     // TO.DOCONT: It'd have to be a custom event, because it'd have to be more elaborate than a single query string if we
     // TO.DOCONT: want to update the UI based on a query filter that happened. Refer to setStyleItemVisibility for the
     // TO.DOCONT: correct pattern (which does update the UI automatically). Search id: 0ecb948f

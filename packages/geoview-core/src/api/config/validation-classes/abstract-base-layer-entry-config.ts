@@ -19,7 +19,7 @@ import type { ConfigBaseClassProps } from '@/api/config/validation-classes/confi
 import { ConfigBaseClass } from '@/api/config/validation-classes/config-base-class';
 import { DateMgt } from '@/core/utils/date-mgt';
 import type { TemporalMode, TimeDimension, TimeIANA, TypeDisplayDateFormat } from '@/core/utils/date-mgt';
-import { LayerDataAccessPathMandatoryError } from '@/core/exceptions/layer-exceptions';
+import { LayerDataAccessPathMandatoryError, LayerMetadataAccessPathMandatoryError } from '@/core/exceptions/layer-exceptions';
 import { NoPrimaryKeyFieldError } from '@/core/exceptions/geoview-exceptions';
 import { GeoUtilities } from '@/geo/utils/utilities';
 import { deepMerge } from '@/core/utils/utilities';
@@ -56,9 +56,6 @@ export abstract class AbstractBaseLayerEntryConfig extends ConfigBaseClass {
 
   /** The proxy to use, when one is being used */
   #proxy?: string;
-
-  /** The data access path before applying the proxy. */
-  #dataAccessPathBeforeProxy?: string;
 
   /** The geometry field information. */
   #geometryField?: TypeOutfields;
@@ -523,6 +520,36 @@ export abstract class AbstractBaseLayerEntryConfig extends ConfigBaseClass {
   }
 
   /**
+   * Gets the metadata access path with proxy prepended when the layer is configured to use a proxy.
+   *
+   * @param endsWithSlash - Optional indicates if the path should end with a '/'
+   * @returns The metadata access path, proxied if necessary
+   * @throws {LayerMetadataAccessPathMandatoryError} When the metadata access path is not set
+   */
+  getMetadataAccessPathProxiedWhenNecessary(endsWithSlash = false): string {
+    // Get the metadata access path
+    let metadataAccessPath = this.getMetadataAccessPath(endsWithSlash);
+
+    // Throw if not set
+    if (!metadataAccessPath) {
+      throw new LayerMetadataAccessPathMandatoryError(
+        this.getGeoviewLayerId(),
+        this.getGeoviewLayerConfig().geoviewLayerType,
+        this.getLayerNameCascade()
+      );
+    }
+
+    // If proxy was necessary
+    if (this.getIsUsingProxy()) {
+      // Tweak url with the proxy if necessary
+      metadataAccessPath = this.getUrlWithProxyWhenNeeded(metadataAccessPath);
+    }
+
+    // Return it
+    return metadataAccessPath;
+  }
+
+  /**
    * Indicates whether the source has a data access path defined.
    *
    * @returns `true` if a data access path is present; otherwise, `false`
@@ -549,6 +576,9 @@ export abstract class AbstractBaseLayerEntryConfig extends ConfigBaseClass {
     if (endsWithSlash) {
       // Format the dataAccessPath correctly
       if (!dataAccessPath.endsWith('/')) dataAccessPath += '/';
+    } else {
+      // Format the dataAccessPath correctly without trailing slash
+      if (dataAccessPath.endsWith('/')) dataAccessPath = dataAccessPath.slice(0, -1);
     }
 
     // Return it
@@ -556,14 +586,32 @@ export abstract class AbstractBaseLayerEntryConfig extends ConfigBaseClass {
   }
 
   /**
-   * Gets the original data access path before the proxy was applied.
+   * Gets the data access path with proxy prepended when the layer is configured to use a proxy.
    *
-   * Falls back to the current data access path if no proxy has been set.
-   *
-   * @returns The data access path before proxy application
+   * @param endsWithSlash - Optional indicates if the path should end with a '/'
+   * @returns The data access path, proxied if necessary
+   * @throws {LayerDataAccessPathMandatoryError} When the data access path is not set
    */
-  getDataAccessPathBeforeProxy(): string {
-    return this.#dataAccessPathBeforeProxy ?? this.getDataAccessPath();
+  getDataAccessPathProxiedWhenNecessary(endsWithSlash = false): string {
+    // Get the data access path
+    return this.getUrlWithProxyWhenNeeded(this.getDataAccessPath(endsWithSlash));
+  }
+
+  /**
+   * Prepends the proxy URL to the given URL when the layer is configured to use a proxy.
+   *
+   * @param url - The URL to optionally prepend the proxy to
+   * @returns The URL with proxy prefix if using a proxy, or the original URL as-is
+   */
+  getUrlWithProxyWhenNeeded(url: string): string {
+    // If using proxy
+    if (this.getIsUsingProxy()) {
+      // Add the proxy to the url
+      return `${this.getProxyUrl()}?${url}`;
+    }
+
+    // As-is
+    return url;
   }
 
   /**
@@ -599,7 +647,7 @@ export abstract class AbstractBaseLayerEntryConfig extends ConfigBaseClass {
    * @param displayDateMode - The display date mode that should be used
    */
   refreshMetadata(displayDateMode: DisplayDateMode): Promise<void> {
-    // TODO: Add onRefreshMetadata overrides for all layer types (only WMS for now)
+    // TODO: MINOR - Add onRefreshMetadata overrides for all layer types (only WMS/WMTS for now)
     // Call overridable method
     return this.onRefreshMetadata(displayDateMode);
   }
@@ -621,7 +669,6 @@ export abstract class AbstractBaseLayerEntryConfig extends ConfigBaseClass {
    * @param proxy - The proxy URL to set
    */
   setProxyUrl(proxy: string | undefined): void {
-    if (proxy) this.#dataAccessPathBeforeProxy = this.getDataAccessPath();
     this.#proxy = proxy;
   }
 

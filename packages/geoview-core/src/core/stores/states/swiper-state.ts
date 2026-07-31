@@ -217,8 +217,6 @@ export const setStoreSwiperLayerPaths = (mapId: string, layerPaths: string[]): v
 
   // Log
   logger.logInfo('Added Swiper functionality for layer paths:', layerPaths);
-
-  // TODO: Also update the layer array in other store state to inform the later has a swiper attached to it?
 };
 
 /**
@@ -247,9 +245,6 @@ export const addStoreSwiperLayerPath = (mapId: string, layerPath: string): void 
   // Get the swiper state which is only initialized if the Swiper Plugin exists.
   const swiperState = getStoreSwiperState(mapId);
 
-  // If no layer paths, return
-  if (!swiperState.layerPaths) return;
-
   // If not already added
   if (!swiperState.layerPaths.includes(layerPath)) {
     // Add in the array
@@ -261,8 +256,6 @@ export const addStoreSwiperLayerPath = (mapId: string, layerPath: string): void 
 
     // Log
     logger.logInfo('Added Swiper functionality for layer path:', layerPath);
-
-    // TODO: Also update the layer array in other store state to inform the later has a swiper attached to it?
   } else {
     // Log
     logger.logInfo('Swiper functionality already active for layer path:', layerPath);
@@ -297,8 +290,6 @@ export const removeStoreSwiperLayerPath = (mapId: string, layerPath: string): vo
 
     // Log
     logger.logInfo('Removed Swiper functionality for layer path:', layerPath);
-
-    // TODO: Also update the layer array in other store state to inform the later has a swiper attached to it?
   } else {
     // Log
     logger.logInfo('Swiper functionality already inactive for layer path:', layerPath);
@@ -326,8 +317,6 @@ export const removeAllStoreSwipers = (mapId: string): void => {
 
   // Log
   logger.logInfo('Removed Swiper functionality for all layer paths', layerPaths);
-
-  // TODO: Also update the layer array in other store state to inform the later has a swiper attached to it?
 };
 
 // #endregion STATE ADAPTORS

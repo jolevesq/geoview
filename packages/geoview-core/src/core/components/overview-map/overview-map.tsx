@@ -9,7 +9,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { cgpvTheme } from '@/ui/style/theme';
 import { OverviewMapToggle } from './overview-map-toggle';
 import { useStoreAppDisplayLanguage } from '@/core/stores/states/app-state';
-import { useStoreMapOverviewMapHideZoom, useStoreMapZoom } from '@/core/stores/states/map-state';
+import { useStoreMapOverviewShouldBeVisible } from '@/core/stores/states/map-state';
 import { logger } from '@/core/utils/logger';
 import { Box } from '@/ui/layout';
 import { TIMEOUT } from '@/core/utils/constant';
@@ -35,8 +35,7 @@ export function OverviewMap(props: OverviewMapProps): JSX.Element {
   const { i18n } = props;
 
   // Store
-  const zoomLevel = useStoreMapZoom();
-  const hideOnZoom = useStoreMapOverviewMapHideZoom();
+  const overviewShouldBeVisible = useStoreMapOverviewShouldBeVisible();
   const displayLanguage = useStoreAppDisplayLanguage();
   const mapController = useMapController();
 
@@ -44,11 +43,7 @@ export function OverviewMap(props: OverviewMapProps): JSX.Element {
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Values
-  // TODO: CHECK - Alternative approach, the determination of 'if the overview-map should be visible' could probably be handled elsewhere and the component only listen to a visibility flag from the store?
-  let shouldBeVisible: boolean | undefined = undefined;
-  if (isInitialized) {
-    shouldBeVisible = hideOnZoom === 0 || zoomLevel > hideOnZoom;
-  }
+  const shouldBeVisible = isInitialized && overviewShouldBeVisible;
 
   /**
    * Updates visibility based on zoom level changes.
@@ -57,7 +52,7 @@ export function OverviewMap(props: OverviewMapProps): JSX.Element {
     logger.logTraceUseEffect('OVERVIEW-MAP - shouldBeVisible', shouldBeVisible);
 
     // Tweak the visibility
-    mapController.setOverviewMapVisibility(!!shouldBeVisible);
+    mapController.setOverviewMapVisibility(shouldBeVisible);
   }, [mapController, shouldBeVisible]);
 
   /**

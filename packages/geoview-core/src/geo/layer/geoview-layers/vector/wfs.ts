@@ -15,27 +15,42 @@ import type {
 } from '@/api/types/map-schema-types';
 import type {
   TypeGeoviewLayerConfig,
-  WFSJsonResponse,
-  TypeMetadataWFS,
-  VectorStrategy,
+  TypePostSettings,
+  TypeMetadataWFSCapabilities,
   TypeMetadataWFSOperationMetadataOperationParameter,
   TypeMetadataWFSOperationMetadataOperationParameterValue,
   TypeMetadataWFSTextOnly,
+  VectorStrategy,
 } from '@/api/types/layer-schema-types';
-import { CONST_LAYER_TYPES } from '@/api/types/layer-schema-types';
-import { Fetch } from '@/core/utils/fetch-helper';
+import {
+  CONST_LAYER_TYPES,
+  MIME_TYPE_FORMAT_JSON,
+  MIME_TYPE_FORMAT_GML_XML_32,
+  MIME_TYPE_FORMAT_TEXT_XML_GML_321,
+  MIME_TYPE_FORMAT_TEXT_XML_GML_311,
+  MIME_TYPE_FORMAT_TEXT_XML_GML_212,
+  MIME_TYPE_FORMAT_TEXT_XML,
+} from '@/api/types/layer-schema-types';
 import {
   OgcWfsLayerEntryConfig,
   type OgcWfsLayerEntryConfigProps,
 } from '@/api/config/validation-classes/vector-validation-classes/wfs-layer-entry-config';
 import type { VectorLayerEntryConfig } from '@/api/config/validation-classes/vector-layer-entry-config';
-import { LayerNoCapabilitiesError, LayerServiceMetadataUnableToFetchError } from '@/core/exceptions/layer-exceptions';
-import { GVWFS } from '@/geo/layer/gv-layers/vector/gv-wfs';
 import type { ConfigBaseClass, TypeLayerEntryShell } from '@/api/config/validation-classes/config-base-class';
-import { formatError } from '@/core/exceptions/core-exceptions';
+import {
+  LayerInvalidFeatureInfoFormatWFSError,
+  LayerNoCapabilitiesError,
+  LayerServiceMetadataUnableToFetchError,
+} from '@/core/exceptions/layer-exceptions';
+import { GeoViewError } from '@/core/exceptions/geoview-exceptions';
+import { parseXMLToJson } from '@/core/utils/utilities';
+import { Fetch } from '@/core/utils/fetch-helper';
+import { GVWFS } from '@/geo/layer/gv-layers/vector/gv-wfs';
+import { formatError, ResponseEmptyError } from '@/core/exceptions/core-exceptions';
 import { GeoUtilities, type CallbackNewMetadataDelegate, type SourceFeaturesInfo } from '@/geo/utils/utilities';
 import { Projection } from '@/geo/utils/projection';
 import { logger } from '@/core/utils/logger';
+import { ServicesManagement } from '@/geo/utils/services-management';
 
 export interface TypeWFSLayerConfig extends Omit<TypeGeoviewLayerConfig, 'geoviewLayerType'> {
   geoviewLayerType: typeof CONST_LAYER_TYPES.WFS;
@@ -74,8 +89,8 @@ export class WFS extends AbstractGeoViewVector {
    *
    * @returns The strongly-typed metadata specific to this layer
    */
-  override getMetadata(): TypeMetadataWFS | undefined {
-    return super.getMetadata() as TypeMetadataWFS | undefined;
+  override getMetadata(): TypeMetadataWFSCapabilities | undefined {
+    return super.getMetadata() as TypeMetadataWFSCapabilities | undefined;
   }
 
   /**
@@ -88,7 +103,7 @@ export class WFS extends AbstractGeoViewVector {
    * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    * @throws {LayerNoCapabilitiesError} When the metadata is empty (no Capabilities)
    */
-  protected override onFetchServiceMetadata<T = TypeMetadataWFS>(abortSignal?: AbortSignal): Promise<T> {
+  protected override onFetchServiceMetadata<T = TypeMetadataWFSCapabilities>(abortSignal?: AbortSignal): Promise<T> {
     // Redirect
     return this.fetchServiceMetadataWFS(abortSignal) as Promise<T>;
   }
@@ -104,7 +119,7 @@ export class WFS extends AbstractGeoViewVector {
   protected override async onInitLayerEntries(abortSignal?: AbortSignal): Promise<TypeGeoviewLayerConfig> {
     // Fetch metadata
     const rootUrl = this.getMetadataAccessPath();
-    const metadata = await this.fetchServiceMetadataWFS(abortSignal);
+    const metadata = await this.onFetchServiceMetadata(abortSignal);
 
     // The entries
     let entries: TypeLayerEntryShell[] = [];
@@ -205,37 +220,51 @@ export class WFS extends AbstractGeoViewVector {
     // Cast it
     const layerConfigWFS = layerConfig as OgcWfsLayerEntryConfig;
 
+    // If a proxy was necessary when the metadata were fetched
+    if (this.getIsUsingProxy()) {
+      // Indicate the proxy that was used
+      layerConfigWFS.setProxyUrl(this.getProxyUrl());
+    }
+
     // Build url
-    const url = layerConfig.getDataAccessPath();
-    const outputFormat = WFS.extractDescribeFeatureOutputFormat(this.getMetadata()!);
-    const describeFeatureUrl = GeoUtilities.ensureServiceRequestUrlDescribeFeatureType(
-      url,
-      layerConfig.layerId,
-      layerConfigWFS.getVersionOrDefault(),
+    let outputFormat = WFS.extractDescribeFeatureOutputFormat(this.getMetadata()!);
+
+    // TODO: CHECK IMPORTANT - Why is it better to call DescribeFeatureType without outputFormat!?
+    outputFormat = '';
+
+    // Get the version
+    const version = layerConfigWFS.getVersionOrDefault();
+
+    // Fetch and parse the DescribeFeatureType response
+
+    // Build the DescribeFeatureType URL
+    let describeFeatureUrl = GeoUtilities.ensureServiceRequestUrlDescribeFeatureType(
+      layerConfigWFS.getDataAccessPath(),
+      layerConfigWFS.layerId,
+      version,
       outputFormat
     );
 
-    // If supporting application/json format
-    let featureProps;
-    if (outputFormat === 'application/json') {
-      // Process using Json
-      featureProps = await WFS.fetchDescribeFeatureJson(describeFeatureUrl, abortSignal);
-    } else if (outputFormat.toUpperCase().includes('XML')) {
-      // Process using XML
-      featureProps = await WFS.fetchDescribeFeatureXML(describeFeatureUrl, abortSignal);
-    }
+    // Tweak url with the proxy if necessary
+    describeFeatureUrl = layerConfigWFS.getUrlWithProxyWhenNeeded(describeFeatureUrl);
+
+    // Fetch the service for DescribeFeatureType
+    const responseText = await Fetch.fetchText(describeFeatureUrl, { signal: abortSignal });
+
+    // Parse the response to read the out fields
+    const featureProps = WFS.#parseResponseForOutfields(responseText, outputFormat);
 
     // Set it
-    WFS.initLayerMetadata(layerConfig as OgcWfsLayerEntryConfig, featureProps);
+    WFS.initLayerMetadata(layerConfigWFS, featureProps);
 
     // Try
-    const layerStyle = await WFS.#tryProcessLayerStylingInformationIfAny(layerConfigWFS, this.getConfigProxyUrl());
+    const layerStyle = await WFS.#tryProcessLayerStylingInformationIfAny(layerConfigWFS);
 
     // Initialize the layer style by filling the blanks with the information from the metadata
-    layerConfig.initLayerStyleFromMetadata(layerStyle);
+    layerConfigWFS.initLayerStyleFromMetadata(layerStyle);
 
     // Return the layer config
-    return layerConfig;
+    return layerConfigWFS;
   }
 
   /**
@@ -247,7 +276,7 @@ export class WFS extends AbstractGeoViewVector {
    * @param readOptions - Options controlling how features are read, including the target `featureProjection`
    * @returns A promise that resolves to an array of OpenLayers features
    */
-  protected override async onCreateVectorSourceLoadFeatures(
+  protected override onCreateVectorSourceLoadFeatures(
     layerConfig: VectorLayerEntryConfig,
     sourceOptions: SourceOptions<Feature>,
     readOptions: ReadOptions
@@ -255,57 +284,22 @@ export class WFS extends AbstractGeoViewVector {
     // Cast it to proper type
     const layerConfigWFS = layerConfig as OgcWfsLayerEntryConfig;
 
-    // Get the supported info formats
-    const featureInfoFormat = layerConfigWFS.getSupportedFormats('application/json'); // application/json by default (QGIS Server doesn't seem to provide the metadata for the output formats, use application/json)
-
-    // If one of those contain application/json, use that format to get features
-    let outputFormat = featureInfoFormat.find((format) => format.toLowerCase().includes('application/json'));
-
-    // TODO: WMS - Add support for other formats. Not quite the GV issue #3134, but similar
-
-    // TODO: FIX THIS EXCEPTION - Exception, the geo.weather.gc.ca/geomet service says it supports application/json, but it doesn't in reality
-    if (layerConfigWFS.getDataAccessPath().includes('//geo.weather.gc.ca/geomet')) outputFormat = undefined;
-
-    // Check if url contains metadata parameters for the getCapabilities request and reformat the urls
-    let wfsUrl = GeoUtilities.ensureServiceRequestUrlGetFeature(
-      layerConfigWFS.getDataAccessPath(),
-      layerConfigWFS.layerId,
-      layerConfigWFS.getVersionOrDefault(),
-      outputFormat,
-      undefined,
-      undefined,
-      undefined
-    );
-
-    // if an extent is provided, use it in the url
+    // Build the bbox extent string if the strategy is bbox and the extent is valid
+    let bboxExtent: string | undefined;
     if (sourceOptions.strategy === bbox && Number.isFinite(readOptions.extent?.[0])) {
-      wfsUrl = `${wfsUrl}&bbox=${readOptions.extent},${Projection.getProjectionFromStringOrNumber(readOptions.featureProjection)?.getCode()}`;
+      bboxExtent = `${readOptions.extent},${Projection.getProjectionFromStringOrNumber(readOptions.featureProjection)?.getCode()}`;
     }
 
-    // If output format is json
-    let responseData;
-    if (outputFormat) {
-      // Query and read Json
-      responseData = await AbstractGeoViewVector.fetchJson(wfsUrl, layerConfigWFS.getSource().postSettings);
-    } else {
-      // Query and read text
-      responseData = await AbstractGeoViewVector.fetchText(wfsUrl, layerConfigWFS.getSource().postSettings);
-    }
+    // Get the version and post settings
+    const version = layerConfigWFS.getVersionOrDefault();
+    const { postSettings } = layerConfigWFS.getSource();
 
-    // Check if the data is GeoJSON
-    if (GeoUtilities.isGeoJSONObject(responseData)) {
-      // Read the features
-      return GeoUtilities.readFeaturesFromGeoJSON(responseData, readOptions.dataProjection, readOptions.featureProjection);
-    }
-
-    // Here, the output isn't GeoJSON, probably XML/GML
-
-    // Read the features
-    return GeoUtilities.readFeaturesFromWFS(
-      responseData,
-      layerConfigWFS.getVersionOrDefault(),
-      readOptions.dataProjection,
-      readOptions.featureProjection
+    // Delegate to the generic fallback with the standard WFS parse functions
+    return WFS.fetchWithFormatFallback(
+      layerConfigWFS,
+      (url) => WFS.#fetchAndParseWFSFeaturesJSON(url, version, postSettings, readOptions.dataProjection, readOptions.featureProjection),
+      (url) => WFS.#fetchAndParseWFSFeaturesText(url, version, postSettings, readOptions.dataProjection, readOptions.featureProjection),
+      bboxExtent
     );
   }
 
@@ -336,36 +330,36 @@ export class WFS extends AbstractGeoViewVector {
    * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    * @throws {LayerNoCapabilitiesError} When the metadata is empty (no Capabilities)
    */
-  protected async fetchServiceMetadataWFS(abortSignal?: AbortSignal): Promise<TypeMetadataWFS> {
+  protected async fetchServiceMetadataWFS(abortSignal?: AbortSignal): Promise<TypeMetadataWFSCapabilities> {
     let metadata;
     try {
       // Fetch it
       metadata = await WFS.fetchMetadata(
         this.getMetadataAccessPath(),
         this.getConfigProxyUrl(),
-        (proxiedUrl, proxyUsed) => {
-          // Indicate the proxy that was used
+        (proxyUsed) => {
+          // Keep in mind a proxy was used for the request
           this.setProxyUrl(proxyUsed);
-
-          // Update the metadata access path to use the proxy
-          this.setMetadataAccessPath(proxiedUrl);
         },
         abortSignal
       );
+
+      // Return it
+      return metadata;
     } catch (error: unknown) {
-      // Throw
+      // If empty response
+      if (error instanceof ResponseEmptyError) {
+        // Throw no capabilities response
+        throw new LayerNoCapabilitiesError(this.getGeoviewLayerId(), this.getLayerEntryNameOrGeoviewLayerName());
+      }
+
+      // Throw standard
       throw new LayerServiceMetadataUnableToFetchError(
         this.getGeoviewLayerId(),
         this.getLayerEntryNameOrGeoviewLayerName(),
         formatError(error)
       );
     }
-
-    // If not found
-    if (!metadata) throw new LayerNoCapabilitiesError(this.getGeoviewLayerId(), this.getLayerEntryNameOrGeoviewLayerName());
-
-    // Return it
-    return metadata;
   }
 
   // #endregion PROTECTED METHODS
@@ -570,7 +564,7 @@ export class WFS extends AbstractGeoViewVector {
    * @param metadata - The parsed WFS capabilities metadata object
    * @returns The detected output format string for the DescribeFeatureType operation, or an empty string if no suitable value is found
    */
-  static extractDescribeFeatureOutputFormat(metadata: TypeMetadataWFS): string {
+  static extractDescribeFeatureOutputFormat(metadata: TypeMetadataWFSCapabilities): string {
     // Find the operation for DescribeFeatureOutput
     const describeFeatureOp = metadata['ows:OperationsMetadata']['ows:Operation'].find(
       (op) => op['@attributes'].name === 'DescribeFeatureType'
@@ -629,7 +623,6 @@ export class WFS extends AbstractGeoViewVector {
    * @param url - The url to query the metadata from
    * @param configProxyUrl - Proxy URL to use when necessary
    * @param callbackNewMetadataUrl - Optional callback executed when a proxy had to be used to fetch the metadata.
-   * The parameter sent in the callback is the proxy prefix with the '?' at the end.
    * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
    * @returns A promise that resolves with the metadata when fetched or undefined when capabilities weren't found
    * @throws {RequestTimeoutError} When the request exceeds the timeout duration
@@ -643,105 +636,9 @@ export class WFS extends AbstractGeoViewVector {
     configProxyUrl: string | undefined,
     callbackNewMetadataUrl?: CallbackNewMetadataDelegate,
     abortSignal?: AbortSignal
-  ): Promise<TypeMetadataWFS | undefined> {
+  ): Promise<TypeMetadataWFSCapabilities> {
     // Redirect
     return GeoUtilities.getWFSServiceMetadata(url, configProxyUrl, callbackNewMetadataUrl, abortSignal);
-  }
-
-  /**
-   * Fetches WFS metadata for a given service URL and layer ID, then retrieves
-   * the corresponding geometry type from the DescribeFeatureType response.
-   *
-   * This method performs the following steps:
-   * 1. Normalizes the base service URL.
-   * 2. Fetches WFS capabilities or metadata from the service.
-   * 3. Determines the WFS version and the proper output format for DescribeFeatureType.
-   * 4. Builds and executes the DescribeFeatureType request.
-   * 5. Extracts and returns the geometry type (e.g., `"Point"`, `"LineString"`, `"Polygon"`).
-   *
-   * @param url - The full WFS or WMS service URL from which to derive the base endpoint
-   * @param layerId - The name or identifier of the layer to inspect
-   * @param abortSignal - Optional {@link AbortSignal} that allows the request to be aborted
-   * @returns A promise that resolves with the list of fields for the layer
-   */
-  static async fetchMetadataAndRetrieveFieldsInfo(url: string, layerId: string, abortSignal?: AbortSignal): Promise<TypeOutfields[]> {
-    // Fetch the WFS metadata
-    // TODO: CHECK - Do we need to send the configProxyUrl (this.getConfigProxyUrl()) here
-    const metadata = await WFS.fetchMetadata(url, undefined, undefined, abortSignal);
-    const version = metadata?.['@attributes'].version || '1.1.0';
-    const outputFormat = WFS.extractDescribeFeatureOutputFormat(metadata!);
-
-    // Build a describe feature url
-    const describeFeatureUrl = GeoUtilities.ensureServiceRequestUrlDescribeFeatureType(url, layerId, version, outputFormat);
-
-    // Call the describe feature url to try to get the geometry type
-    return WFS.fetchDescribeFeature(describeFeatureUrl, outputFormat);
-  }
-
-  /**
-   * Fetches and parses a WFS `DescribeFeatureType` response from the given URL,
-   * automatically selecting the appropriate parsing method (JSON or XML)
-   * based on the specified output format.
-   *
-   * @param url - The DescribeFeatureType request URL
-   * @param outputFormat - The expected response format (`"application/json"` or XML-based MIME type)
-   * @param abortSignal - Optional {@link AbortSignal} that allows the fetch request to be aborted
-   * @returns A promise that resolves to an array of field definitions describing the feature type's properties
-   */
-  static fetchDescribeFeature(url: string, outputFormat: string, abortSignal?: AbortSignal): Promise<TypeOutfields[]> {
-    // If json
-    if (outputFormat === 'application/json') {
-      return WFS.fetchDescribeFeatureJson(url, abortSignal);
-    }
-
-    // XML
-    return WFS.fetchDescribeFeatureXML(url, abortSignal);
-  }
-
-  /**
-   * Fetches and parses a WFS `DescribeFeatureType` response in JSON format.
-   *
-   * This method is used when the WFS server supports
-   * `outputFormat=application/json` for DescribeFeatureType requests.
-   * It extracts and returns the list of feature type properties.
-   *
-   * @param url - The DescribeFeatureType request URL
-   * @param abortSignal - Optional {@link AbortSignal} to abort the fetch request
-   * @returns A promise that resolves to an array of feature type field definitions extracted from the JSON response
-   */
-  static async fetchDescribeFeatureJson(url: string, abortSignal?: AbortSignal): Promise<TypeOutfields[]> {
-    // Fetch
-    const layerMetadata = await Fetch.fetchJson<WFSJsonResponse>(url, { signal: abortSignal });
-    return layerMetadata.featureTypes?.[0]?.properties || [];
-  }
-
-  /**
-   * Fetches and parses a WFS `DescribeFeatureType` response in XML format.
-   *
-   * This method is used for servers that only support XML DescribeFeatureType responses
-   * (e.g., GeoServer, MapServer, or QGIS Server without JSON output).
-   * It converts the XML schema to JSON and extracts the list of feature properties
-   * from the complex type definition.
-   *
-   * @param url - The DescribeFeatureType request URL
-   * @param abortSignal - Optional {@link AbortSignal} to abort the fetch request
-   * @returns A promise that resolves to an array of feature type field definitions extracted from the XML schema
-   */
-  static async fetchDescribeFeatureXML(url: string, abortSignal?: AbortSignal): Promise<TypeOutfields[]> {
-    // Fetch
-    const xmlJsonDescribe = await Fetch.fetchXMLToJson(url, { signal: abortSignal });
-    const prefix = Object.keys(xmlJsonDescribe)[0].includes('xsd:') ? 'xsd:' : '';
-
-    const xmlJsonSchema = xmlJsonDescribe[`${prefix}schema`] as Record<string, unknown>;
-    const xmlJsonSchemaComplexType = xmlJsonSchema?.[`${prefix}complexType`] as Record<string, unknown>;
-
-    const elements =
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (xmlJsonSchemaComplexType as any)?.[`${prefix}complexContent`]?.[`${prefix}extension`]?.[`${prefix}sequence`]?.[`${prefix}element`] ??
-      [];
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return elements.map((el: any) => el['@attributes']) as TypeOutfields[];
   }
 
   /**
@@ -762,11 +659,11 @@ export class WFS extends AbstractGeoViewVector {
    *
    * Extracts the field definition from the layer's metadata, interprets its WFS type
    * (e.g., `xsd:int`, `xsd:date`), and maps it to a normalized internal type
-   * (`'string'`, `'number'`, or `'date'`).
+   * (`'string'`, `'number'`, `'date'`, or `'dateTime'`).
    *
    * @param fieldName - The name of the field whose type should be retrieved
    * @param layerConfig - The WFS layer configuration containing metadata definitions
-   * @returns The normalized field type (`'string'`, `'number'`, or `'date'`)
+   * @returns The normalized field type (`'string'`, `'number'`, `'date'`, or `'dateTime'`)
    */
   static getFieldType(fieldName: string, layerConfig: OgcWfsLayerEntryConfig): TypeOutfieldsType {
     const fieldDefinitions = layerConfig.getLayerMetadata();
@@ -778,15 +675,265 @@ export class WFS extends AbstractGeoViewVector {
 
     const fieldEntryType = fieldDefinition.type.split(':').slice(-1)[0];
     if (fieldEntryType === 'date') return 'date';
+    if (fieldEntryType === 'dateTime') return 'date';
     if (['int', 'integer', 'number', 'decimal', 'long', 'short', 'float', 'double'].includes(fieldEntryType)) return 'number';
 
     // Default: string
     return 'string';
   }
 
+  /**
+   * Generic format fallback strategy: tries the preferred format first, then falls back to no specific format.
+   * Accepts custom parse functions so callers can plug in their own fetch+parse pipeline.
+   *
+   * @param layerConfig - The WFS layer entry configuration
+   * @param parseFnJSON - A function that receives a URL and parses the response as JSON
+   * @param parseFnFallback - A function that receives a URL and parses the response as text (used when JSON format is unavailable or fails)
+   * @param bboxExtent - Optional bbox extent string (e.g., 'minx,miny,maxx,maxy,EPSG:3978')
+   * @param outfields - Optional list of fields to return (propertyName parameter)
+   * @param filter - Optional OGC XML filter string
+   * @param srsName - Optional output projection code (e.g., 'EPSG:3857')
+   * @returns A promise that resolves with the result of the parse function
+   * @throws {LayerInvalidFeatureInfoFormatWFSError} When no format produces usable results
+   */
+  static async fetchWithFormatFallback<T>(
+    layerConfig: OgcWfsLayerEntryConfig,
+    queryFnJSON: (url: string) => Promise<T>,
+    queryFnFallback: (url: string) => Promise<T>,
+    bboxExtent?: string,
+    outfields?: TypeOutfields[],
+    filter?: string,
+    srsName?: string
+  ): Promise<T> {
+    const supportedFormats = WFS.#resolveSupportedFormats(layerConfig);
+
+    // Ordered list of formats to try, from most preferred to least preferred.
+    // Each entry maps a MIME type to the parse function to use for that format.
+    const formatCandidates: { format: string; queryFn: (url: string) => Promise<T> }[] = [
+      { format: MIME_TYPE_FORMAT_JSON, queryFn: queryFnJSON },
+      { format: MIME_TYPE_FORMAT_GML_XML_32, queryFn: queryFnFallback },
+      { format: MIME_TYPE_FORMAT_TEXT_XML_GML_321, queryFn: queryFnFallback },
+      { format: MIME_TYPE_FORMAT_TEXT_XML_GML_311, queryFn: queryFnFallback },
+      { format: MIME_TYPE_FORMAT_TEXT_XML_GML_212, queryFn: queryFnFallback },
+      { format: MIME_TYPE_FORMAT_TEXT_XML, queryFn: queryFnFallback },
+    ];
+
+    // Try each format candidate in order
+    let result: T | undefined;
+    for (const candidate of formatCandidates) {
+      // Check if the service supports this format
+      const matchingFormats = WFS.#supportedFormatsInclude(supportedFormats, candidate.format);
+      if (matchingFormats.length) {
+        try {
+          // Build the GetFeatureUrl with the candidate format and other parameters
+          const url = WFS.#buildGetFeatureUrl(layerConfig, matchingFormats[0], bboxExtent, outfields, filter, srsName);
+
+          // GV Here, we do want to await in the loop, because we want to know if the fetch/parse succeeded before looping to the next format request.
+          // eslint-disable-next-line no-await-in-loop
+          result = await candidate.queryFn(url);
+
+          // If the fetch/parse succeeded, return right away
+          if (result) return result;
+        } catch (error: unknown) {
+          // Throw on abort to skip remaining format attempts
+          GeoViewError.throwIfAborted(error);
+        }
+      }
+    }
+
+    // Final fallback: try with no specific outputFormat
+    if (!result) {
+      try {
+        const url = WFS.#buildGetFeatureUrl(layerConfig, '', bboxExtent, outfields, filter, srsName);
+        result = await queryFnFallback(url);
+      } catch (error: unknown) {
+        // Throw on abort to skip
+        GeoViewError.throwIfAborted(error);
+      }
+    }
+
+    // If result was retrieved
+    if (result) return result;
+
+    // Failed
+    throw new LayerInvalidFeatureInfoFormatWFSError(layerConfig.layerPath, supportedFormats, layerConfig.getLayerNameCascade());
+  }
+
   // #endregion STATIC PUBLIC METHODS
 
   // #region STATIC PRIVATE METHODS
+
+  /**
+   * Fetches WFS features as JSON and parses the response into OpenLayers features.
+   *
+   * @param url - The WFS GetFeature request URL
+   * @param version - The WFS version string (e.g., '1.1.0', '2.0.0')
+   * @param postSettings - Optional POST settings for the request
+   * @param dataProjection - Optional data projection for feature reading
+   * @param featureProjection - Optional feature projection for reprojection
+   * @returns A promise that resolves to source features info
+   */
+  static async #fetchAndParseWFSFeaturesJSON(
+    url: string,
+    version: string,
+    postSettings?: TypePostSettings,
+    dataProjection?: string | OLProjection,
+    featureProjection?: string | OLProjection
+  ): Promise<SourceFeaturesInfo> {
+    // Fetch as JSON
+    const responseData = await AbstractGeoViewVector.fetchJson(url, postSettings);
+
+    // Parse the response
+    return WFS.#parseWFSResponseData(responseData, version, dataProjection, featureProjection);
+  }
+
+  /**
+   * Fetches WFS features as text and parses the response into OpenLayers features.
+   *
+   * @param url - The WFS GetFeature request URL
+   * @param version - The WFS version string (e.g., '1.1.0', '2.0.0')
+   * @param postSettings - Optional POST settings for the request
+   * @param dataProjection - Optional data projection for feature reading
+   * @param featureProjection - Optional feature projection for reprojection
+   * @returns A promise that resolves to source features info
+   */
+  static async #fetchAndParseWFSFeaturesText(
+    url: string,
+    version: string,
+    postSettings?: TypePostSettings,
+    dataProjection?: string | OLProjection,
+    featureProjection?: string | OLProjection
+  ): Promise<SourceFeaturesInfo> {
+    // Fetch as text
+    const responseData = await AbstractGeoViewVector.fetchText(url, postSettings);
+
+    // Parse the response
+    return WFS.#parseWFSResponseData(responseData, version, dataProjection, featureProjection);
+  }
+
+  /**
+   * Parses WFS response data into OpenLayers features, detecting GeoJSON vs XML/GML automatically.
+   *
+   * @param responseData - The fetched response data (JSON object or text string)
+   * @param version - The WFS version string (e.g., '1.1.0', '2.0.0')
+   * @param dataProjection - Optional data projection for feature reading
+   * @param featureProjection - Optional feature projection for reprojection
+   * @returns Source features info
+   */
+  static #parseWFSResponseData(
+    responseData: unknown,
+    version: string,
+    dataProjection?: string | OLProjection,
+    featureProjection?: string | OLProjection
+  ): Promise<SourceFeaturesInfo> {
+    // Check if the data is GeoJSON
+    if (GeoUtilities.isGeoJSONObject(responseData)) {
+      return GeoUtilities.readFeaturesFromGeoJSON(responseData, dataProjection, featureProjection);
+    }
+
+    // Here, the output isn't GeoJSON, probably XML/GML
+    return GeoUtilities.readFeaturesFromWFS(responseData, version, dataProjection, featureProjection);
+  }
+
+  /**
+   * Parses a DescribeFeatureType response text into an array of field definitions.
+   *
+   * @param responseText - The raw response text from the DescribeFeatureType request
+   * @param outputFormat - The output format used for the request (determines JSON vs XML parsing)
+   * @returns The parsed array of field definitions
+   */
+  static #parseResponseForOutfields(responseText: string, outputFormat: string): TypeOutfields[] {
+    // Parse based on output format
+    if (outputFormat === MIME_TYPE_FORMAT_JSON) {
+      const parsed = JSON.parse(responseText);
+      return parsed.featureTypes?.[0]?.properties || [];
+    }
+
+    // XML format — parse the schema
+    const xmlJson = parseXMLToJson<Record<string, unknown>>(responseText);
+    const prefix = Object.keys(xmlJson)[0].includes('xsd:') ? 'xsd:' : '';
+
+    const xmlJsonSchema = xmlJson[`${prefix}schema`] as Record<string, unknown>;
+    const xmlJsonSchemaComplexType = xmlJsonSchema?.[`${prefix}complexType`] as Record<string, unknown>;
+
+    const elements =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (xmlJsonSchemaComplexType as any)?.[`${prefix}complexContent`]?.[`${prefix}extension`]?.[`${prefix}sequence`]?.[`${prefix}element`] ??
+      [];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return elements.map((el: any) => el['@attributes']) as TypeOutfields[];
+  }
+
+  /**
+   * Resolves the preferred output format for a WFS layer by checking the layer's supported formats
+   * and validating them against known service issues via ServicesManagement.
+   *
+   * @param layerConfig - The WFS layer entry configuration
+   * @returns The supported output format strings, or an empty array if none are supported
+   */
+  static #resolveSupportedFormats(layerConfig: OgcWfsLayerEntryConfig): string[] {
+    // Get the supported info formats from metadata (defaults to preferredFormat if metadata is absent)
+    const formats = layerConfig.getSupportedFormats(MIME_TYPE_FORMAT_JSON);
+
+    // Check with the services management if the service does in fact handle the output format or if it's a known issue
+    return ServicesManagement.checkWFSOutputFormats(layerConfig.getDataAccessPath(), formats);
+  }
+
+  /**
+   * Filters the supported formats to those that include the specified format substring (case-insensitive).
+   *
+   * @param supportedFormats - The list of supported MIME type format strings
+   * @param formatToCheck - The format substring to match against (e.g., 'application/json')
+   * @returns The subset of supported formats that contain the format substring
+   */
+  static #supportedFormatsInclude(supportedFormats: string[], formatToCheck: string): string[] {
+    // Return if the format to check is included in the list of supported formats.
+    // This supports when the supported format is e.g.: "application/json; subtype=geojson" and formatToCheck is application/json
+    return supportedFormats.filter((format) => format.toLowerCase().includes(formatToCheck.toLowerCase()));
+  }
+
+  /**
+   * Builds a WFS GetFeature URL for the given layer config and output format.
+   *
+   * @param layerConfig - The WFS layer entry configuration
+   * @param outputFormat - The output format to use (empty string for no specific format)
+   * @param bboxExtent - Optional bbox extent string (e.g., 'minx,miny,maxx,maxy,EPSG:3978')
+   * @param outfields - Optional list of fields to return (propertyName parameter)
+   * @param filter - Optional OGC XML filter string
+   * @param srsName - Optional output projection code (e.g., 'EPSG:3857')
+   * @returns The constructed GetFeature URL
+   */
+  static #buildGetFeatureUrl(
+    layerConfig: OgcWfsLayerEntryConfig,
+    outputFormat: string,
+    bboxExtent?: string,
+    outfields?: TypeOutfields[],
+    filter?: string,
+    srsName?: string
+  ): string {
+    // Work the url for a GetFeature request
+    let url = GeoUtilities.ensureServiceRequestUrlGetFeature(
+      layerConfig.getDataAccessPath(),
+      layerConfig.layerId,
+      layerConfig.getVersionOrDefault(),
+      outputFormat,
+      outfields,
+      filter,
+      srsName
+    );
+
+    // If an extent is provided, append bbox
+    if (bboxExtent) {
+      url = `${url}&bbox=${bboxExtent}`;
+    }
+
+    // Tweak url with the proxy if necessary
+    url = layerConfig.getUrlWithProxyWhenNeeded(url);
+
+    // Return the url
+    return url;
+  }
 
   /**
    * Attempts to derive and apply styling information to a WFS layer using corresponding WMS styles.
@@ -805,13 +952,11 @@ export class WFS extends AbstractGeoViewVector {
    * style retrieval through WMS `GetStyles`.
    *
    * @param layerConfig - The WFS layer configuration for which styling should be processed
-   * @param configProxyUrl - Proxy URL to use when necessary
    * @returns A promise that resolves with the layer style settings or undefined
    * @throws {LayerDataAccessPathMandatoryError} When the Data Access Path was undefined, likely because initDataAccessPath wasn't called
    */
   static async #tryProcessLayerStylingInformationIfAny(
-    layerConfig: OgcWfsLayerEntryConfig,
-    configProxyUrl: string | undefined
+    layerConfig: OgcWfsLayerEntryConfig
   ): Promise<Record<TypeStyleGeometry, TypeLayerStyleSettings> | undefined> {
     // If should fetch styles from the WMS (default)
     if (layerConfig.getShouldFetchStylesFromWMS()) {
@@ -819,11 +964,17 @@ export class WFS extends AbstractGeoViewVector {
         // Get the layer id equivalent for the WMS
         const wmsLayerId = layerConfig.getWmsStylesLayerId();
 
-        // Tweak the url, all the time, typical wms/wfs url
-        const tweakedUrl = layerConfig.getDataAccessPath().replaceAll('cgi-bin/wfs', 'cgi-bin/wms');
+        // Tweak url when switching from WFS to WMS
+        let tweakedUrl = ServicesManagement.checkUrlSwitchWFSToWMS(layerConfig.getDataAccessPath());
+
+        // Make sure the URL has necessary information
+        tweakedUrl = GeoUtilities.ensureServiceRequestUrlGetStyles(tweakedUrl, wmsLayerId);
+
+        // Tweak url with the proxy if necessary
+        tweakedUrl = layerConfig.getUrlWithProxyWhenNeeded(tweakedUrl);
 
         // Create the layer style and return
-        return await WMS.createStylesFromWMS(tweakedUrl, configProxyUrl, wmsLayerId, layerConfig.getGeometryType());
+        return await WMS.createLayerStyleFromWMS(tweakedUrl, layerConfig.getGeometryType());
       } catch (error: unknown) {
         // Log warning
         logger.logWarning(`Failed to create a dynamic layer style for the WFS using the WMS styles for ${layerConfig.layerPath}`, error);

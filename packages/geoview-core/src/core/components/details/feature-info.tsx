@@ -27,12 +27,7 @@ import {
   useStoreLayerDisplayDateFormat,
   useStoreLayerDisplayDateTimezone,
 } from '@/core/stores/states/layer-state';
-import {
-  useDetailsController,
-  useGeoChartControllerIfExists,
-  useMapController,
-  useLayerController,
-} from '@/core/controllers/use-controllers';
+import { useDetailsController, useGeoChartControllerIfExists, useLayerController } from '@/core/controllers/use-controllers';
 import { DateMgt } from '@/core/utils/date-mgt';
 
 /** Properties for the FeatureInfo component. */
@@ -80,9 +75,6 @@ const PAPER_STYLES = {
   border: 'none',
   paddingTop: '0.5rem',
 } as const;
-
-/** Padding values for zoom operations. */
-const ZOOM_PADDING = [5, 5, 5, 5];
 
 /**
  * Creates the feature header component.
@@ -226,7 +218,6 @@ export function FeatureInfo({ feature, containerType }: FeatureInfoProps): JSX.E
   const layerDateTemporalMode = useStoreLayerDateTemporalMode(feature.layerPath);
   const displayDateFormat = useStoreLayerDisplayDateFormat(feature.layerPath);
   const displayDateTimezone = useStoreLayerDisplayDateTimezone(feature.layerPath);
-  const mapController = useMapController();
   const layerController = useLayerController();
   const detailsController = useDetailsController();
   const geoChartController = useGeoChartControllerIfExists();
@@ -317,25 +308,13 @@ export function FeatureInfo({ feature, containerType }: FeatureInfoProps): JSX.E
       event.stopPropagation();
       if (!feature?.extent) return;
 
-      // Buffer the extent to avoid zooming too close if it's a point
-      const isPoint = feature.geometry!.getType() === 'Point';
-
       // Zoom to extent and highlight the feature
-      layerController
-        .zoomToExtentRestricted(feature.layerPath, feature.extent, true, { padding: ZOOM_PADDING })
-        .then(() => {
-          // Highlight the bounding box
-          if (feature.extent && !isPoint) {
-            mapController.highlightBBox(feature.extent, false);
-          }
-          // Add the current feature to highlights
-          mapController.addHighlightedFeature(feature);
-        })
-        .catch((error: unknown) => {
-          logger.logPromiseFailed('zoomToExtent in handleZoomIn in FeatureInfoNew', error);
-        });
+      layerController.zoomToExtentRestrictedAndHighlight(feature.layerPath, feature, feature.extent, true).catch((error: unknown) => {
+        // Log
+        logger.logPromiseFailed('zoomToExtentRestrictedAndHighlight in handleZoomIn in FeatureInfo', error);
+      });
     },
-    [feature, layerController, mapController]
+    [feature, layerController]
   );
 
   /**

@@ -143,7 +143,7 @@ export function initializeMapState(set: TypeSetStore, get: TypeGetStore): IMapSt
     initialView: {
       zoomAndCenter: [MAP_ZOOM_LEVEL[3857], MAP_CENTER[3857]],
     },
-    interaction: 'static',
+    interaction: 'static', // This 'static' value here means nothing, the default comes from setDefaultConfigValues
     isMouseInsideMap: false,
     mapExtent: undefined,
     mapLoaded: false,
@@ -164,6 +164,7 @@ export function initializeMapState(set: TypeSetStore, get: TypeGetStore): IMapSt
     },
     size: [0, 0] as Size,
     zoom: 0,
+
     /**
      * Initializes default stores section from config information when store receive configuration file
      */
@@ -466,9 +467,6 @@ export function initializeMapState(set: TypeSetStore, get: TypeGetStore): IMapSt
             scale,
           },
         });
-
-        // On map center coord change, hide click marker
-        get().mapState.actions.setClickMarker(undefined);
 
         // If crosshair is active and user uses keyboard, update pointer position
         // This will enable mouse position and hover tooltip
@@ -812,6 +810,13 @@ export const useStoreMapScale = (): TypeScaleInfo => useStore(useGeoViewStore(),
 
 /** Selects the current zoom level from the store. */
 export const useStoreMapZoom = (): number => useStore(useGeoViewStore(), (state) => state.mapState.zoom);
+
+/** Selects whether the overview map should be visible based on the current zoom level and the hide-on-zoom setting from the store. */
+export const useStoreMapOverviewShouldBeVisible = (): boolean => {
+  const zoomLevel = useStoreMapZoom();
+  const hideOnZoom = useStoreMapOverviewMapHideZoom();
+  return hideOnZoom === 0 || zoomLevel > hideOnZoom;
+};
 
 // #endregion STATE GETTERS & HOOKS - OTHERS (no match between getter-hook)
 

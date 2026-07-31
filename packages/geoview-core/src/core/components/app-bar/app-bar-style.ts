@@ -14,8 +14,8 @@ export const getSxClasses = (theme: Theme): SxStyles => ({
     justifyContent: 'space-between',
     zIndex: theme.zIndex.appBar,
     pointerEvents: 'all',
-    backgroundColor: theme.palette.geoViewColor.bgColor.main,
-    border: theme.palette.geoViewColor.primary.light[100],
+    backgroundColor: theme.palette.geoViewColor?.bgColor.main,
+    border: theme.palette.geoViewColor?.primary.light[100],
 
     '&.interaction-static': {
       position: 'absolute',
@@ -28,7 +28,7 @@ export const getSxClasses = (theme: Theme): SxStyles => ({
       '&>nav': {
         border: 'unset !important',
         '&>div>ul>li': {
-          backgroundColor: theme.palette.geoViewColor.grey.lighten(0.8, 0.8),
+          backgroundColor: theme.palette.geoViewColor?.grey.lighten(0.8, 0.8),
           padding: '0px',
           borderRadius: '50%',
         },
@@ -63,7 +63,7 @@ export const getSxClasses = (theme: Theme): SxStyles => ({
     flexDirection: 'column',
     minHeight: 0,
     position: 'relative',
-    borderRightColor: theme.palette.geoViewColor.primary.light[100],
+    borderRightColor: theme.palette.geoViewColor?.primary.light[100],
     borderRightWidth: 1,
     borderRightStyle: 'solid',
     width: 50,
@@ -75,7 +75,7 @@ export const getSxClasses = (theme: Theme): SxStyles => ({
       padding: 0,
       borderRadius: 0,
       backgroundColor: 'transparent',
-      color: theme.palette.geoViewColor.primary.main,
+      color: theme.palette.geoViewColor?.primary.main,
       transition: 'background-color 0.3s ease-in-out',
       '& span': {
         margin: 0,
@@ -88,7 +88,7 @@ export const getSxClasses = (theme: Theme): SxStyles => ({
         maxWidth: '50px',
       },
       '&[aria-disabled="true"]': {
-        color: theme.palette.geoViewColor.bgColor.dark[450],
+        color: theme.palette.geoViewColor?.bgColor.dark[450],
         cursor: 'not-allowed',
       },
     },
@@ -103,7 +103,7 @@ export const getSxClasses = (theme: Theme): SxStyles => ({
       top: 0,
       left: '4px',
       right: '4px',
-      borderTop: `1px solid ${theme.palette.geoViewColor.grey.light[100]}`,
+      borderTop: `1px solid ${theme.palette.geoViewColor?.grey.light[100]}`,
     },
   },
   appBarBottomSection: {

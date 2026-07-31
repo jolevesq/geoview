@@ -1,13 +1,11 @@
 import TileLayer from 'ol/layer/Tile';
 import type { Options as TileOptions } from 'ol/layer/BaseTile';
 import type WMTSSource from 'ol/source/WMTS';
+import type ImageTile from 'ol/ImageTile';
 import type { Extent } from 'ol/extent';
 import type { Projection as OLProjection } from 'ol/proj';
 
-import type {
-  OgcWmtsLayerEntryConfig,
-  TypeMetadataWMTSLayer,
-} from '@/api/config/validation-classes/raster-validation-classes/ogc-wmts-layer-entry-config';
+import type { OgcWmtsLayerEntryConfig } from '@/api/config/validation-classes/raster-validation-classes/ogc-wmts-layer-entry-config';
 import { CONST_LAYER_TYPES, type TypeLegend } from '@/api/types/layer-schema-types';
 import { AbstractGVTile } from '@/geo/layer/gv-layers/tile/abstract-gv-tile';
 import { GeoUtilities } from '@/geo/utils/utilities';
@@ -29,6 +27,16 @@ export class GVWMTS extends AbstractGVTile {
    */
   constructor(olSource: WMTSSource, layerConfig: OgcWmtsLayerEntryConfig) {
     super(olSource, layerConfig);
+
+    // Hook a custom function to the TileLoadFunction of the source object to handle proxy
+    olSource.setTileLoadFunction((tile, src) => {
+      // Tweak url with the proxy if necessary
+      const theUrl = layerConfig.getUrlWithProxyWhenNeeded(src);
+
+      // Assign the src to the tile image
+      // eslint-disable-next-line no-param-reassign
+      ((tile as ImageTile).getImage() as HTMLImageElement).src = theUrl;
+    });
 
     // Create the tile layer options.
     const tileLayerOptions: TileOptions<WMTSSource> = { source: olSource };
@@ -135,8 +143,13 @@ export class GVWMTS extends AbstractGVTile {
       const metadataAccessPath = layerConfig.getMetadataAccessPath();
       const { looksLikeArcGisWmtsService, normalizedMetadataAccessPath } = GVWMTS.#looksLikeArcGisWmtsServiceUrl(metadataAccessPath);
       if (looksLikeArcGisWmtsService && normalizedMetadataAccessPath) {
-        const legendUrl = `${normalizedMetadataAccessPath}/legend?f=json`;
+        // Tweak url with the proxy if necessary
+        const normalizedMetadataAccessPathProxied = layerConfig.getUrlWithProxyWhenNeeded(normalizedMetadataAccessPath);
 
+        // Complete url
+        const legendUrl = `${normalizedMetadataAccessPathProxied}/legend?f=json`;
+
+        // Fetch
         const legendJson = await Fetch.fetchEsriJson<TypeEsriImageLayerLegend>(legendUrl);
         const layerInfo = legendJson.layers?.find((lyr) => lyr.layerId.toString() === layerConfig.layerId) ?? legendJson.layers?.[0];
         const legendInfo = layerInfo?.legend;
@@ -178,11 +191,14 @@ export class GVWMTS extends AbstractGVTile {
    * @returns A promise that resolves with the legend image as a data URL or null
    */
   static async #getLegendImage(layerConfig: OgcWmtsLayerEntryConfig): Promise<string | null> {
-    const metadata = layerConfig.getLayerMetadata();
-    const layer = metadata?.Layer as TypeMetadataWMTSLayer | undefined;
-    const foundStyle = Array.isArray(layer?.Style)
-      ? layer.Style.find((style) => style['@attributes'].isDefault === 'true') || layer.Style[0]
-      : layer?.Style;
+    const layerMetadata = layerConfig.getLayerMetadata();
+
+    // Find the style
+    const foundStyle = Array.isArray(layerMetadata?.Layer?.Style)
+      ? layerMetadata?.Layer.Style.find((style) => style['@attributes'].isDefault === 'true') || layerMetadata.Layer.Style[0]
+      : layerMetadata?.Layer?.Style;
+
+    // Find the legend url
     const legendUrl = foundStyle?.LegendURL?.['@attributes']?.['xlink:href'];
 
     if (legendUrl) {
