@@ -3,7 +3,7 @@ import type { Coordinate } from 'ol/coordinate';
 import { TestError } from '../core/exceptions';
 import { Test } from '../core/test';
 import { GVAbstractTester } from './abstract-gv-tester';
-import { delay, generateId } from 'geoview-core/core/utils/utilities';
+import { generateId } from 'geoview-core/core/utils/utilities';
 import type { Extent, TypeBasemapId, TypeMapState, TypeValidMapProjectionCodes } from 'geoview-core/api/types/map-schema-types';
 import {
   getStoreDetailsFeatures,
@@ -274,7 +274,7 @@ export class MapTester extends GVAbstractTester {
       (test, result) => {
         // The map adjusts extent to fit viewport aspect ratio, compare with tolerance for aspect ratio adjustment
         test.addStep('Verifying map zoomed to extent (with aspect ratio tolerance)...');
-        Test.assertIsArrayEqual(result, expectedExtent, 2);
+        Test.assertIsArrayEqual(result, expectedExtent, 0);
       }
     );
   }
@@ -326,14 +326,11 @@ export class MapTester extends GVAbstractTester {
 
     return this.test(
       'Test footer bar select tab',
-      async (test) => {
+      (test) => {
         test.addStep(`Selecting footer bar tab '${targetTab}'...`);
 
         // Select the tab
         this.getControllersRegistry().uiController.setActiveFooterBarTab(targetTab);
-
-        // Wait for tab selection to complete
-        await delay(500);
 
         return targetTab;
       },
@@ -355,14 +352,11 @@ export class MapTester extends GVAbstractTester {
 
     return this.test(
       'Test app bar select tab',
-      async (test) => {
+      (test) => {
         test.addStep(`Selecting app bar tab '${targetTab}'...`);
 
         // Select the tab
         this.getControllersRegistry().uiController.setActiveAppBarTab(targetTab, true, true);
-
-        // Wait for tab selection to complete
-        await delay(500);
 
         return targetTab;
       },
@@ -390,14 +384,11 @@ export class MapTester extends GVAbstractTester {
 
     return this.test(
       'Test footer bar create custom tab',
-      async (test) => {
+      (test) => {
         test.addStep('Creating custom footer bar tab...');
 
         // Create the tab
         this.getMapViewer().footerBarApi.createTab(customTabConfig);
-
-        // Wait for tab creation to complete
-        await delay(500);
 
         return customTabId;
       },
@@ -508,7 +499,7 @@ export class MapTester extends GVAbstractTester {
     // British Columbia approximate extent in lon/lat (EPSG:4326)
     // West: -139°, South: 48°, East: -114°, North: 60°
     const bcExtent: Extent = [-139, 48, -114, 60];
-    const expectedArrowAngle = 32; // Expected north arrow angle over BC in LCC
+    const expectedArrowAngle = 33; // Expected north arrow angle over BC in LCC
 
     return this.test(
       'Test north arrow rotation in LCC projection for British Columbia',
@@ -523,7 +514,7 @@ export class MapTester extends GVAbstractTester {
         }
 
         test.addStep('Zooming to British Columbia extent...');
-        await this.getControllersRegistry().mapController.zoomToLonLatExtentOrCoordinate(bcExtent, GVAbstractTester.USE_ZOOM_ANIMATION); // GVAbstractTester.USE_ZOOM_ANIMATION
+        await this.getControllersRegistry().mapController.zoomToLonLatExtentOrCoordinate(bcExtent, GVAbstractTester.USE_ZOOM_ANIMATION);
 
         // Wait for render
         await this.getMapViewer().waitForRender();

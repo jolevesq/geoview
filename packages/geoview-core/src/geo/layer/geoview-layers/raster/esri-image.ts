@@ -12,6 +12,7 @@ import { EsriUtilities } from '@/geo/layer/geoview-layers/esri-layer-common';
 import { GVEsriImage } from '@/geo/layer/gv-layers/raster/gv-esri-image';
 import type { ConfigBaseClass, TypeLayerEntryShell } from '@/api/config/validation-classes/config-base-class';
 import type { DisplayDateMode } from '@/api/types/map-schema-types';
+import type { FetchWithProxyResult } from '@/geo/utils/utilities';
 
 export interface TypeEsriImageLayerConfig extends TypeGeoviewLayerConfig {
   geoviewLayerType: typeof CONST_LAYER_TYPES.ESRI_IMAGE;
@@ -56,13 +57,11 @@ export class EsriImage extends AbstractGeoViewRaster {
   /**
    * Overrides the way the metadata is fetched.
    *
-   * Resolves with the Json object or undefined when no metadata is to be expected for a particular layer type.
-   *
-   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process.
-   * @returns A promise with the metadata or undefined when no metadata for the particular layer type.
-   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error.
+   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
+   * @returns A promise that resolves with the fetched metadata and proxy information
+   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    */
-  protected override onFetchServiceMetadata<T>(abortSignal?: AbortSignal): Promise<T> {
+  protected override onFetchServiceMetadata(abortSignal?: AbortSignal): Promise<FetchWithProxyResult<unknown>> {
     // Redirect using default way of fetching service metadata which is to use the url with f=json parameter
     return this.helperFetchServiceMetadataWithFJson(abortSignal);
   }
@@ -73,8 +72,8 @@ export class EsriImage extends AbstractGeoViewRaster {
    * @returns A promise resolved once the layer entries have been initialized
    */
   protected override async onInitLayerEntries(): Promise<TypeGeoviewLayerConfig> {
-    // Attempt a fetch of the metadata
-    await this.onFetchServiceMetadata();
+    // Calls fetchServiceMetadata which delegates to this class's overridden onFetchServiceMetadata (may use a proxy fallback and store the proxyUrl on the instance)
+    await this.fetchServiceMetadata();
 
     // Redirect
     return Promise.resolve(
@@ -104,7 +103,7 @@ export class EsriImage extends AbstractGeoViewRaster {
     mapProjection?: OLProjection,
     abortSignal?: AbortSignal
   ): Promise<EsriImageLayerEntryConfig> {
-    return EsriUtilities.initLayerMetadata(this, layerConfig, displayDateMode, abortSignal);
+    return EsriUtilities.initLayerMetadata(layerConfig, displayDateMode, abortSignal);
   }
 
   /**
@@ -166,7 +165,7 @@ export class EsriImage extends AbstractGeoViewRaster {
    */
   static createGeoviewLayerConfigSimple(
     geoviewLayerId: string,
-    geoviewLayerName: string,
+    geoviewLayerName: string | undefined,
     metadataAccessPath: string,
     isTimeAware: boolean | undefined
   ): TypeEsriImageLayerConfig {
@@ -210,7 +209,7 @@ export class EsriImage extends AbstractGeoViewRaster {
    */
   static createGeoviewLayerConfig(
     geoviewLayerId: string,
-    geoviewLayerName: string,
+    geoviewLayerName: string | undefined,
     metadataAccessPath: string,
     isTimeAware: boolean | undefined,
     layerEntries: TypeLayerEntryShell[]

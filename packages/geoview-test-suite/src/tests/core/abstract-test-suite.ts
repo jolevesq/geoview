@@ -1,5 +1,6 @@
 import type { EventDelegateBase } from 'geoview-core/api/events/event-helper';
 import EventHelper from 'geoview-core/api/events/event-helper';
+import { isLocalhost } from 'geoview-core/core/utils/utilities';
 import type { AbstractTester, FailureEvent, SuccessEvent, TestEvent, TestUpdatedEvent } from './abstract-tester';
 import { TestSuiteCannotExecuteError, TestSuiteRunningError } from './exceptions';
 
@@ -22,6 +23,11 @@ export abstract class AbstractTestSuite {
   /** Callback delegates for the test failure event */
   #onTestersTestFailureHandlers: TesterFailureDelegate[] = [];
 
+  /** Indicates if the test suite should only run the DEBUG tests */
+  DEBUG_RUN_ONLY_DEBUG_FUNCTION = false;
+
+  // #region OVERRIDES
+
   /**
    * Mustoverride function to provide a name for the Test Suite.
    */
@@ -31,6 +37,57 @@ export abstract class AbstractTestSuite {
    * Mustoverride function to provide a description, in Html format, for the Test Suite.
    */
   abstract getDescriptionAsHtml(): string;
+
+  /**
+   * Overridable function called when the test suite is about to launch, to validate if it can be executed on the given map.
+   *
+   * @returns A promise that resolves to true if the test suite can execute on the given map
+   */
+  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
+  protected onCanExecuteTestSuite(): Promise<boolean> {
+    return Promise.resolve(true);
+  }
+
+  /**
+   * Performs setup tasks before the test suite launches.
+   *
+   * Override this method in a subclass to run initialization logic (e.g., forcing a map render)
+   * that must complete before any tests execute.
+   *
+   * @returns A promise that resolves when preparation is complete
+   */
+  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
+  protected onPrepareLaunchTestSuite(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  /**
+   * Provides a debug hook for running a subset of tests during development.
+   *
+   * Override this method in a concrete suite to temporarily run only specific tests
+   * without modifying the main `onLaunchTestSuite` method. When the override returns
+   * a non-resolving promise, the framework skips the main test suite.
+   *
+   * GV DEBUG SECTION TO NOT HAVE TO TEST EVERYTHING EVERYTIME
+   *
+   * @returns A promise that resolves immediately by default (no debug tests to run)
+   */
+  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
+  protected onLaunchTestSuiteDEBUG(): Promise<unknown> {
+    // Nothing here
+    return Promise.resolve();
+  }
+
+  /**
+   * Overridable function called when the test suite has launched its tests.
+   *
+   * @returns A promise that resolves when the tests are over
+   */
+  protected abstract onLaunchTestSuite(): Promise<unknown>;
+
+  // #endregion OVERRIDES
+
+  // #region PUBLIC METHODS
 
   /**
    * Gets the total number of tests in the Suite.
@@ -119,7 +176,12 @@ export abstract class AbstractTestSuite {
   /**
    * Launches the test suite.
    *
+   * When `DEBUG_RUN_ONLY_DEBUG_FUNCTION` is `true` and the environment is localhost,
+   * only the debug subset (`onLaunchTestSuiteDEBUG`) is executed instead of the full suite.
+   *
    * @returns A promise that resolves when the tests are over
+   * @throws {TestSuiteRunningError} When the test suite is already running
+   * @throws {TestSuiteCannotExecuteError} When `onCanExecuteTestSuite()` resolves to false
    */
   async launchTestSuite(): Promise<unknown> {
     // Validates the Test Suite isn't already running tests
@@ -128,7 +190,16 @@ export abstract class AbstractTestSuite {
     // Validates the Test Suite can execute
     if (!(await this.onCanExecuteTestSuite())) throw new TestSuiteCannotExecuteError();
 
-    // Launching test suite
+    // Prepare to launch the test suite
+    await this.onPrepareLaunchTestSuite();
+
+    // If only running the debug tests
+    if (this.DEBUG_RUN_ONLY_DEBUG_FUNCTION && isLocalhost()) {
+      // Launching the debug test suite first to see if we proceed with the full tests or not
+      return this.onLaunchTestSuiteDEBUG();
+    }
+
+    // Launching full test suite
     return this.onLaunchTestSuite();
   }
 
@@ -143,24 +214,9 @@ export abstract class AbstractTestSuite {
     this.#testers.forEach((tester) => tester.resetTests());
   }
 
-  /**
-   * Overridable function called when the test suite has launched its tests.
-   *
-   * @returns A promise that resolves when the tests are over
-   */
-  protected abstract onLaunchTestSuite(): Promise<unknown>;
+  // #endregion PUBLIC METHODS
 
-  /**
-   * Overridable function called when the test suite is about to launch, to validate if it can be executed on the given map.
-   *
-   * @returns A promise that resolves to true if the test suite can execute on the given map
-   */
-  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
-  protected onCanExecuteTestSuite(): Promise<boolean> {
-    return Promise.resolve(true);
-  }
-
-  // #region PRIVATE
+  // #region PRIVATE METHODS
 
   /**
    * Handles the event indicating that a tester has started running a test,
@@ -213,7 +269,7 @@ export abstract class AbstractTestSuite {
     this.#emitFailure({ ...event, tester: sender });
   }
 
-  // #endregion PRIVATE
+  // #endregion PRIVATE METHODS
 
   // #region EVENTS
 

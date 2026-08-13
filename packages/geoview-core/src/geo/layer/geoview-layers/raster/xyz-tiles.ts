@@ -19,9 +19,10 @@ import {
   LayerEntryConfigLayerIdNotFoundError,
 } from '@/core/exceptions/layer-entry-config-exceptions';
 import { GVXYZTiles } from '@/geo/layer/gv-layers/tile/gv-xyz-tiles';
-import { AbstractGeoViewLayer } from '@/geo/layer/geoview-layers/abstract-geoview-layers';
+import { AbstractGeoViewLayer, type PreprocessLayerConfigResult } from '@/geo/layer/geoview-layers/abstract-geoview-layers';
 import type { TypeProjection } from '@/geo/utils/projection';
 import { validateAndPingUrl } from '@/core/utils/utilities';
+import { EMPTY_FETCH_RESULT, type FetchWithProxyResult } from '@/geo/utils/utilities';
 
 // ? Do we keep this TODO ? Dynamic parameters can be placed on the dataAccessPath and initial settings can be used on xyz-tiles.
 // TODO: Implement method to validate XYZ tile service
@@ -77,13 +78,14 @@ export class XYZTiles extends AbstractGeoViewRaster {
   /**
    * Overrides the way the metadata is fetched.
    *
-   * Resolves with the Json object or undefined when no metadata is to be expected for a particular layer type.
-   *
-   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process.
-   * @returns A promise with the metadata or undefined when no metadata for the particular layer type.
-   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error.
+   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
+   * @returns A promise that resolves with the fetched metadata and proxy information
+   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    */
-  protected override onFetchServiceMetadata<T>(abortSignal?: AbortSignal): Promise<T> {
+  protected override onFetchServiceMetadata(abortSignal?: AbortSignal): Promise<FetchWithProxyResult<unknown>> {
+    // If the config has a metadata access path (not all of them have it, e.g., XYZ Tiles added via configuration without a metadataAccessPath, or XYZ Tiles added via add-new-layer component like 'https://tile.openstreetmap.org/{z}/{x}/{y}.png')
+    if (!this.hasMetadataAccessPath()) return Promise.resolve(EMPTY_FETCH_RESULT);
+
     // Redirect using default way of fetching service metadata which is to use the url with f=json parameter
     return this.helperFetchServiceMetadataWithFJson(abortSignal);
   }
@@ -146,6 +148,33 @@ export class XYZTiles extends AbstractGeoViewRaster {
   }
 
   /**
+   * Preprocesses the layer config by pinging the data access path to verify the tile service is reachable.
+   *
+   * @param layerConfig - The XYZ tiles layer entry configuration to preprocess
+   * @returns A promise that resolves with the ping result indicating proxy usage
+   * @throws {LayerServiceMetadataUnableToFetchError} When the tile service is not reachable
+   */
+  protected override async onPreprocessLayerConfig(layerConfig: XYZTilesLayerEntryConfig): Promise<PreprocessLayerConfigResult> {
+    // Get the configProxyUrl
+    const configProxyUrl = this.getConfigProxyUrl();
+
+    // Test to reach one tile to see if the service is reachable
+    const pingResult = await validateAndPingUrl(layerConfig.getDataAccessPath(), configProxyUrl);
+
+    // If not reachable, throw an error immediately
+    if (!pingResult.isReachable) {
+      throw new LayerServiceMetadataUnableToFetchError(
+        layerConfig.getGeoviewLayerId(),
+        layerConfig.getLayerNameCascade(),
+        new Error(pingResult.error)
+      );
+    }
+
+    // Return the test
+    return { pingResult };
+  }
+
+  /**
    * Overrides the way the layer metadata is processed.
    *
    * @param layerConfig - The layer entry configuration to process
@@ -168,26 +197,6 @@ export class XYZTiles extends AbstractGeoViewRaster {
     // GV Possibly caused by a difference between OGC and ESRI XYZ Tiles, but only have ESRI XYZ Tiles as example currently
     // GV Also, might be worth checking out OGCMapTile for this? https://openlayers.org/en/latest/examples/ogc-map-tiles-geographic.html
     // GV Seems like it can deal with less specificity in the url and can handle the x y z internally?
-
-    // Get the configProxyUrl
-    const configProxyUrl = this.getConfigProxyUrl();
-
-    // Test to reach one tile to see if the service is reachable
-    const test = await validateAndPingUrl(layerConfig.getDataAccessPath(), configProxyUrl);
-
-    // If not reachable, throw an error immediately
-    if (!test.isReachable)
-      throw new LayerServiceMetadataUnableToFetchError(
-        layerConfig.getGeoviewLayerId(),
-        layerConfig.getLayerNameCascade(),
-        new Error(test.error)
-      );
-
-    // If a proxy was necessary when the metadata were fetched
-    if (test.needsProxy) {
-      // Indicate the proxy that was used
-      layerConfig.setProxyUrl(configProxyUrl);
-    }
 
     // Get the metadata
     const metadata = this.getMetadata();
@@ -230,14 +239,13 @@ export class XYZTiles extends AbstractGeoViewRaster {
    * @param geoviewLayerName - The display name of the GeoView layer
    * @param metadataAccessPath - The URL or path to access metadata
    * @param isTimeAware - Indicates whether the layer supports time-based filtering
-   * @param layerEntries - An array of layer entries objects to be included
-   * in the configuration.
+   * @param layerEntries - An array of layer entry configurations to be included in the GeoView layer configuration
    * @returns The constructed configuration object for the XYZTiles layer
    */
   static createGeoviewLayerConfig(
     geoviewLayerId: string,
-    geoviewLayerName: string,
-    metadataAccessPath: string,
+    geoviewLayerName: string | undefined,
+    metadataAccessPath: string | undefined,
     isTimeAware: boolean | undefined,
     layerEntries: TypeLayerEntryShell[]
   ): TypeXYZTilesConfig {
@@ -253,6 +261,7 @@ export class XYZTiles extends AbstractGeoViewRaster {
       const layerEntryConfig = new XYZTilesLayerEntryConfig({
         geoviewLayerConfig,
         layerId: `${layerEntry.id}`,
+        source: layerEntry.source,
         ...(layerEntry.layerName && { layerName: `${layerEntry.layerName}` }),
       });
       return layerEntryConfig;
@@ -353,27 +362,19 @@ export class XYZTiles extends AbstractGeoViewRaster {
    * @param geoviewLayerId - The unique identifier for the GeoView layer
    * @param geoviewLayerName - The display name for the GeoView layer
    * @param url - The URL of the service endpoint
-   * @param layerIds - An array of layer IDs to include in the configuration
+   * @param layerEntries - An array of layer entry shells to include in the configuration
    * @param isTimeAware - Indicates if the layer is time aware
    * @returns A promise that resolves to an array of layer configurations
    */
   static processGeoviewLayerConfig(
     geoviewLayerId: string,
-    geoviewLayerName: string,
+    geoviewLayerName: string | undefined,
     url: string,
-    layerIds: string[],
+    layerEntries: TypeLayerEntryShell[],
     isTimeAware: boolean
   ): Promise<ConfigBaseClass[]> {
     // Create the Layer config
-    const layerConfig = XYZTiles.createGeoviewLayerConfig(
-      geoviewLayerId,
-      geoviewLayerName,
-      url,
-      isTimeAware,
-      layerIds.map((layerId) => {
-        return { id: layerId };
-      })
-    );
+    const layerConfig = XYZTiles.createGeoviewLayerConfig(geoviewLayerId, geoviewLayerName, url, isTimeAware, layerEntries);
 
     // Create the class from geoview-layers package
     const myLayer = new XYZTiles(layerConfig);

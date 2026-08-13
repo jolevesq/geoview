@@ -15,6 +15,7 @@ import { GVEsriDynamic } from '@/geo/layer/gv-layers/raster/gv-esri-dynamic';
 import { GroupLayerEntryConfig } from '@/api/config/validation-classes/group-layer-entry-config';
 import type { DisplayDateMode } from '@/api/types/map-schema-types';
 import { Projection } from '@/geo/utils/projection';
+import type { FetchWithProxyResult } from '@/geo/utils/utilities';
 
 export interface TypeEsriDynamicLayerConfig extends TypeGeoviewLayerConfig {
   // TODO: Refactor - Layers - Get rid of the `geoviewLayerType: typeof CONST_LAYER_TYPES.ESRI_DYNAMIC` property in this interface and all others in other layers.
@@ -67,13 +68,11 @@ export class EsriDynamic extends AbstractGeoViewRaster {
   /**
    * Overrides the way the metadata is fetched.
    *
-   * Resolves with the Json object or undefined when no metadata is to be expected for a particular layer type.
-   *
-   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process.
-   * @returns A promise with the metadata or undefined when no metadata for the particular layer type.
-   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error.
+   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
+   * @returns A promise that resolves with the fetched metadata and proxy information
+   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    */
-  protected override onFetchServiceMetadata<T>(abortSignal?: AbortSignal): Promise<T> {
+  protected override onFetchServiceMetadata(abortSignal?: AbortSignal): Promise<FetchWithProxyResult<unknown>> {
     // Redirect using default way of fetching service metadata which is to use the url with f=json parameter
     return this.helperFetchServiceMetadataWithFJson(abortSignal);
   }
@@ -84,11 +83,11 @@ export class EsriDynamic extends AbstractGeoViewRaster {
    * @returns A promise resolved once the layer entries have been initialized
    */
   protected override async onInitLayerEntries(): Promise<TypeGeoviewLayerConfig> {
-    // Fetch the metadata
-    const metadata = await this.onFetchServiceMetadata<TypeMetadataEsriDynamic>();
+    // Calls fetchServiceMetadata which delegates to this class's overridden onFetchServiceMetadata (may use a proxy fallback and store the proxyUrl on the instance)
+    const fetchResult = await this.fetchServiceMetadata<TypeMetadataEsriDynamic>();
 
     // Now that we have metadata
-    const { layers } = metadata;
+    const { layers } = fetchResult.data;
 
     // Get all entries
     const entries = layers.map((layer) => {
@@ -145,7 +144,7 @@ export class EsriDynamic extends AbstractGeoViewRaster {
     mapProjection?: OLProjection,
     abortSignal?: AbortSignal
   ): Promise<EsriDynamicLayerEntryConfig> {
-    return EsriUtilities.initLayerMetadata(this, layerConfig, displayDateMode, abortSignal);
+    return EsriUtilities.initLayerMetadata(layerConfig, displayDateMode, abortSignal);
   }
 
   /**
@@ -208,11 +207,17 @@ export class EsriDynamic extends AbstractGeoViewRaster {
    */
   static createGeoviewLayerConfig(
     geoviewLayerId: string,
-    geoviewLayerName: string,
+    geoviewLayerName: string | undefined,
     metadataAccessPath: string,
     isTimeAware: boolean | undefined,
     layerEntries: TypeLayerEntryShell[]
   ): TypeEsriDynamicLayerConfig {
+    // For ESRI Dynamic, the numeric id is also the service layer index
+    const enrichedEntries = layerEntries.map((entry) => ({
+      ...entry,
+      index: entry.index ?? (typeof entry.id === 'number' ? entry.id : undefined),
+    }));
+
     const geoviewLayerConfig: TypeEsriDynamicLayerConfig = {
       geoviewLayerId,
       geoviewLayerName,
@@ -223,7 +228,7 @@ export class EsriDynamic extends AbstractGeoViewRaster {
     };
 
     // Convert the tree of entries to GeoviewLayerConfigs
-    geoviewLayerConfig.listOfLayerEntryConfig = EsriDynamic.#convertTreeToLayerConfigs(geoviewLayerConfig, layerEntries);
+    geoviewLayerConfig.listOfLayerEntryConfig = EsriDynamic.#convertTreeToLayerConfigs(geoviewLayerConfig, enrichedEntries);
 
     // Return it
     return geoviewLayerConfig;
@@ -241,7 +246,7 @@ export class EsriDynamic extends AbstractGeoViewRaster {
    * @param geoviewLayerId - The unique identifier for the GeoView layer
    * @param geoviewLayerName - The display name for the GeoView layer
    * @param url - The URL of the service endpoint
-   * @param layerIds - An array of layer IDs to include in the configuration
+   * @param layerEntries - An array of layer entry shells to include in the configuration
    * @param isTimeAware - Indicates if the layer is time aware
    * @returns A promise that resolves to an array of layer configurations
    */
@@ -249,19 +254,11 @@ export class EsriDynamic extends AbstractGeoViewRaster {
     geoviewLayerId: string,
     geoviewLayerName: string,
     url: string,
-    layerIds: number[],
+    layerEntries: TypeLayerEntryShell[],
     isTimeAware: boolean
   ): Promise<ConfigBaseClass[]> {
     // Create the Layer config
-    const layerConfig = EsriDynamic.createGeoviewLayerConfig(
-      geoviewLayerId,
-      geoviewLayerName,
-      url,
-      isTimeAware,
-      layerIds.map((layerId) => {
-        return { id: layerId, index: layerId };
-      })
-    );
+    const layerConfig = EsriDynamic.createGeoviewLayerConfig(geoviewLayerId, geoviewLayerName, url, isTimeAware, layerEntries);
 
     // Create the class from geoview-layers package
     const myLayer = new EsriDynamic(layerConfig);

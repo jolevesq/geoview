@@ -620,26 +620,7 @@ export class MapController extends AbstractMapViewerController {
     }
 
     // Emit about it
-    this.#emitHighlightedFeature({ feature });
-  }
-
-  /**
-   * Highlights a bounding box on the map.
-   *
-   * @param extent - The extent to highlight
-   * @param isLayerHighlight - Optional flag indicating if this is a layer-level highlight
-   */
-  highlightBBox(extent: Extent, isLayerHighlight?: boolean): void {
-    // Perform a highlight bbox
-    this.getMapViewer().featureHighlight.highlightGeolocatorBBox(extent, isLayerHighlight);
-  }
-
-  /**
-   * Removes the highlighted bounding box from the map.
-   */
-  removeBBoxHighlight(): void {
-    // Remove the highlight bbox
-    this.getMapViewer().featureHighlight.removeBBoxHighlight();
+    this.#emitFeatureHighlighted({ feature, operation: 'added' });
   }
 
   /**
@@ -666,6 +647,28 @@ export class MapController extends AbstractMapViewerController {
       // Save in store
       setStoreMapHighlightedFeatures(this.getMapId(), highlightedFeatures);
     }
+
+    // Emit about it
+    this.#emitFeatureHighlighted({ feature, operation: 'removed' });
+  }
+
+  /**
+   * Highlights a bounding box on the map.
+   *
+   * @param extent - The extent to highlight
+   * @param isLayerHighlight - Optional flag indicating if this is a layer-level highlight
+   */
+  highlightBBox(extent: Extent, isLayerHighlight?: boolean): void {
+    // Perform a highlight bbox
+    this.getMapViewer().featureHighlight.highlightGeolocatorBBox(extent, isLayerHighlight);
+  }
+
+  /**
+   * Removes the highlighted bounding box from the map.
+   */
+  removeBBoxHighlight(): void {
+    // Remove the highlight bbox
+    this.getMapViewer().featureHighlight.removeBBoxHighlight();
   }
 
   /**
@@ -727,16 +730,23 @@ export class MapController extends AbstractMapViewerController {
   }
 
   /**
-   * Returns a promise that resolves the next time a feature highlighted event fires.
+   * Waits for the next feature highlighted 'added' event.
    *
-   * When a filter is provided, the handler keeps listening until the filter returns true.
-   *
-   * @param filter - Optional filter predicate. When provided, only events passing the filter resolve the promise
-   * @returns A promise that resolves with the feature highlighted event payload
+   * @returns A promise that resolves with the event when a feature is highlighted
    */
-  waitForFeatureHighlighted(filter?: (event: FeatureHighlightedEvent) => boolean): Promise<FeatureHighlightedEvent> {
+  waitForFeatureHighlightedAdded(): Promise<FeatureHighlightedEvent> {
     // Wait for the next feature highlighted event
-    return EventHelper.onceEventPromise(this.#onFeatureHighlightedHandlers, filter);
+    return this.onceFeatureHighlighted((ev) => ev.operation === 'added');
+  }
+
+  /**
+   * Waits for the next feature highlighted 'removed' event.
+   *
+   * @returns A promise that resolves with the event when a feature highlight is removed
+   */
+  waitForFeatureHighlightedRemoved(): Promise<FeatureHighlightedEvent> {
+    // Wait for the next feature highlighted event
+    return this.onceFeatureHighlighted((ev) => ev.operation === 'removed');
   }
 
   // #endregion PUBLIC METHODS - HIGHLIGHT FEATURES
@@ -793,12 +803,21 @@ export class MapController extends AbstractMapViewerController {
   // #region PUBLIC METHODS - OTHERS
 
   /**
+   * Updates the OL View padding to account for the map-info bar height.
+   */
+  updateViewPadding(): void {
+    // Redirect to the MapViewer
+    this.getMapViewer().updateViewPadding();
+  }
+
+  /**
    * Converts a map coordinate to a pixel position.
    *
    * @param coord - The map coordinate
    * @returns The pixel position on the map viewport, or undefined if the map is not yet initialized
    */
   getPixelFromCoordinate(coord: Coordinate): Pixel | undefined {
+    // Redirect to the MapViewer
     return this.getMapViewer().map?.getPixelFromCoordinate(coord) ?? undefined;
   }
 
@@ -811,6 +830,7 @@ export class MapController extends AbstractMapViewerController {
    * @returns The map center position info
    */
   getMapCenterPosition(): TypeMapMouseInfo {
+    // Redirect to the MapViewer
     const mapViewer = this.getMapViewer();
     const view = mapViewer.getView();
     const projected = view.getCenter()!;
@@ -849,6 +869,7 @@ export class MapController extends AbstractMapViewerController {
    * @param clickMarkerRef - The HTMLDivElement reference for the click marker overlay
    */
   setClickMarkerOverlayRef(clickMarkerRef: HTMLDivElement): void {
+    // Redirect to the MapViewer
     this.getMapViewer().getClickMarkerOverlay().setElement(clickMarkerRef);
   }
 
@@ -858,6 +879,7 @@ export class MapController extends AbstractMapViewerController {
    * @param northPoleMarkerRef - The HTMLDivElement reference for the north pole marker overlay
    */
   setNorthPoleMarkerOverlayRef(northPoleMarkerRef: HTMLDivElement): void {
+    // Redirect to the MapViewer
     this.getMapViewer().getNorthPoleMarkerOverlay().setElement(northPoleMarkerRef);
   }
 
@@ -2149,7 +2171,7 @@ export class MapController extends AbstractMapViewerController {
    *
    * @param event - The feature highlighted event payload
    */
-  #emitHighlightedFeature(event: FeatureHighlightedEvent): void {
+  #emitFeatureHighlighted(event: FeatureHighlightedEvent): void {
     // Emit the feature highlighted event for all handlers
     EventHelper.emitEvent(this, this.#onFeatureHighlightedHandlers, event);
   }
@@ -2163,12 +2185,9 @@ export class MapController extends AbstractMapViewerController {
    * @param filter - Optional filter predicate. When provided, only events passing the filter trigger the callback
    * @returns The wrapper callback reference (can be used with offFeatureHighlighted to cancel before it fires)
    */
-  onceFeatureHighlighted(
-    callback: FeatureHighlightedDelegate,
-    filter?: (event: FeatureHighlightedEvent) => boolean
-  ): FeatureHighlightedDelegate {
+  onceFeatureHighlighted(filter?: (event: FeatureHighlightedEvent) => boolean): Promise<FeatureHighlightedEvent> {
     // Register a one-shot feature highlighted event handler
-    return EventHelper.onceEvent(this.#onFeatureHighlightedHandlers, callback, filter);
+    return EventHelper.onceEventPromise(this.#onFeatureHighlightedHandlers, filter);
   }
 
   /**
@@ -2217,7 +2236,9 @@ export type GeolocatorSearchDelegate = EventDelegateBase<MapController, Geolocat
  */
 export interface FeatureHighlightedEvent {
   /** The feature being highlighted. */
-  feature: TypeFeatureInfoEntry;
+  feature: TypeFeatureInfoEntry | 'all';
+  /** The operation that was performed on the feature highlight. */
+  operation: 'added' | 'removed';
 }
 
 /**

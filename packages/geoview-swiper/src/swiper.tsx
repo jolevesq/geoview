@@ -1,12 +1,6 @@
 import Draggable from 'react-draggable';
 import { useMemo } from 'react';
 
-import { getRenderPixel } from 'ol/render';
-import type RenderEvent from 'ol/render/Event';
-import type BaseLayer from 'ol/layer/Base';
-import type { EventTypes } from 'ol/Observable';
-import type BaseEvent from 'ol/events/Event';
-
 import type { SwipeOrientation } from 'geoview-core/core/stores/states/swiper-state';
 import { useStoreSwiperLayerPaths, useStoreSwiperOrientation } from 'geoview-core/core/stores/states/swiper-state';
 import { logger } from 'geoview-core/core/utils/logger';
@@ -17,8 +11,11 @@ import { useStoreMapSize } from 'geoview-core/core/stores/states/map-state';
 import { useStoreLayerVisibleLayers } from 'geoview-core/core/stores/states/layer-state';
 import type { MapViewer } from 'geoview-core/geo/map/map-viewer';
 import type { ControllerRegistry } from 'geoview-core/core/controllers/base/controller-registry';
-import { TIMEOUT } from 'geoview-core/core/utils/constant';
+import type { AbstractBaseGVLayer } from 'geoview-core/geo/layer/gv-layers/abstract-base-layer';
 import { getSxClasses } from './swiper-style';
+
+/** The number of milliseconds to wait for a layer when trying to attach it to the swiper */
+const TIMEOUT_WAIT_TO_ATTACH_LAYERS = 20000;
 
 /** Properties for the Swiper component. */
 type SwiperProps = {
@@ -78,7 +75,7 @@ export function Swiper(props: SwiperProps): JSX.Element {
   }, [mapHeight]);
 
   // States
-  const [olLayers, setOlLayers] = useState<BaseLayer[]>([]);
+  const [gvLayers, setGvLayers] = useState<AbstractBaseGVLayer[]>([]);
   const [xPositionVertical, setXPositionVertical] = useState(mapSize.current[0] / 2);
   const [yPositionVertical, setYPositionVertical] = useState(0);
   const [xPositionHorizontal, setXPositionHorizontal] = useState(0);
@@ -96,58 +93,38 @@ export function Swiper(props: SwiperProps): JSX.Element {
   // #region Handlers
 
   /**
-   * Pre compose, Pre render event callback.
-   *
-   * @param event - The pre compose, pre render event
+   * Applies CSS clip-path on each tracked OL layer's renderer container to clip the layer
+   * at the swiper position. This approach works regardless of layer opacity because it clips
+   * the final rendered DOM element, not the canvas context.
    */
-  const prerender = useCallback(
-    (event: Event | BaseEvent) => {
-      const evt = event as RenderEvent;
-      const ctx: CanvasRenderingContext2D = evt.context! as CanvasRenderingContext2D;
-      const swiperValue = orientation === 'vertical' ? swiperValueVertical.current : swiperValueHorizontal.current;
-      const width = ((mapSize.current[0] + 6) * swiperValue) / 100;
-      const height = ((mapSize.current[1] + 6) * swiperValue) / 100;
+  const applyClipPath = useCallback((): void => {
+    const swiperValue = orientation === 'vertical' ? swiperValueVertical.current : swiperValueHorizontal.current;
 
-      const tl = getRenderPixel(evt, [0, 0]);
-      const tr = orientation === 'vertical' ? getRenderPixel(evt, [width, 0]) : getRenderPixel(evt, [mapSize.current[0], 0]);
-      const bl = orientation === 'vertical' ? getRenderPixel(evt, [0, mapSize.current[1]]) : getRenderPixel(evt, [0, height]);
-      const br =
-        orientation === 'vertical' ? getRenderPixel(evt, [width, mapSize.current[1]]) : getRenderPixel(evt, [mapSize.current[0], height]);
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(tl[0], tl[1]);
-      ctx.lineTo(bl[0], bl[1]);
-      ctx.lineTo(br[0], br[1]);
-      ctx.lineTo(tr[0], tr[1]);
-      ctx.closePath();
-      ctx.clip();
-    },
-    [orientation]
-  );
+    gvLayers.forEach((layer) => {
+      const container = layer.getRendererContainer();
+      if (container) {
+        if (orientation === 'vertical') {
+          // Clip: show left portion up to swiperValue%
+          container.style.clipPath = `inset(0 ${100 - swiperValue}% 0 0)`;
+        } else {
+          // Clip: show top portion up to swiperValue%
+          container.style.clipPath = `inset(0 0 ${100 - swiperValue}% 0)`;
+        }
+      }
+    });
+  }, [gvLayers, orientation]);
 
   /**
-   * Post compose, Post render event callback.
-   *
-   * @param event - The post compose, post render event
+   * Removes CSS clip-path from all tracked OL layer renderer containers.
    */
-  function postcompose(event: Event | BaseEvent): void {
-    const evt = event as RenderEvent;
-    const ctx = evt.context!;
-    if (ctx instanceof WebGLRenderingContext) {
-      if (evt.type === 'postrender') {
-        ctx.disable(ctx.SCISSOR_TEST);
+  const removeClipPath = useCallback((): void => {
+    gvLayers.forEach((layer) => {
+      const container = layer.getRendererContainer();
+      if (container) {
+        container.style.clipPath = '';
       }
-    } else if (evt.target.getClassName && evt.target.getClassName() !== 'ol-layer' && evt.target.get('declutter')) {
-      // Restore context when decluttering is done (ol>=6)
-      // https://github.com/openlayers/openlayers/issues/10096
-      setTimeout(() => {
-        ctx.restore();
-      }, TIMEOUT.deferExecution);
-    } else {
-      ctx.restore();
-    }
-  }
+    });
+  }, [gvLayers]);
 
   /**
    * Calculates the computed style to return values of x and y position.
@@ -161,7 +138,7 @@ export function Swiper(props: SwiperProps): JSX.Element {
   };
 
   /**
-   * Handles drag events - update refs and render map.
+   * Handles drag events - update refs and apply clip-path.
    */
   const onDrag = debounce(() => {
     if (!layerPaths.length) return;
@@ -178,10 +155,8 @@ export function Swiper(props: SwiperProps): JSX.Element {
       swiperValueHorizontal.current = (y / mapSize.current[1]) * 100;
     }
 
-    // Force refresh
-    olLayers.forEach((layer: BaseLayer) => {
-      layer.changed();
-    });
+    // Apply CSS clip-path
+    applyClipPath();
   }, 100);
 
   /**
@@ -208,11 +183,9 @@ export function Swiper(props: SwiperProps): JSX.Element {
       controllerRegistry.swiperController?.setSwiperPosition(swiperValueHorizontal.current);
     }
 
-    // Force refresh
-    olLayers.forEach((layer: BaseLayer) => {
-      layer.changed();
-    });
-  }, [layerPaths.length, viewer.map, orientation, olLayers, controllerRegistry.swiperController]);
+    // Apply CSS clip-path
+    applyClipPath();
+  }, [layerPaths.length, viewer.map, orientation, controllerRegistry.swiperController, applyClipPath]);
 
   /**
    * Updates swiper and layers from keyboard CTRL + Arrow key.
@@ -254,92 +227,94 @@ export function Swiper(props: SwiperProps): JSX.Element {
     [layerPaths, orientation, onStop]
   );
 
-  /**
-   * Attaches necessary swiper events to the given layer path layer.
-   *
-   * @param layerPath - The layer path of the layer to attach swiping events to
-   */
-  const attachLayerEventsOnPath = useCallback(
-    async (layerPath: string) => {
-      try {
-        // Get the layer at the layer path
-        const olLayer = await controllerRegistry.layerController.getOLLayerAsync(layerPath);
-
-        // Set the OL layers
-        setOlLayers((prevArray) => [...prevArray, olLayer]);
-
-        // Wire events on the layer
-        olLayer.on(['precompose' as EventTypes, 'prerender' as EventTypes], prerender);
-        olLayer.on(['postcompose' as EventTypes, 'postrender' as EventTypes], postcompose);
-
-        // Force refresh
-        olLayer.changed();
-      } catch (error: unknown) {
-        // Log
-        logger.logError(
-          'SWIPER - Failed to attach layer events',
-          controllerRegistry.layerController.getGeoviewLayerIds(),
-          layerPath,
-          error
-        );
-      }
-    },
-    [controllerRegistry, prerender]
-  );
-
   // #endregion
 
   /**
-   * UseEffect for attaching layer events. This will attach the events to the layers at the layer paths.
+   * UseEffect for tracking layers. This will track the OL layers at the layer paths for clip-path application.
    */
   useEffect(() => {
     // Log
     logger.logTraceUseEffect('SWIPER - layerPaths', layerPaths);
+
+    // Flag to prevent state updates after cleanup
+    let cancelled = false;
 
     // Get all associated layerPaths in case provided path is a layer ID or group layer path
     const associatedLayerPaths = layerPaths
       .map((layerPath) => visibleLayers.filter((visibleLayerPath) => visibleLayerPath.includes(layerPath)))
       .flat();
 
-    // For each layer path
-    associatedLayerPaths.forEach((layerPath: string) => {
-      // Wire events on the layer path
-      attachLayerEventsOnPath(layerPath).catch((error: unknown) => {
-        // Log
-        logger.logPromiseFailed('attachLayerEventsOnPath in useEffect in Swiper', error);
+    // Fetch all OL layers in parallel and set state once
+    Promise.all(
+      associatedLayerPaths.map((layerPath) => {
+        return controllerRegistry.layerController
+          .waitForLayerRegistered(layerPath, TIMEOUT_WAIT_TO_ATTACH_LAYERS)
+          .catch((error: unknown) => {
+            logger.logError('SWIPER - Failed to attach layer', layerPath, error);
+            return undefined;
+          });
+      })
+    )
+      .then((layers) => {
+        if (cancelled) return;
+        const validLayers = layers.filter((layer): layer is AbstractBaseGVLayer => !!layer);
+        setGvLayers(validLayers);
+      })
+      .catch((error: unknown) => {
+        logger.logPromiseFailed('SWIPER - waitForLayerRegistered in useEffect', error);
       });
-    });
 
     return () => {
       // Log
       logger.logTraceUseEffectUnmount('SWIPER - layerPaths', layerPaths);
+      cancelled = true;
 
-      // set listener for layers in config array
+      // Remove clip-path from layers and clear tracking
       associatedLayerPaths.forEach((layerPath: string) => {
         try {
-          // Get the layer at the layer path
-          const olLayer = controllerRegistry.layerController.getGeoviewLayerIfExists(layerPath)?.getOLLayer();
-          if (olLayer) {
-            // Unwire the events on the layer
-            olLayer.un(['precompose' as EventTypes, 'prerender' as EventTypes], prerender);
-            olLayer.un(['postcompose' as EventTypes, 'postrender' as EventTypes], postcompose);
-
-            // Force refresh
-            olLayer.changed();
-          } else {
-            // Log
-            logger.logError('SWIPER - Failed to find layer to un-attach layer events', layerPath);
+          const gvLayer = controllerRegistry.layerController.getGeoviewLayerIfExists(layerPath);
+          if (gvLayer) {
+            const container = gvLayer.getRendererContainer();
+            if (container) {
+              container.style.clipPath = '';
+            }
           }
         } catch (error: unknown) {
-          // Log
-          logger.logError('SWIPER - Failed to un-attach layer events', layerPath, error);
+          logger.logError('SWIPER - Failed to remove clip-path from layer', layerPath, error);
         }
       });
 
       // Empty layers array
-      setOlLayers([]);
+      setGvLayers([]);
     };
-  }, [controllerRegistry, layerPaths, attachLayerEventsOnPath, prerender, visibleLayers]);
+  }, [controllerRegistry, layerPaths, visibleLayers]);
+
+  /**
+   * UseEffect for applying and maintaining clip-path. Applies clip-path on initial layer tracking
+   * and re-applies after each map render (OL may recreate renderer containers during renders).
+   */
+  useEffect(() => {
+    // Log
+    logger.logTraceUseEffect('SWIPER - applyClipPath', gvLayers);
+
+    if (!gvLayers.length) return undefined;
+
+    // Apply clip-path immediately for newly tracked layers
+    applyClipPath();
+
+    // Re-apply clip-path after each map render cycle (OL may replace containers)
+    const handlePostRender = (): void => {
+      applyClipPath();
+    };
+    viewer.map.on('postrender', handlePostRender);
+
+    return () => {
+      // Log
+      logger.logTraceUseEffectUnmount('SWIPER - applyClipPath', gvLayers);
+      viewer.map.un('postrender', handlePostRender);
+      removeClipPath();
+    };
+  }, [gvLayers, applyClipPath, removeClipPath, viewer.map]);
 
   /**
    * UseEffect for WCAG keyboard navigation.

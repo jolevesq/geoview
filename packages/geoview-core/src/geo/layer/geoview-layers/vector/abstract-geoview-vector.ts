@@ -9,15 +9,15 @@ import type { ReadOptions } from 'ol/format/Feature';
 import type { TypeOutfields, TypeOutfieldsType } from '@/api/types/map-schema-types';
 import type { TypePostSettings } from '@/api/types/layer-schema-types';
 import type { VectorLayerEntryConfig } from '@/api/config/validation-classes/vector-layer-entry-config';
-import { AbstractGeoViewLayer } from '@/geo/layer/geoview-layers/abstract-geoview-layers';
-import { LayerFilters } from '@/geo/layer/gv-layers/layer-filters';
-import { GVVectorSource } from '@/geo/layer/source/vector-source';
 import { DateMgt } from '@/core/utils/date-mgt';
 import { logger } from '@/core/utils/logger';
 import { Fetch } from '@/core/utils/fetch-helper';
 import { formatError } from '@/core/exceptions/core-exceptions';
+import { AbstractGeoViewLayer } from '@/geo/layer/geoview-layers/abstract-geoview-layers';
+import { LayerFilters } from '@/geo/layer/gv-layers/layer-filters';
+import { GVVectorSource } from '@/geo/layer/source/vector-source';
 import { GeoviewRenderer } from '@/geo/utils/renderer/geoview-renderer';
-import type { SourceFeaturesInfo } from '@/geo/utils/utilities';
+import { EMPTY_FETCH_RESULT, type FetchWithProxyResult, type SourceFeaturesInfo } from '@/geo/utils/utilities';
 
 /**
  * The AbstractGeoViewVector class.
@@ -65,13 +65,12 @@ export abstract class AbstractGeoViewVector extends AbstractGeoViewLayer {
   /**
    * Overrides the way the metadata is fetched.
    *
-   * Resolves with the Json object or undefined when no metadata is to be expected for a particular layer type.
-   *
-   * @returns A promise that resolves with the metadata or undefined when no metadata for the particular layer type
+   * @param _abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process (not implemented)
+   * @returns A promise that resolves with no metadata (vector layers fetch metadata in subclasses)
    */
-  protected override onFetchServiceMetadata<T>(abortSignal?: AbortSignal): Promise<T> {
-    // Redirect
-    return this.fetchServiceMetadataVector(abortSignal);
+  protected override onFetchServiceMetadata(_abortSignal?: AbortSignal): Promise<FetchWithProxyResult<unknown>> {
+    // None
+    return Promise.resolve(EMPTY_FETCH_RESULT);
   }
 
   /**
@@ -172,22 +171,6 @@ export abstract class AbstractGeoViewVector extends AbstractGeoViewLayer {
   }
 
   // #endregion PUBLIC METHODS
-
-  // #region PROTECTED METHODS
-
-  /**
-   * Fetches metadata for the vector layer.
-   *
-   * @returns A promise that resolves to the metadata or undefined if not available
-   */
-  // GV Leave the eslint disable here, we want to access this function from children class instances when necessary
-  // eslint-disable-next-line @typescript-eslint/class-methods-use-this, @typescript-eslint/no-unused-vars
-  protected fetchServiceMetadataVector<T>(abortSignal?: AbortSignal): Promise<T> {
-    // None
-    return Promise.resolve(undefined as T);
-  }
-
-  // #endregion PROTECTED METHODS
 
   // #region STATIC METHODS
 

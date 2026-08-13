@@ -18,7 +18,7 @@ import { GVWKB } from '@/geo/layer/gv-layers/vector/gv-wkb';
 import type { ConfigBaseClass, TypeLayerEntryShell } from '@/api/config/validation-classes/config-base-class';
 import { LayerServiceMetadataUnableToFetchError } from '@/core/exceptions/layer-exceptions';
 import { formatError } from '@/core/exceptions/core-exceptions';
-import { GeoUtilities, type SourceFeaturesInfo } from '@/geo/utils/utilities';
+import { EMPTY_FETCH_RESULT, GeoUtilities, type FetchWithProxyResult, type SourceFeaturesInfo } from '@/geo/utils/utilities';
 import type { DisplayDateMode } from '@/api/types/map-schema-types';
 
 export interface TypeWkbLayerConfig extends Omit<TypeGeoviewLayerConfig, 'listOfLayerEntryConfig'> {
@@ -64,15 +64,36 @@ export class WKB extends AbstractGeoViewVector {
   /**
    * Overrides the way the metadata is fetched.
    *
-   * Resolves with the Json object or undefined when no metadata is to be expected for a particular layer type.
-   *
    * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
-   * @returns A promise that resolves with the metadata or undefined when no metadata for the particular layer type
+   * @returns A promise that resolves with the fetched metadata and proxy information
    * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    */
-  protected override onFetchServiceMetadata<T = TypeMetadataGeoJSON | undefined>(abortSignal?: AbortSignal): Promise<T> {
-    // Redirect
-    return this.fetchServiceMetadataWKB(abortSignal) as Promise<T>;
+  protected override async onFetchServiceMetadata(abortSignal?: AbortSignal): Promise<FetchWithProxyResult<unknown>> {
+    // If metadataAccessPath ends with .meta or .json
+    if (
+      this.getMetadataAccessPathIfExists()?.toLowerCase().endsWith('.meta') ||
+      this.getMetadataAccessPathIfExists()?.toLowerCase().endsWith('.json')
+    ) {
+      try {
+        // Fetch it and return
+        return { data: await WKB.fetchMetadata(this.getMetadataAccessPath(), abortSignal) };
+      } catch (error: unknown) {
+        // Throw
+        throw new LayerServiceMetadataUnableToFetchError(
+          this.getGeoviewLayerId(),
+          this.getLayerEntryNameOrGeoviewLayerName(),
+          formatError(error)
+        );
+      }
+    }
+
+    // The metadataAccessPath didn't seem like it was containing actual metadata, so it was skipped
+    logger.logWarning(
+      `The metadataAccessPath '${this.getMetadataAccessPathIfExists()}' didn't seem like it was containing actual metadata, so it was skipped`
+    );
+
+    // None
+    return EMPTY_FETCH_RESULT;
   }
 
   /**
@@ -86,8 +107,8 @@ export class WKB extends AbstractGeoViewVector {
     const rootUrl = this.getMetadataAccessPath().substring(0, idx);
     const id = this.getMetadataAccessPath().substring(idx + 1);
 
-    // Attempt a fetch of the metadata
-    await this.onFetchServiceMetadata();
+    // Calls fetchServiceMetadata which delegates to this class's overridden onFetchServiceMetadata (may use a proxy fallback and store the proxyUrl on the instance)
+    await this.fetchServiceMetadata();
 
     // Redirect
     return Promise.resolve(
@@ -171,7 +192,7 @@ export class WKB extends AbstractGeoViewVector {
     readOptions.dataProjection ??= layerConfig.getSource().dataProjection;
 
     // If we have a feature package
-    let result: SourceFeaturesInfo = { features: [], dataProjection: '' };
+    let sourceFeaturesInfo: SourceFeaturesInfo = { features: [], dataProjection: '' };
     if (layerConfigWKB.getSource().geoPackageFeatures?.length) {
       const { geoPackageFeatures } = layerConfigWKB.getSource();
       const subResults = await Promise.all(
@@ -183,11 +204,11 @@ export class WKB extends AbstractGeoViewVector {
           });
         })
       );
-      result.features = subResults.map((r) => r.feature);
-      result.dataProjection = subResults[subResults.length - 1].dataProjection;
+      sourceFeaturesInfo.features = subResults.map((r) => r.feature);
+      sourceFeaturesInfo.dataProjection = subResults[subResults.length - 1].dataProjection;
     } else {
       // Fallback to using default read method
-      result = await GeoUtilities.readFeaturesFromWKB(
+      sourceFeaturesInfo = await GeoUtilities.readFeaturesFromWKB(
         layerConfigWKB.getDataAccessPath(),
         readOptions.dataProjection,
         readOptions.featureProjection
@@ -195,7 +216,7 @@ export class WKB extends AbstractGeoViewVector {
     }
 
     // Return them
-    return Promise.resolve(result);
+    return Promise.resolve(sourceFeaturesInfo);
   }
 
   /**
@@ -215,45 +236,6 @@ export class WKB extends AbstractGeoViewVector {
 
   // #endregion OVERRIDES
 
-  // #region PROTECTED METHODS
-
-  /**
-   * Fetches the WKB service metadata.
-   *
-   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
-   * @returns A promise that resolves with the metadata or undefined when no metadata for the particular layer type
-   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
-   */
-  protected async fetchServiceMetadataWKB(abortSignal?: AbortSignal): Promise<TypeMetadataGeoJSON | undefined> {
-    // If metadataAccessPath ends with .meta or .json
-    if (
-      this.getMetadataAccessPathIfExists()?.toLowerCase().endsWith('.meta') ||
-      this.getMetadataAccessPathIfExists()?.toLowerCase().endsWith('.json')
-    ) {
-      try {
-        // Fetch it
-        return await WKB.fetchMetadata(this.getMetadataAccessPath(), abortSignal);
-      } catch (error: unknown) {
-        // Throw
-        throw new LayerServiceMetadataUnableToFetchError(
-          this.getGeoviewLayerId(),
-          this.getLayerEntryNameOrGeoviewLayerName(),
-          formatError(error)
-        );
-      }
-    }
-
-    // The metadataAccessPath didn't seem like it was containing actual metadata, so it was skipped
-    logger.logWarning(
-      `The metadataAccessPath '${this.getMetadataAccessPathIfExists()}' didn't seem like it was containing actual metadata, so it was skipped`
-    );
-
-    // None
-    return Promise.resolve(undefined);
-  }
-
-  // #endregion PROTECTED METHODS
-
   // #region STATIC PUBLIC METHODS
 
   /**
@@ -271,7 +253,7 @@ export class WKB extends AbstractGeoViewVector {
    */
   static createGeoviewLayerConfig(
     geoviewLayerId: string,
-    geoviewLayerName: string,
+    geoviewLayerName: string | undefined,
     metadataAccessPath: string,
     isTimeAware: boolean | undefined,
     layerEntries: TypeLayerEntryShell[]
@@ -379,7 +361,7 @@ export class WKB extends AbstractGeoViewVector {
    * @param geoviewLayerId - The unique identifier for the GeoView layer
    * @param geoviewLayerName - The display name for the GeoView layer
    * @param url - The URL of the service endpoint
-   * @param layerIds - An array of layer IDs to include in the configuration
+   * @param layerEntries - An array of layer entry shells to include in the configuration
    * @param isTimeAware - Indicates if the layer is time aware
    * @returns A promise that resolves to an array of layer configurations
    */
@@ -387,19 +369,11 @@ export class WKB extends AbstractGeoViewVector {
     geoviewLayerId: string,
     geoviewLayerName: string,
     url: string,
-    layerIds: string[],
+    layerEntries: TypeLayerEntryShell[],
     isTimeAware: boolean
   ): Promise<ConfigBaseClass[]> {
     // Create the Layer config
-    const layerConfig = WKB.createGeoviewLayerConfig(
-      geoviewLayerId,
-      geoviewLayerName,
-      url,
-      isTimeAware,
-      layerIds.map((layerId) => {
-        return { id: layerId };
-      })
-    );
+    const layerConfig = WKB.createGeoviewLayerConfig(geoviewLayerId, geoviewLayerName, url, isTimeAware, layerEntries);
 
     // Create the class from geoview-layers package
     const myLayer = new WKB(layerConfig);

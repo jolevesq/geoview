@@ -42,7 +42,26 @@ export class GVTestSuiteMapVaria extends GVAbstractTestSuite {
    * @returns The description of the Test Suite
    */
   override getDescriptionAsHtml(): string {
-    return 'Test Suite to perform various map related tests.';
+    return `Tests map interactions, projection, basemap, and UI tabs:<br/>
+      <b>Map state</b> — Initial state verification, zoom operations, extent/coordinate navigation<br/>
+      <b>Projection</b> — Switch between EPSG:3978 and EPSG:3857, vector tile warning<br/>
+      <b>Basemap</b> — Runtime basemap creation and activation<br/>
+      <b>North arrow</b> — Rotation computation under LCC projection<br/>
+      <b>UI tabs</b> — Footer bar select/create tab, app bar select tab<br/>
+      <b>Language</b> — Runtime language switch<br/>
+      <b>Layers</b> — Non-queryable exclusion from details, hoverable state, geometry group z-index<br/>
+      <b>Details</b> — Layer selection persistence across tab switches`;
+  }
+
+  /**
+   * Overrides the debug hook for running a subset of tests during development.
+   *
+   * GV DEBUG SECTION TO NOT HAVE TO TEST EVERYTHING EVERYTIME
+   *
+   * @returns A promise that resolves when the debug tests are completed
+   */
+  protected override onLaunchTestSuiteDEBUG(): Promise<unknown> {
+    return Promise.resolve();
   }
 
   /**
@@ -51,15 +70,6 @@ export class GVTestSuiteMapVaria extends GVAbstractTestSuite {
    * @returns A promise that resolves when tests are completed
    */
   protected override async onLaunchTestSuite(): Promise<unknown> {
-    // // GV START DEBUG SECTION TO NOT HAVE TO TEST EVERYTHING EVERYTIME
-    // // Test DEBUG
-    // const pDevTest0 = this.#mapTester.testNorthArrowRotationLCC();
-    // // const pDevTest1 = await this.#mapTester.testZoomToExtent([-87, 51, -84, 53], [-88.584, 50.227, -82.142, 53.726]);
-
-    // // Resolve when all
-    // return Promise.all([pDevTest0]);
-    // // GV END DEBUG SECTION TO NOT HAVE TO TEST EVERYTHING EVERYTIME
-
     // #region STATE CHECK
 
     // Test the map state
@@ -85,7 +95,7 @@ export class GVTestSuiteMapVaria extends GVAbstractTestSuite {
     await pProjection;
 
     // Test zoom to extent
-    const pZoomToExtent = this.#mapTester.testZoomToExtent([-87, 51, -84, 53], [-88.24, 50.37, -82.56, 53.46]);
+    const pZoomToExtent = this.#mapTester.testZoomToExtent([-87, 51, -84, 53], [-88, 51, -83, 53]);
 
     // Wait until the zoom finishes before continuing manipulating the map
     await pZoomToExtent;

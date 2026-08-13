@@ -25,7 +25,7 @@ import { AbstractGeoViewRaster } from '@/geo/layer/geoview-layers/raster/abstrac
 import { GVEsriFeature } from '@/geo/layer/gv-layers/vector/gv-esri-feature';
 import { Fetch } from '@/core/utils/fetch-helper';
 import { formatError } from '@/core/exceptions/core-exceptions';
-import { GeoUtilities, type SourceFeaturesInfo } from '@/geo/utils/utilities';
+import { GeoUtilities, type FetchWithProxyResult, type SourceFeaturesInfo } from '@/geo/utils/utilities';
 import type { DisplayDateMode } from '@/api/types/map-schema-types';
 
 export interface TypeEsriFeatureLayerConfig extends TypeGeoviewLayerConfig {
@@ -74,18 +74,15 @@ export class EsriFeature extends AbstractGeoViewVector {
   /**
    * Overrides the way the metadata is fetched.
    *
-   * Resolves with the Json object or undefined when no metadata is to be expected for a particular layer type.
    * Returns TypeMetadataEsriDynamic | TypeMetadataEsriDynamicLayer | TypeMetadataEsriFeature because sometimes
    * the url is MapServer/?f=json, sometimes MapServer/{layerId}?f=json and sometimes FeatureServer/?f=json
    * which all return different payloads.
    *
    * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
-   * @returns A promise that resolves with the metadata or undefined when no metadata for the particular layer type
+   * @returns A promise that resolves with the fetched metadata and proxy information
    * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    */
-  protected override onFetchServiceMetadata<T = TypeMetadataEsriDynamic | TypeMetadataEsriDynamicLayer | TypeMetadataEsriFeature>(
-    abortSignal?: AbortSignal
-  ): Promise<T> {
+  protected override onFetchServiceMetadata(abortSignal?: AbortSignal): Promise<FetchWithProxyResult<unknown>> {
     // Redirect
     return this.helperFetchServiceMetadataWithFJson(abortSignal);
   }
@@ -97,13 +94,14 @@ export class EsriFeature extends AbstractGeoViewVector {
    * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    */
   protected override async onInitLayerEntries(): Promise<TypeGeoviewLayerConfig> {
-    // Fetch metadata, in this init context we fetch either via /MapServer/{layerId} or /FeatureServer url endpoints
-    const metadata = await this.onFetchServiceMetadata();
+    // Calls fetchServiceMetadata which delegates to this class's overridden onFetchServiceMetadata (may use a proxy fallback and store the proxyUrl on the instance)
+    // In this init context we fetch either via /MapServer/{layerId} or /FeatureServer url endpoints
+    const fetchResult = await this.fetchServiceMetadata<TypeMetadataEsriDynamic | TypeMetadataEsriDynamicLayer | TypeMetadataEsriFeature>();
 
     // If metadata was fetched successfully
     const entries = [];
     let finalUrl = this.getMetadataAccessPath();
-    if (metadata) {
+    if (fetchResult.data) {
       // Detect the service type separator (MapServer or FeatureServer)
       const url = this.getMetadataAccessPath().toLowerCase();
       const separators = ['/mapserver', '/featureserver'];
@@ -123,7 +121,7 @@ export class EsriFeature extends AbstractGeoViewVector {
         }
 
         // Metadata is at root level when a layer id is present
-        const metadataLayer = metadata as TypeMetadataEsriDynamicLayer;
+        const metadataLayer = fetchResult.data as TypeMetadataEsriDynamicLayer;
         finalUrl = this.getMetadataAccessPath().substring(0, idx + sep.length);
 
         entries.push({
@@ -176,7 +174,7 @@ export class EsriFeature extends AbstractGeoViewVector {
     mapProjection?: OLProjection,
     abortSignal?: AbortSignal
   ): Promise<EsriFeatureLayerEntryConfig> {
-    return EsriUtilities.initLayerMetadata(this, layerConfig, displayDateMode, abortSignal);
+    return EsriUtilities.initLayerMetadata(layerConfig, displayDateMode, abortSignal);
   }
 
   /**
@@ -228,24 +226,24 @@ export class EsriFeature extends AbstractGeoViewVector {
     let hadInvalidGeometries = false;
     let dataProjection: ProjectionLike;
     try {
-      const results = await Promise.all(
+      const featureResults = await Promise.all(
         responseData.map((json) => {
           return GeoUtilities.readFeaturesFromEsriJSON(json, readOptions.dataProjection, readOptions.featureProjection);
         })
       );
 
-      const allFeatures = results.flatMap((result, index) => {
+      const allFeatures = featureResults.flatMap((featureResult, index) => {
         // capture projection once (first valid result wins)
         if (index === 0) {
           // eslint-disable-next-line prefer-destructuring
-          dataProjection = result.dataProjection;
+          dataProjection = featureResult.dataProjection;
         }
 
-        if (result.hadInvalidGeometries) {
+        if (featureResult.hadInvalidGeometries) {
           hadInvalidGeometries = true;
         }
 
-        return result.features;
+        return featureResult.features;
       });
 
       // If we had to clean geometries, emit a warning message
@@ -317,7 +315,7 @@ export class EsriFeature extends AbstractGeoViewVector {
    */
   static createGeoviewLayerConfig(
     geoviewLayerId: string,
-    geoviewLayerName: string,
+    geoviewLayerName: string | undefined,
     metadataAccessPath: string,
     isTimeAware: boolean | undefined,
     layerEntries: TypeLayerEntryShell[]
@@ -330,7 +328,13 @@ export class EsriFeature extends AbstractGeoViewVector {
       isTimeAware,
       listOfLayerEntryConfig: [],
     };
-    geoviewLayerConfig.listOfLayerEntryConfig = layerEntries.map((layerEntry) => {
+    // For ESRI Feature, the numeric id is also the service layer index
+    const enrichedEntries = layerEntries.map((entry) => ({
+      ...entry,
+      index: entry.index ?? (typeof entry.id === 'number' ? entry.id : undefined),
+    }));
+
+    geoviewLayerConfig.listOfLayerEntryConfig = enrichedEntries.map((layerEntry) => {
       const layerEntryConfig = new EsriFeatureLayerEntryConfig({
         geoviewLayerConfig,
         layerId: `${layerEntry.index || layerEntry.id}`,
@@ -355,7 +359,7 @@ export class EsriFeature extends AbstractGeoViewVector {
    * @param geoviewLayerId - The unique identifier for the GeoView layer
    * @param geoviewLayerName - The display name for the GeoView layer
    * @param url - The URL of the service endpoint
-   * @param layerIds - An array of layer IDs to include in the configuration
+   * @param layerEntries - An array of layer entry shells to include in the configuration
    * @param isTimeAware - Indicates if the layer is time aware
    * @returns A promise that resolves to an array of layer configurations
    */
@@ -363,19 +367,11 @@ export class EsriFeature extends AbstractGeoViewVector {
     geoviewLayerId: string,
     geoviewLayerName: string,
     url: string,
-    layerIds: number[],
+    layerEntries: TypeLayerEntryShell[],
     isTimeAware: boolean
   ): Promise<ConfigBaseClass[]> {
     // Create the Layer config
-    const layerConfig = EsriFeature.createGeoviewLayerConfig(
-      geoviewLayerId,
-      geoviewLayerName,
-      url,
-      isTimeAware,
-      layerIds.map((layerId) => {
-        return { id: layerId, index: layerId };
-      })
-    );
+    const layerConfig = EsriFeature.createGeoviewLayerConfig(geoviewLayerId, geoviewLayerName, url, isTimeAware, layerEntries);
 
     // Create the class from geoview-layers package
     const myLayer = new EsriFeature(layerConfig);

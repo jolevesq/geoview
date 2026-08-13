@@ -1,10 +1,17 @@
 ﻿import type { PingResult } from 'geoview-core/core/utils/utilities';
 import { validateAndPingUrl, validateAndPingUrlOGC } from 'geoview-core/core/utils/utilities';
 import type { TypeLayerStyleConfig, TypePolygonVectorConfig } from 'geoview-core/api/types/map-schema-types';
+import type {
+  TypeMetadataWMSCapabilities,
+  TypeMetadataWFSCapabilities,
+  TypeMetadataWMTSCapabilities,
+} from 'geoview-core/api/types/layer-schema-types';
 import { GeoviewRenderer } from 'geoview-core/geo/utils/renderer/geoview-renderer';
+import { GeoUtilities, type FetchWithProxyResult } from 'geoview-core/geo/utils/utilities';
 
 import { Test } from '../core/test';
 import { GVAbstractTester } from './abstract-gv-tester';
+import { NetworkError } from 'geoview-core/core/exceptions/core-exceptions';
 
 /**
  * Main Core testing class.
@@ -214,6 +221,8 @@ export class CoreTester extends GVAbstractTester {
 
   // #endregion VALIDATE AND PING URL (OGC)
 
+  // #region LEGEND STYLES
+
   /**
    * Tests GeometryCollection legend generation through the renderer.
    *
@@ -291,5 +300,176 @@ export class CoreTester extends GVAbstractTester {
     );
   }
 
-  // #endregion VALIDATE AND PING URL
+  // #endregion LEGEND STYLES
+
+  // #region GEO UTILITIES - SERVICE METADATA
+
+  /**
+   * Tests getWMSServiceMetadata with the Nonna WMS service (requires proxy due to CORS).
+   *
+   * Asserts that the proxy fallback is triggered and the parsed WMS capabilities contain the expected Capability structure.
+   *
+   * @returns A promise that resolves when the test completes
+   */
+  testProxyGetWMSServiceMetadata(): Promise<Test<FetchWithProxyResult<TypeMetadataWMSCapabilities>>> {
+    return this.test(
+      `Test GeoUtilities.getWMSServiceMetadata with Nonna WMS (proxy fallback)...`,
+      (test) => {
+        const url = GVAbstractTester.NONNA_WMS_URL;
+        test.addStep(`Fetching WMS metadata from: ${url}...`);
+        return GeoUtilities.getWMSServiceMetadata(url, this.getMapViewer().mapFeaturesConfig.serviceUrls.proxyUrl);
+      },
+      (test, result) => {
+        test.addStep('Verifying the request indeed required a proxy');
+        Test.assertIsDefined('proxyUsed', result.proxyUsed);
+
+        test.addStep('Verifying Capability property exists...');
+        Test.assertIsDefined('Capability', result.data.Capability);
+      }
+    );
+  }
+
+  /**
+   * Tests getWMSServiceMetadata with an unreachable URL.
+   *
+   * Asserts that a NetworkError is thrown when the service cannot be reached even through the proxy.
+   *
+   * @returns A promise that resolves when the test completes
+   */
+  testProxyGetWMSServiceMetadataBadUrl(): Promise<Test<NetworkError>> {
+    return this.testError(`Test GeoUtilities.getWMSServiceMetadata with bad URL...`, NetworkError, async (test) => {
+      const url = GVAbstractTester.BAD_URL;
+      test.addStep(`Fetching WMS metadata from bad URL: ${url}...`);
+      await GeoUtilities.getWMSServiceMetadata(url, this.getMapViewer().mapFeaturesConfig.serviceUrls.proxyUrl);
+    });
+  }
+
+  /**
+   * Tests getWFSServiceMetadata with the Belgium WFS service (requires proxy due to CORS).
+   *
+   * Asserts that the proxy fallback is triggered and the parsed WFS capabilities contain the expected FeatureTypeList.
+   *
+   * @returns A promise that resolves when the test completes
+   */
+  testProxyGetWFSServiceMetadata(): Promise<Test<FetchWithProxyResult<TypeMetadataWFSCapabilities>>> {
+    return this.test(
+      `Test GeoUtilities.getWFSServiceMetadata with Belgium WFS (proxy fallback)...`,
+      (test) => {
+        const url = GVAbstractTester.BELGIUM_WFS_URL;
+        test.addStep(`Fetching WFS metadata from: ${url}...`);
+        return GeoUtilities.getWFSServiceMetadata(url, this.getMapViewer().mapFeaturesConfig.serviceUrls.proxyUrl);
+      },
+      (test, result) => {
+        test.addStep('Verifying the request indeed required a proxy');
+        Test.assertIsDefined('proxyUsed', result.proxyUsed);
+
+        test.addStep('Verifying FeatureTypeList property exists...');
+        Test.assertIsDefined('FeatureTypeList', result.data.FeatureTypeList);
+      }
+    );
+  }
+
+  /**
+   * Tests getWFSServiceMetadata with an unreachable URL.
+   *
+   * Asserts that a NetworkError is thrown when the service cannot be reached even through the proxy.
+   *
+   * @returns A promise that resolves when the test completes
+   */
+  testProxyGetWFSServiceMetadataBadUrl(): Promise<Test<NetworkError>> {
+    return this.testError(`Test GeoUtilities.getWFSServiceMetadata with bad URL...`, NetworkError, async (test) => {
+      const url = GVAbstractTester.BAD_URL;
+      test.addStep(`Fetching WFS metadata from bad URL: ${url}...`);
+      await GeoUtilities.getWFSServiceMetadata(url, this.getMapViewer().mapFeaturesConfig.serviceUrls.proxyUrl);
+    });
+  }
+
+  /**
+   * Tests getWMTSServiceMetadata with the Taiwan WMTS service (requires proxy due to CORS).
+   *
+   * Asserts that the proxy fallback is triggered and the parsed WMTS capabilities contain the expected Contents structure.
+   *
+   * @returns A promise that resolves when the test completes
+   */
+  testProxyGetWMTSServiceMetadata(): Promise<Test<FetchWithProxyResult<TypeMetadataWMTSCapabilities>>> {
+    return this.test(
+      `Test GeoUtilities.getWMTSServiceMetadata with Taiwan WMTS service (proxy fallback)...`,
+      (test) => {
+        const url = GVAbstractTester.TAIWAN_WMTS_URL;
+        test.addStep(`Fetching WMTS metadata from: ${url}...`);
+        return GeoUtilities.getWMTSServiceMetadata(url, this.getMapViewer().mapFeaturesConfig.serviceUrls.proxyUrl);
+      },
+      (test, result) => {
+        test.addStep('Verifying the request indeed required a proxy');
+        Test.assertIsDefined('proxyUsed', result.proxyUsed);
+
+        test.addStep('Verifying Contents property exists...');
+        Test.assertIsDefined('Contents', result.data.Contents);
+      }
+    );
+  }
+
+  /**
+   * Tests getWMTSServiceMetadata with an unreachable URL.
+   *
+   * Asserts that a NetworkError is thrown when the service cannot be reached even through the proxy.
+   *
+   * @returns A promise that resolves when the test completes
+   */
+  testProxyGetWMTSServiceMetadataBadUrl(): Promise<Test<NetworkError>> {
+    return this.testError(`Test GeoUtilities.getWMTSServiceMetadata with bad URL...`, NetworkError, async (test) => {
+      const url = GVAbstractTester.BAD_URL;
+      test.addStep(`Fetching WMTS metadata from bad URL: ${url}...`);
+      await GeoUtilities.getWMTSServiceMetadata(url, this.getMapViewer().mapFeaturesConfig.serviceUrls.proxyUrl);
+    });
+  }
+
+  // #endregion GEO UTILITIES - SERVICE METADATA
+
+  // #region GEO UTILITIES - FETCH WITH PROXY FALLBACK
+
+  /**
+   * Tests fetchJsonWithProxyFallback with a JSON endpoint that requires proxy due to CORS.
+   *
+   * Asserts that the proxy fallback is triggered and a valid JSON response is returned.
+   *
+   * @returns A promise that resolves when the test completes
+   */
+  testFetchJsonWithProxyFallback(): Promise<Test<FetchWithProxyResult<unknown>>> {
+    return this.test(
+      `Test GeoUtilities.fetchJsonWithProxyFallback with JSON endpoint...`,
+      (test) => {
+        const url = GVAbstractTester.PUBLIC_JSON_URL_CORS;
+        test.addStep(`Fetching JSON metadata from: ${url}...`);
+        return GeoUtilities.fetchJsonWithProxyFallback(url, this.getMapViewer().mapFeaturesConfig.serviceUrls.proxyUrl);
+      },
+      (test, result) => {
+        test.addStep('Verifying the request indeed required a proxy');
+        Test.assertIsDefined('proxyUsed', result.proxyUsed);
+
+        test.addStep('Verifying response metadata...');
+        Test.assertIsDefined('data', result.data);
+      }
+    );
+  }
+
+  /**
+   * Tests fetchJsonWithProxyFallback with an unreachable URL.
+   *
+   * Asserts that a NetworkError is thrown when the endpoint cannot be reached even through the proxy.
+   *
+   * @returns A promise that resolves when the test completes
+   */
+  testFetchJsonWithProxyFallbackBadUrl(): Promise<Test<NetworkError>> {
+    return this.testError(`Test GeoUtilities.fetchJsonWithProxyFallback with bad URL...`, NetworkError, async (test) => {
+      const url = GVAbstractTester.BAD_URL;
+      test.addStep(`Fetching JSON metadata from bad URL: ${url}...`);
+      await GeoUtilities.fetchJsonWithProxyFallback<Record<string, unknown>>(
+        url,
+        this.getMapViewer().mapFeaturesConfig.serviceUrls.proxyUrl
+      );
+    });
+  }
+
+  // #endregion GEO UTILITIES - FETCH WITH PROXY FALLBACK
 }

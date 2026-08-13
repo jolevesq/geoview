@@ -14,7 +14,7 @@ import type {
 import type { DisplayDateMode, TypeLayerStyleSettings, TypeStyleGeometry } from '@/api/types/map-schema-types';
 import { CONST_LAYER_TYPES, CONST_LAYER_ENTRY_TYPES } from '@/api/types/layer-schema-types';
 import { DateMgt } from '@/core/utils/date-mgt';
-import type { CallbackNewMetadataDelegate } from '@/geo/utils/utilities';
+import type { FetchWithProxyResult } from '@/geo/utils/utilities';
 import { GeoUtilities } from '@/geo/utils/utilities';
 import type { OgcWmsLayerEntryConfigProps } from '@/api/config/validation-classes/raster-validation-classes/ogc-wms-layer-entry-config';
 import { OgcWmsLayerEntryConfig } from '@/api/config/validation-classes/raster-validation-classes/ogc-wms-layer-entry-config';
@@ -96,14 +96,33 @@ export class WMS extends AbstractGeoViewRaster {
    *   - If layer configs are present (e.g., Geomet use case), individual layer metadata is merged.
    *
    * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
-   * @returns A promise that resolves to the parsed metadata object,
-   * or `undefined` if metadata could not be retrieved or no capabilities were found.
+   * @returns A promise that resolves with the fetched metadata and proxy information,
+   * or data of `undefined` if metadata could not be retrieved or no capabilities were found.
    * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    * @throws {LayerNoCapabilitiesError} When the metadata is empty (no Capabilities)
    */
-  protected override onFetchServiceMetadata<T = TypeMetadataWMSCapabilities | undefined>(abortSignal?: AbortSignal): Promise<T> {
-    // Redirect and update the metadataAccessPath when a proxy has to be used
-    return this.fetchServiceMetadataWMS(abortSignal) as Promise<T>;
+  protected override onFetchServiceMetadata(abortSignal?: AbortSignal): Promise<FetchWithProxyResult<unknown>> {
+    // If metadata is in XML format (not WMS GetCapabilities)
+    const isXml = this.getMetadataAccessPath().toLowerCase().endsWith('.xml');
+    if (isXml) {
+      // Fetch the XML
+      return this.#fetchXmlServiceMetadata(this.getMetadataAccessPath(), abortSignal);
+    }
+
+    // Construct a proper WMS GetCapabilities URL
+    const url = this.getMetadataAccessPath();
+
+    // Get the layer entries we need to query
+    const layerConfigsToQuery = this.#getLayersToQuery();
+
+    // Only if there's no layer configs specified (because that call might be slow we only do it when necessary)
+    if (layerConfigsToQuery.length === 0) {
+      // If no specific layers to query, fetch and process metadata for the entire service
+      return this.#fetchAndProcessSingleWmsMetadata(url, abortSignal);
+    }
+
+    // Fetch and merge metadata for each layer individually
+    return this.#fetchAndMergeMultipleWmsMetadata(url, layerConfigsToQuery, abortSignal);
   }
 
   /**
@@ -114,11 +133,11 @@ export class WMS extends AbstractGeoViewRaster {
    * @throws {LayerNoCapabilitiesError} When the metadata is empty (no Capabilities)
    */
   protected override async onInitLayerEntries(): Promise<TypeGeoviewLayerConfig> {
-    // Get the metadata and leave the metadataAccessPath unchanged, even if a proxy had to be used
-    const metadata = await this.onFetchServiceMetadata();
+    // Calls fetchServiceMetadata which delegates to this class's overridden onFetchServiceMetadata (may use a proxy fallback and store the proxyUrl on the instance)
+    const fetchResult = await this.fetchServiceMetadata<TypeMetadataWMSCapabilities>();
 
     // Based on the capabilities
-    const layers = metadata!.Capability.Layer.Layer;
+    const layers = fetchResult.data.Capability.Layer.Layer;
 
     // Build the layer tree
     const entries = layers?.length ? WMS.#buildLayerTree(layers) : [];
@@ -126,8 +145,8 @@ export class WMS extends AbstractGeoViewRaster {
     // Create the root entry
     const entry: TypeLayerEntryShell[] = [
       {
-        id: metadata!.Capability.Layer.Name || generateId(18),
-        layerName: metadata!.Capability.Layer.Title || metadata!.Capability.Layer.Name!,
+        id: fetchResult.data.Capability.Layer.Name ?? generateId(18),
+        layerName: fetchResult.data.Capability.Layer.Title ?? fetchResult.data.Capability.Layer.Name,
         listOfLayerEntryConfig: entries,
       },
     ];
@@ -135,7 +154,7 @@ export class WMS extends AbstractGeoViewRaster {
     // Redirect
     return WMS.createGeoviewLayerConfig(
       this.getGeoviewLayerId(),
-      metadata?.Capability.Layer.Title || this.getGeoviewLayerName(),
+      entry[0].layerName ?? this.getGeoviewLayerName(),
       this.getMetadataAccessPath(),
       undefined,
       this.getGeoviewLayerConfig().isTimeAware,
@@ -205,12 +224,6 @@ export class WMS extends AbstractGeoViewRaster {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     abortSignal?: AbortSignal
   ): Promise<OgcWmsLayerEntryConfig> {
-    // If a proxy was necessary when the metadata were fetched (either the whole metadata or the layer-metadatas individually
-    if (this.getIsUsingProxy()) {
-      // Indicate the proxy that was used
-      layerConfig.setProxyUrl(this.getProxyUrl());
-    }
-
     // Get the layer capabilities
     const layerCapabilities = WMS.findLayerMetadataInCapability(layerConfig.layerId, this.getMetadata()?.Capability.Layer)!;
 
@@ -317,64 +330,6 @@ export class WMS extends AbstractGeoViewRaster {
 
   // #endregion PUBLIC METHODS
 
-  // #region PROTECTED METHODS
-
-  /**
-   * Fetches the service metadata for a WMS layer, handling both standard WMS GetCapabilities requests and direct XML metadata access.
-   *
-   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
-   * @returns A promise that resolves to the parsed metadata object, or `undefined` if metadata could not be retrieved or no capabilities were found.
-   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
-   * @throws {LayerNoCapabilitiesError} When the metadata is empty (no Capabilities)
-   */
-  protected fetchServiceMetadataWMS(abortSignal?: AbortSignal): Promise<TypeMetadataWMSCapabilities | undefined> {
-    // If metadata is in XML format (not WMS GetCapabilities)
-    const isXml = this.getMetadataAccessPath().toLowerCase().endsWith('.xml');
-    if (isXml) {
-      // Fetch the XML
-      return this.#fetchXmlServiceMetadata(
-        this.getMetadataAccessPath(),
-        (proxyUsed) => {
-          // Keep in mind a proxy was used for the request
-          this.setProxyUrl(proxyUsed);
-        },
-        abortSignal
-      );
-    }
-
-    // Construct a proper WMS GetCapabilities URL
-    const url = this.getMetadataAccessPath();
-
-    // Get the layer entries we need to query
-    const layerConfigsToQuery = this.#getLayersToQuery();
-
-    // Only if there's no layer configs specified (because that call might be slow we only do it when necessary)
-    if (layerConfigsToQuery.length === 0) {
-      // If no specific layers to query, fetch and process metadata for the entire service
-      return this.#fetchAndProcessSingleWmsMetadata(
-        url,
-        (proxyUsed) => {
-          // Keep in mind a proxy was used for the request
-          this.setProxyUrl(proxyUsed);
-        },
-        abortSignal
-      );
-    }
-
-    // Fetch and merge metadata for each layer individually
-    return this.#fetchAndMergeMultipleWmsMetadata(
-      url,
-      layerConfigsToQuery,
-      (proxyUsed) => {
-        // Keep in mind a proxy was used for the request
-        this.setProxyUrl(proxyUsed);
-      },
-      abortSignal
-    );
-  }
-
-  // #endregion PROTECTED METHODS
-
   // #region PRIVATE METHODS
 
   /**
@@ -385,7 +340,6 @@ export class WMS extends AbstractGeoViewRaster {
    * It updates the metadata access path if a proxy is involved and ensures the metadata hierarchy is processed.
    *
    * @param url - The full WMS GetCapabilities URL to fetch metadata from
-   * @param callbackNewMetadataUrl - Optional callback executed when a proxy had to be used to fetch the metadata.
    * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process of the process
    * @returns A promise that resolves to the parsed metadata object,
    * or `undefined` if the fetch failed or metadata is invalid.
@@ -394,17 +348,17 @@ export class WMS extends AbstractGeoViewRaster {
    */
   async #fetchAndProcessSingleWmsMetadata(
     url: string,
-    callbackNewMetadataUrl: CallbackNewMetadataDelegate,
     abortSignal?: AbortSignal
-  ): Promise<TypeMetadataWMSCapabilities | undefined> {
-    let metadata;
+  ): Promise<FetchWithProxyResult<TypeMetadataWMSCapabilities | undefined>> {
     try {
       // Fetch the WMS GetCapabilities document from the given URL
-      metadata = await WMS.fetchMetadataWMS(url, this.getConfigProxyUrl(), callbackNewMetadataUrl, abortSignal);
+      const fetchResult = await WMS.fetchMetadataWMS(url, this.getConfigProxyUrl(), abortSignal);
 
       // Apply metadata inheritance to ensure nested layer structures are properly populated
-      this.#processMetadataInheritance(metadata?.Capability?.Layer);
-      return metadata;
+      this.#processMetadataInheritance(fetchResult.data?.Capability?.Layer);
+
+      // Return the result of the fetch as-is, including if a proxy was needed
+      return fetchResult;
     } catch (error: unknown) {
       // If empty response
       if (error instanceof ResponseEmptyError) {
@@ -431,7 +385,6 @@ export class WMS extends AbstractGeoViewRaster {
    *
    * @param url - The base WMS GetCapabilities URL used to fetch metadata
    * @param layers - An array of layer configurations to fetch and merge metadata for
-   * @param callbackNewMetadataUrl - Optional callback executed when a proxy had to be used to fetch the metadata.
    * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
    * @returns A promise that resolves to the merged metadata object,
    * or `undefined` if all requests failed.
@@ -439,17 +392,17 @@ export class WMS extends AbstractGeoViewRaster {
   async #fetchAndMergeMultipleWmsMetadata(
     url: string,
     layers: AbstractBaseLayerEntryConfig[],
-    callbackNewMetadataUrl: CallbackNewMetadataDelegate,
     abortSignal?: AbortSignal
-  ): Promise<TypeMetadataWMSCapabilities | undefined> {
+  ): Promise<FetchWithProxyResult<TypeMetadataWMSCapabilities | undefined>> {
     // Create one metadata fetch promise per unique layerId
-    const metadataPromises = WMS.#createLayerMetadataPromises(url, this.getConfigProxyUrl(), layers, callbackNewMetadataUrl, abortSignal);
+    const metadataPromises = WMS.#createLayerMetadataPromises(url, this.getConfigProxyUrl(), layers, abortSignal);
 
     // Wait for all requests to settle (either fulfilled or rejected)
     const results = await Promise.allSettled(metadataPromises);
 
     // Merge metadata results
     let baseMetadata: TypeMetadataWMSCapabilities | undefined;
+    let proxyUsed: string | undefined;
     for (const result of results) {
       if (result.status === 'fulfilled') {
         const { metadata, layerConfig } = result.value;
@@ -457,6 +410,8 @@ export class WMS extends AbstractGeoViewRaster {
         // Use the first successful metadata as the base structure
         if (!baseMetadata) {
           baseMetadata = metadata;
+          // eslint-disable-next-line prefer-destructuring
+          proxyUsed = result.value.proxyUsed;
         }
 
         // Check if this layer's metadata is already included in the base structure
@@ -476,14 +431,13 @@ export class WMS extends AbstractGeoViewRaster {
 
     // Final pass to apply inheritance rules across the merged metadata tree
     this.#processMetadataInheritance(baseMetadata?.Capability.Layer);
-    return baseMetadata;
+    return { data: baseMetadata, proxyUsed };
   }
 
   /**
    * This method reads the service metadata from a XML metadataAccessPath.
    *
    * @param metadataUrl - The metadataAccessPath
-   * @param callbackNewMetadataUrl - Optional callback executed when a proxy had to be used to fetch the metadata.
    * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
    * @returns A promise that resolves once the execution is completed
    * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
@@ -491,15 +445,14 @@ export class WMS extends AbstractGeoViewRaster {
    */
   async #fetchXmlServiceMetadata(
     metadataUrl: string,
-    callbackNewMetadataUrl?: CallbackNewMetadataDelegate,
     abortSignal?: AbortSignal
-  ): Promise<TypeMetadataWMSCapabilities> {
+  ): Promise<FetchWithProxyResult<TypeMetadataWMSCapabilities>> {
     try {
       // Fetch it
-      const metadata = await WMS.fetchMetadataWMS(metadataUrl, this.getConfigProxyUrl(), callbackNewMetadataUrl, abortSignal);
+      const fetchResult = await WMS.fetchMetadataWMS(metadataUrl, this.getConfigProxyUrl(), abortSignal);
 
       // Process
-      this.#processMetadataInheritance(metadata.Capability.Layer);
+      this.#processMetadataInheritance(fetchResult.data.Capability.Layer);
 
       // Normalize metadataAccessPath - datacube specific normalization
       this.setMetadataAccessPath(normalizeDatacubeAccessPath(this.getMetadataAccessPath()));
@@ -508,12 +461,14 @@ export class WMS extends AbstractGeoViewRaster {
       this.listOfLayerEntryConfig.forEach((layerEntry) => {
         // Normalize and set the data access path, when a layer entry is a group, this goes recursive
         layerEntry.setDataAccessPath(
-          normalizeDatacubeAccessPath(metadata.Capability.Request.GetMap.DCPType[0].HTTP.Get.OnlineResource['@attributes']['xlink:href'])
+          normalizeDatacubeAccessPath(
+            fetchResult.data.Capability.Request.GetMap.DCPType[0].HTTP.Get.OnlineResource['@attributes']['xlink:href']
+          )
         );
       });
 
-      // Return the metadata
-      return metadata;
+      // Return the fetch result
+      return fetchResult;
     } catch (error: unknown) {
       // If empty response
       if (error instanceof ResponseEmptyError) {
@@ -712,7 +667,7 @@ export class WMS extends AbstractGeoViewRaster {
    */
   static createGeoviewLayerConfig(
     geoviewLayerId: string,
-    geoviewLayerName: string,
+    geoviewLayerName: string | undefined,
     metadataAccessPath: string,
     serverType: TypeOfServer | undefined,
     isTimeAware: boolean | undefined,
@@ -849,7 +804,7 @@ export class WMS extends AbstractGeoViewRaster {
    * @param geoviewLayerId - The unique identifier for the GeoView layer
    * @param geoviewLayerName - The display name for the GeoView layer
    * @param url - The URL of the service endpoint
-   * @param layerIds - An array of layer IDs to include in the configuration
+   * @param layerEntries - An array of layer entry shells to include in the configuration
    * @param isTimeAware - Indicates if the layer is time aware
    * @param useFullWmsSublayers - Optional - Indicates if we want the full sublayers of all wms or grouped (default is all sublayers)
    * @returns A promise that resolves to an array of layer configurations
@@ -858,7 +813,7 @@ export class WMS extends AbstractGeoViewRaster {
     geoviewLayerId: string,
     geoviewLayerName: string,
     url: string,
-    layerIds: number[],
+    layerEntries: TypeLayerEntryShell[],
     isTimeAware: boolean,
     useFullWmsSublayers?: boolean
   ): Promise<ConfigBaseClass[]> {
@@ -869,9 +824,7 @@ export class WMS extends AbstractGeoViewRaster {
       url,
       undefined,
       isTimeAware,
-      layerIds.map((layerId) => {
-        return { id: layerId };
-      }),
+      layerEntries,
       useFullWmsSublayers
     );
 
@@ -916,8 +869,8 @@ export class WMS extends AbstractGeoViewRaster {
    *
    * @param url - The url to query the metadata from
    * @param configProxyUrl - Proxy URL to use when necessary
-   * @param callbackNewMetadataUrl - Optional callback executed when a proxy had to be used to fetch the metadata.
    * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
+   * @returns A promise that resolves with the parsed WMS metadata and proxy information
    * @throws {RequestTimeoutError} When the request exceeds the timeout duration
    * @throws {RequestAbortedError} When the request was aborted by the caller's signal
    * @throws {ResponseError} When the response is not OK (non-2xx)
@@ -927,11 +880,10 @@ export class WMS extends AbstractGeoViewRaster {
   static fetchMetadataWMS(
     url: string,
     configProxyUrl: string | undefined,
-    callbackNewMetadataUrl?: CallbackNewMetadataDelegate,
     abortSignal?: AbortSignal
-  ): Promise<TypeMetadataWMSCapabilities> {
+  ): Promise<FetchWithProxyResult<TypeMetadataWMSCapabilities>> {
     // Redirect
-    return GeoUtilities.getWMSServiceMetadata(url, configProxyUrl, undefined, callbackNewMetadataUrl, abortSignal);
+    return GeoUtilities.getWMSServiceMetadata(url, configProxyUrl, undefined, abortSignal);
   }
 
   /**
@@ -940,9 +892,8 @@ export class WMS extends AbstractGeoViewRaster {
    * @param url - The url to query the metadata from
    * @param configProxyUrl - Proxy URL to use when necessary
    * @param layers - The layers to get the capabilities for
-   * @param callbackNewMetadataUrl - Optional callback executed when a proxy had to be used to fetch the metadata.
    * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
-   * @returns A promise that resolves with the parsed WMS metadata
+   * @returns A promise that resolves with the parsed WMS metadata and proxy information
    * @throws {RequestTimeoutError} When the request exceeds the timeout duration
    * @throws {RequestAbortedError} When the request was aborted by the caller's signal
    * @throws {ResponseError} When the response is not OK (non-2xx)
@@ -953,11 +904,10 @@ export class WMS extends AbstractGeoViewRaster {
     url: string,
     configProxyUrl: string | undefined,
     layers: string,
-    callbackNewMetadataUrl?: CallbackNewMetadataDelegate,
     abortSignal?: AbortSignal
-  ): Promise<TypeMetadataWMSCapabilities> {
+  ): Promise<FetchWithProxyResult<TypeMetadataWMSCapabilities>> {
     // Redirect
-    return GeoUtilities.getWMSServiceMetadata(url, configProxyUrl, layers, callbackNewMetadataUrl, abortSignal);
+    return GeoUtilities.getWMSServiceMetadata(url, configProxyUrl, layers, abortSignal);
   }
 
   /**
@@ -1006,7 +956,6 @@ export class WMS extends AbstractGeoViewRaster {
    * @param url - The base GetCapabilities URL used to fetch layer-specific metadata
    * @param configProxyUrl - Proxy URL to use when necessary
    * @param layers - An array of layer configurations to fetch metadata for
-   * @param callbackNewMetadataUrl - Optional callback executed when a proxy had to be used to fetch the metadata.
    * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
    * @returns An array of metadata fetch promises, one per unique layer config
    */
@@ -1014,7 +963,6 @@ export class WMS extends AbstractGeoViewRaster {
     url: string,
     configProxyUrl: string | undefined,
     layers: AbstractBaseLayerEntryConfig[],
-    callbackNewMetadataUrl?: CallbackNewMetadataDelegate,
     abortSignal?: AbortSignal
   ): Promise<MetatadaFetchResult>[] {
     const seen = new Map<string, Promise<MetatadaFetchResult>>();
@@ -1026,36 +974,36 @@ export class WMS extends AbstractGeoViewRaster {
 
       // Avoid duplicate fetches for the same layerId
       if (!seen.has(layerConfig.layerId)) {
-        const promise = new Promise<MetatadaFetchResult>((resolve, reject) => {
-          // Perform the actual metadata fetch
-          WMS.fetchMetadataWMSForLayer(url, configProxyUrl, layerConfig.layerId, callbackNewMetadataUrl, abortSignal)
-            .then((metadata) => {
-              if (metadata.Capability) {
-                resolve({ metadata, layerConfig });
-              } else {
-                // Wrap error about no capabilities found. Search id: 8c97d776.
-                reject(
-                  new PromiseRejectErrorWrapper(
-                    new LayerNoCapabilitiesError(layerConfig.getGeoviewLayerId(), layerConfig.getLayerNameCascade()),
-                    layerConfig
-                  )
-                );
-              }
-            })
-            .catch((error) => {
-              // Wrap error with additional layer context. Search id: 8c97d776.
-              reject(
-                new PromiseRejectErrorWrapper(
-                  new LayerServiceMetadataUnableToFetchError(
-                    layerConfig.getGeoviewLayerId(),
-                    layerConfig.getLayerNameCascade(),
-                    formatError(error)
-                  ),
-                  layerConfig
-                )
+        const promise = (async (): Promise<MetatadaFetchResult> => {
+          try {
+            // Perform the actual metadata fetch
+            const result = await WMS.fetchMetadataWMSForLayer(url, configProxyUrl, layerConfig.layerId, abortSignal);
+
+            // Validate capabilities exist
+            if (!result.data.Capability) {
+              // Wrap error about no capabilities found. Search id: 8c97d776.
+              throw new PromiseRejectErrorWrapper(
+                new LayerNoCapabilitiesError(layerConfig.getGeoviewLayerId(), layerConfig.getLayerNameCascade()),
+                layerConfig
               );
-            });
-        });
+            }
+
+            return { metadata: result.data, proxyUsed: result.proxyUsed, layerConfig };
+          } catch (error: unknown) {
+            // If already wrapped, rethrow as-is
+            if (error instanceof PromiseRejectErrorWrapper) throw error;
+
+            // Wrap error with additional layer context. Search id: 8c97d776.
+            throw new PromiseRejectErrorWrapper(
+              new LayerServiceMetadataUnableToFetchError(
+                layerConfig.getGeoviewLayerId(),
+                layerConfig.getLayerNameCascade(),
+                formatError(error)
+              ),
+              layerConfig
+            );
+          }
+        })();
 
         // Store the promise for this layerId to avoid duplicate requests
         seen.set(layerConfig.layerId, promise);
@@ -1295,4 +1243,8 @@ export class WMS extends AbstractGeoViewRaster {
 export type GroupLayerCreatedDelegate = (config: ConfigBaseClass) => void;
 
 /** Local type to work with a metadata fetch result */
-type MetatadaFetchResult = { layerConfig: AbstractBaseLayerEntryConfig; metadata: TypeMetadataWMSCapabilities };
+type MetatadaFetchResult = {
+  layerConfig: AbstractBaseLayerEntryConfig;
+  metadata: TypeMetadataWMSCapabilities;
+  proxyUsed?: string;
+};

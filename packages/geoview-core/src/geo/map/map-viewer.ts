@@ -75,7 +75,13 @@ import { delay, generateId, getLocalizedMessage } from '@/core/utils/utilities';
 import { debounce } from '@/core/utils/debounce';
 import type { TimeIANA } from '@/core/utils/date-mgt';
 import { logger } from '@/core/utils/logger';
-import { DEFAULT_OL_GVFITOPTIONS, NORTH_POLE_POSITION_LONLAT, OL_ZOOM_DURATION, type GVFitOptions } from '@/core/utils/constant';
+import {
+  DEFAULT_OL_GVFITOPTIONS,
+  MAP_INFO_HEIGHT_COLLAPSED,
+  NORTH_POLE_POSITION_LONLAT,
+  OL_ZOOM_DURATION,
+  type GVFitOptions,
+} from '@/core/utils/constant';
 import type { TypeMapFeaturesConfig, TypeHTMLElement } from '@/core/types/global-types';
 import type { TypeClickMarker } from '@/core/components/click-marker/click-marker';
 import { InvalidExtentError } from '@/core/exceptions/geoview-exceptions';
@@ -386,6 +392,11 @@ export class MapViewer {
       extentProjected = MapViewer.#computeViewExtent(mapViewSettings.projection, mapViewSettings.maxExtent, projection);
     }
 
+    // Compute the initial map-info bar height for View padding. The DOM doesn't exist yet, so we use
+    // the known CSS heights (dynamic: 40px collapsed, static: 0px). The MapInfo component's useEffect
+    // will update the padding dynamically when it mounts or changes height.
+    const mapInfoInitialHeight = this.mapFeaturesConfig.map.interaction === 'static' ? 0 : parseInt(MAP_INFO_HEIGHT_COLLAPSED);
+
     const initialMap = new OLMap({
       target: mapElement,
       layers: [GeoUtilities.createEmptyBasemap()],
@@ -404,6 +415,7 @@ export class MapViewer {
         minZoom: mapViewSettings.minZoom || VALID_ZOOM_LEVELS[0],
         maxZoom: mapViewSettings.maxZoom || VALID_ZOOM_LEVELS[1],
         rotation: mapViewSettings.rotation || 0,
+        padding: [0, 0, mapInfoInitialHeight, 0],
       }),
       controls: [],
       keyboardEventTarget: this.getHTMLElementMapContainer(),
@@ -707,6 +719,9 @@ export class MapViewer {
       const projObj = Projection.getProjectionFromStringOrNumber(mapViewSettings.projection);
       viewOptions.extent = MapViewer.#computeViewExtent(Number(mapViewSettings.projection), mapViewSettings.maxExtent, projObj);
     }
+
+    // Preserve the current View padding (managed by the MapInfo component) so the new view inherits it
+    viewOptions.padding = this.getView().padding;
 
     const newView = new View(viewOptions);
     this.map.setView(newView);
@@ -1196,11 +1211,8 @@ export class MapViewer {
       const paddingWidth = Math.round(width * mergedOptions.percentPadding![0]);
       const paddingHeight = Math.round(height * mergedOptions.percentPadding![1]);
 
-      // Get the mapInfo bar's actual pixel height
-      const mapInfoHeight = this.getHTMLElementMapInfo()?.offsetHeight ?? 0;
-
-      // Assign absolute padding values for the actual fit options
-      mergedOptions.padding = [paddingHeight, paddingWidth, paddingHeight + mapInfoHeight, paddingWidth];
+      // Assign absolute padding values for the actual fit options (View padding handles the map-info bar offset)
+      mergedOptions.padding = [paddingHeight, paddingWidth, paddingHeight, paddingWidth];
     }
 
     // Validate the extent coordinates - need to make sure we aren't excluding zero with !number or using invalid extents
@@ -1571,6 +1583,20 @@ export class MapViewer {
     const mapInfoHeightPx = this.getHTMLElementMapInfo()?.offsetHeight ?? 0;
     const resolution = this.getView().getResolution() ?? 0;
     return mapInfoHeightPx * resolution;
+  }
+
+  /**
+   * Updates the OL View padding to account for the map-info bar height.
+   *
+   * OL View padding defines a dead zone at the bottom of the viewport. This causes the logical
+   * center to appear at the midpoint of the usable area above the bar, and fit() operations
+   * to respect the reserved area. Call this method whenever the map-info bar height changes
+   * (e.g., on mount, expand/collapse).
+   */
+  updateViewPadding(): void {
+    // Static mode: the map-info bar does not overlay the map canvas, so no padding is needed
+    const mapInfoHeight = this.mapFeaturesConfig.map.interaction === 'static' ? 0 : (this.getHTMLElementMapInfo()?.offsetHeight ?? 0);
+    this.getView().padding = [0, 0, mapInfoHeight, 0];
   }
 
   /**

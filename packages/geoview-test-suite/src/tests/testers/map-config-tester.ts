@@ -350,17 +350,12 @@ export class MapConfigTester extends GVAbstractTester {
         }
 
         // Verify horizontal centering: left buffer ≈ right buffer
-        test.addStep(`Verifying layer is horizontally centered in map extent... ${Math.round(leftBuffer)} vs ${Math.round(rightBuffer)}`);
+        test.addStep(`Verifying horizontal centering... ${Math.round(leftBuffer)} vs ${Math.round(rightBuffer)}`);
         Test.assertIsEqual(Math.round(leftBuffer), Math.round(rightBuffer));
 
-        // Verify vertical centering accounts for the map-info bar.
-        // zoomToExtent applies padding = [paddingHeight, paddingWidth, paddingHeight + mapInfoHeight, paddingWidth],
-        // so the bottom buffer (index 2) includes the map-info bar pixel height converted to map units.
-        const mapInfoHeightMapUnits = newMapViewer.getHTMLElementMapInfoHeightInMapUnits();
-
-        // The bottomBuffer should equal topBuffer + mapInfoHeightMapUnits
-        test.addStep(`Verifying vertical centering with map-info bar offset (${Math.round(mapInfoHeightMapUnits)} map units)...`);
-        Test.assertIsEqual(Math.round(bottomBuffer), Math.round(topBuffer + mapInfoHeightMapUnits));
+        // Verify vertical centering: bottom buffer ≈ top buffer
+        test.addStep(`Verifying vertical centering... ${Math.round(bottomBuffer)} vs ${Math.round(topBuffer)}`);
+        Test.assertIsEqual(Math.round(bottomBuffer), Math.round(topBuffer));
       }
     );
   }
@@ -1876,7 +1871,7 @@ export class MapConfigTester extends GVAbstractTester {
    *     ['map.viewSettings.initialView', { layerIds: ['geojsonLYR5/polygons.json'] }]
    * @returns A promise that resolves to the created map viewer
    */
-  async #helperCreateMapConfig(test: Test, mapId: string, overrides: [string, unknown][] | [string, unknown] = []): Promise<MapViewer> {
+  #helperCreateMapConfig(test: Test, mapId: string, overrides: [string, unknown][] | [string, unknown] = []): Promise<MapViewer> {
     const baseConfig = {
       map: {
         interaction: 'dynamic',
@@ -1925,23 +1920,8 @@ export class MapConfigTester extends GVAbstractTester {
       MapConfigTester.#setValueByPath(baseConfig, path, value);
     });
 
-    // Delete current map
-    test.addStep('Deleting current map...');
-    await this.getApi().deleteMapViewer(mapId, false);
-
-    // Wait for layer to load and data table to initialize
-    test.addStep('Creating the map from config...');
-    const mapViewer = await this.getApi().createMapFromConfigFast(mapId, JSON.stringify(baseConfig), 500);
-
-    // Replace the map viewer and the controller registry in the tester with the new one created from config
-    this.reassignMapViewerAndControllers(mapViewer, mapViewer.controllers);
-
-    // Wait for layer to load and data table to initialize
-    test.addStep('Waiting for layers to get loaded...');
-    const loadedLayersCount = await this.getControllersRegistry().layerController.waitForLayersLoaded();
-
-    test.addStep(`Layers loaded (${loadedLayersCount})`);
-    return mapViewer;
+    // Replace the map!
+    return this.replaceMap(test, mapId, baseConfig);
   }
 
   /**

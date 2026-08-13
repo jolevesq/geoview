@@ -41,7 +41,23 @@ export class GVTestSuiteConfig extends GVAbstractTestSuite {
    * @returns The description of the Test Suite
    */
   override getDescriptionAsHtml(): string {
-    return 'Test Suite to perform various layer config related tests.';
+    return `Tests layer configuration creation and validation across all supported layer types:<br/>
+      <b>ESRI</b> — Dynamic, Feature, Image (happy path + bad URL)<br/>
+      <b>OGC</b> — WMS, WFS, OGC Feature (happy path + bad URL + no capabilities)<br/>
+      <b>File-based</b> — GeoJSON, CSV, WKB, KML, GeoTIFF (happy path + bad URL skip/error)<br/>
+      <b>GeoCore</b> — Standalone UUID resolution<br/>
+      <b>Settings</b> — initialSettings cascade to sublayers`;
+  }
+
+  /**
+   * Overrides the debug hook for running a subset of tests during development.
+   *
+   * GV DEBUG SECTION TO NOT HAVE TO TEST EVERYTHING EVERYTIME
+   *
+   * @returns A promise that resolves when the debug tests are completed
+   */
+  protected override onLaunchTestSuiteDEBUG(): Promise<unknown> {
+    return Promise.resolve();
   }
 
   /**
@@ -50,15 +66,6 @@ export class GVTestSuiteConfig extends GVAbstractTestSuite {
    * @returns A promise that resolves when tests are completed
    */
   protected override onLaunchTestSuite(): Promise<unknown> {
-    // // GV START DEBUG SECTION TO NOT HAVE TO TEST EVERYTHING EVERYTIME
-    // // Test DEBUG
-    // const pDevTest0 = this.#configTester.testEsriFeatureWithForestIndustry();
-    // // const pDevTest2 = this.#configTester.testKMLBadUrlExpectSkip();
-
-    // // Resolve when all
-    // return Promise.all([pDevTest0]);
-    // // GV END DEBUG SECTION TO NOT HAVE TO TEST EVERYTHING EVERYTIME
-
     // Test EsriDynamic HistoricalFloodconfig
     const pEsriDynamicHistoFlood = this.#configTester.testEsriDynamicWithHistoricalFloodEvents();
 

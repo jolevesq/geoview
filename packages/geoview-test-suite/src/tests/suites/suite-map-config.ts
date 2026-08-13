@@ -41,7 +41,26 @@ export class GVTestSuiteMapConfig extends GVAbstractTestSuite {
    * @returns The description of the Test Suite
    */
   override getDescriptionAsHtml(): string {
-    return 'Test Suite to perform various map configuration related tests';
+    return `Tests map configuration overrides by creating fresh map instances:<br/>
+      <b>Footer/App bar</b> — Tab selection, default/empty configs<br/>
+      <b>Nav bar</b> — Default controls, empty array fallback<br/>
+      <b>View settings</b> — Zoom constraints, initialView vs homeView, home button navigation<br/>
+      <b>Components</b> — Overview map (present/absent/hideOnZoom/reprojection), North arrow<br/>
+      <b>Overlays</b> — Point markers from config<br/>
+      <b>initialSettings</b> — Controls (all false, remove cascading), states (visible, opacity, queryable, hoverable),<br/>
+      &nbsp;&nbsp;legend collapsed, filters (GeoJSON, OGC Feature, WFS, ESRI Dynamic, ESRI Feature),<br/>
+      &nbsp;&nbsp;opacity parent-child capping, runtime parent opacity change`;
+  }
+
+  /**
+   * Overrides the debug hook for running a subset of tests during development.
+   *
+   * GV DEBUG SECTION TO NOT HAVE TO TEST EVERYTHING EVERYTIME
+   *
+   * @returns A promise that resolves when the debug tests are completed
+   */
+  protected override onLaunchTestSuiteDEBUG(): Promise<unknown> {
+    return Promise.resolve();
   }
 
   /**
@@ -50,14 +69,6 @@ export class GVTestSuiteMapConfig extends GVAbstractTestSuite {
    * @returns A promise that resolves when tests are completed
    */
   protected override async onLaunchTestSuite(): Promise<unknown> {
-    // // GV START DEBUG SECTION TO NOT HAVE TO TEST EVERYTHING EVERYTIME
-    // // Test DEBUG
-    // const pDevTest0 = this.#mapConfigTester.testInitialViewLayerIdsSetExtent();
-
-    // // Resolve when all
-    // return Promise.all([pDevTest0]);
-    // // GV END DEBUG SECTION TO NOT HAVE TO TEST EVERYTHING EVERYTIME
-
     // Test data table pre-loaded in footer bar
     const pDataTableInFooterBar = this.#mapConfigTester.testDataTableSelectedTabFooterBar();
     await pDataTableInFooterBar;
@@ -110,14 +121,6 @@ export class GVTestSuiteMapConfig extends GVAbstractTestSuite {
     const pOverviewMapAbsent = this.#mapConfigTester.testOverviewMapAbsent();
     await pOverviewMapAbsent;
 
-    // Test north arrow is present when configured
-    const pNorthArrowPresent = this.#mapConfigTester.testNorthArrowPresent();
-    await pNorthArrowPresent;
-
-    // Test north arrow is absent when not configured
-    const pNorthArrowAbsent = this.#mapConfigTester.testNorthArrowAbsent();
-    await pNorthArrowAbsent;
-
     // Test overview map hideOnZoom behavior
     const pOverviewMapHideOnZoom = this.#mapConfigTester.testOverviewMapHideOnZoom();
     await pOverviewMapHideOnZoom;
@@ -125,6 +128,14 @@ export class GVTestSuiteMapConfig extends GVAbstractTestSuite {
     // Test overview map hideOnZoom with reprojection
     const pOverviewMapHideOnZoomReproject = this.#mapConfigTester.testOverviewMapHideOnZoomWithReprojection();
     await pOverviewMapHideOnZoomReproject;
+
+    // Test north arrow is present when configured
+    const pNorthArrowPresent = this.#mapConfigTester.testNorthArrowPresent();
+    await pNorthArrowPresent;
+
+    // Test north arrow is absent when not configured
+    const pNorthArrowAbsent = this.#mapConfigTester.testNorthArrowAbsent();
+    await pNorthArrowAbsent;
 
     // Test initialSettings all controls set to false
     const pControlsAllFalse = this.#mapConfigTester.testInitialSettingsControlsAllFalse();

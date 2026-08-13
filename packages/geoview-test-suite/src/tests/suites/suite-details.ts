@@ -43,7 +43,11 @@ export class GVTestSuiteDetails extends GVAbstractTestSuite {
    * @returns The description of the Test Suite
    */
   override getDescriptionAsHtml(): string {
-    return 'Test Suite to perform various Details related tests.';
+    return `Tests the Details panel feature info display and interaction:<br/>
+      <b>Feature info</b> — Query GeoJSON layer at Ontario/Alberta extent<br/>
+      <b>Highlight</b> — Clear all highlights after selection<br/>
+      <b>Navigation</b> — Zoom to feature from details panel<br/>
+      <b>Config overrides</b> — nameField as label, summary:false hides field, field alias renaming`;
   }
 
   /**
@@ -59,6 +63,17 @@ export class GVTestSuiteDetails extends GVAbstractTestSuite {
 
     // All good
     return Promise.resolve(true);
+  }
+
+  /**
+   * Overrides the debug hook for running a subset of tests during development.
+   *
+   * GV DEBUG SECTION TO NOT HAVE TO TEST EVERYTHING EVERYTIME
+   *
+   * @returns A promise that resolves when the debug tests are completed
+   */
+  protected override onLaunchTestSuiteDEBUG(): Promise<unknown> {
+    return Promise.resolve();
   }
 
   /**

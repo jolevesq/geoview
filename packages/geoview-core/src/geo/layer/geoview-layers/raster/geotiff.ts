@@ -15,6 +15,7 @@ import { logger } from '@/core/utils/logger';
 import { generateId, extractGeotiffColorMap } from '@/core/utils/utilities';
 import { Fetch } from '@/core/utils/fetch-helper';
 import type { DisplayDateMode } from '@/api/types/map-schema-types';
+import { EMPTY_FETCH_RESULT, type FetchWithProxyResult } from '@/geo/utils/utilities';
 
 export interface TypeGeoTIFFLayerConfig extends Omit<TypeGeoviewLayerConfig, 'listOfLayerEntryConfig'> {
   geoviewLayerType: typeof CONST_LAYER_TYPES.GEOTIFF;
@@ -59,15 +60,37 @@ export class GeoTIFF extends AbstractGeoViewRaster {
   /**
    * Overrides the way the metadata is fetched.
    *
-   * Resolves with the Json object or undefined when no metadata is to be expected for a particular layer type.
-   *
-   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process.
-   * @returns A promise with the metadata or undefined when no metadata for the particular layer type.
-   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error.
+   * @param _abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process (not implemented)
+   * @returns A promise that resolves with the fetched metadata and proxy information
+   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    */
-  protected override onFetchServiceMetadata<T = TypeMetadataGeoTIFF | undefined>(abortSignal?: AbortSignal): Promise<T> {
-    // Redirect
-    return this.fetchServiceMetadataGeoTiff(abortSignal) as Promise<T>;
+  protected override async onFetchServiceMetadata(_abortSignal?: AbortSignal): Promise<FetchWithProxyResult<unknown>> {
+    // If metadataAccessPath does not point to a .tif file, we try to fetch metadata
+    const metadataAccessPath = this.getMetadataAccessPath();
+
+    try {
+      // GV: This is currently only for datacube sources that provide a JSON metadata file
+      if (metadataAccessPath && !metadataAccessPath.endsWith('.tif')) {
+        const url = metadataAccessPath.endsWith('/') ? metadataAccessPath.slice(0, -1) : metadataAccessPath;
+
+        // Fetch it and return
+        return { data: await Fetch.fetchJson<TypeMetadataGeoTIFF>(url, { signal: _abortSignal }) };
+      }
+
+      // The metadataAccessPath didn't seem like it was containing actual metadata, so it was skipped
+      logger.logWarning(
+        `The metadataAccessPath '${metadataAccessPath}' didn't seem like it was containing actual metadata, so it was skipped`
+      );
+
+      // None
+      return EMPTY_FETCH_RESULT;
+    } catch (error: unknown) {
+      // Error likely means there is no metadata to fetch
+      logger.logWarning(
+        `The metadataAccessPath '${metadataAccessPath}' didn't seem like it was containing actual metadata, so it was skipped. Error: ${error}`
+      );
+      return EMPTY_FETCH_RESULT;
+    }
   }
 
   /**
@@ -161,45 +184,6 @@ export class GeoTIFF extends AbstractGeoViewRaster {
 
   // #endregion OVERRIDES
 
-  // #region PROTECTED METHODS
-
-  /**
-   * Fetches metadata for a GeoTIFF layer, if available.
-   *
-   * @param abortSignal - Optional {@link AbortSignal} used to cancel the metadata fetch.
-   * @returns A promise that resolves to the metadata or undefined if not available.
-   */
-  protected async fetchServiceMetadataGeoTiff(abortSignal?: AbortSignal): Promise<TypeMetadataGeoTIFF | undefined> {
-    // If metadataAccessPath does not point to a .tif file, we try to fetch metadata
-    const metadataAccessPath = this.getMetadataAccessPath();
-
-    try {
-      // GV: This is currently only for datacube sources that provide a JSON metadata file
-      if (metadataAccessPath && !metadataAccessPath.endsWith('.tif')) {
-        const url = metadataAccessPath.endsWith('/') ? metadataAccessPath.slice(0, -1) : metadataAccessPath;
-
-        // Fetch it
-        return await Fetch.fetchJson<TypeMetadataGeoTIFF>(url, { signal: abortSignal });
-      }
-
-      // The metadataAccessPath didn't seem like it was containing actual metadata, so it was skipped
-      logger.logWarning(
-        `The metadataAccessPath '${metadataAccessPath}' didn't seem like it was containing actual metadata, so it was skipped`
-      );
-
-      // None
-      return Promise.resolve(undefined);
-    } catch (error: unknown) {
-      // Error likely means there is no metadata to fetch
-      logger.logWarning(
-        `The metadataAccessPath '${metadataAccessPath}' didn't seem like it was containing actual metadata, so it was skipped. Error: ${error}`
-      );
-      return Promise.resolve(undefined);
-    }
-  }
-
-  // #endregion PROTECTED METHODS
-
   // #region STATIC METHODS
 
   /**
@@ -267,7 +251,7 @@ export class GeoTIFF extends AbstractGeoViewRaster {
    */
   static createGeoviewLayerConfig(
     geoviewLayerId: string,
-    geoviewLayerName: string,
+    geoviewLayerName: string | undefined,
     metadataAccessPath: string | undefined,
     isTimeAware: boolean | undefined,
     layerEntries: TypeLayerEntryShell[]
@@ -316,27 +300,19 @@ export class GeoTIFF extends AbstractGeoViewRaster {
    * @param geoviewLayerId - The unique identifier for the GeoView layer.
    * @param geoviewLayerName - The display name for the GeoView layer.
    * @param url - The URL of the service endpoint.
+   * @param layerEntries - An array of layer entry shells to include in the configuration.
    * @param isTimeAware - Indicates if the layer is time aware.
-   * @param layerIds - An array of layer IDs to include in the configuration.
    * @returns A promise that resolves to an array of layer configurations.
    */
   static processGeoviewLayerConfig(
     geoviewLayerId: string,
     geoviewLayerName: string,
     url: string,
-    layerIds: string[],
+    layerEntries: TypeLayerEntryShell[],
     isTimeAware: boolean
   ): Promise<ConfigBaseClass[]> {
     // Create the Layer config
-    const layerConfig = GeoTIFF.createGeoviewLayerConfig(
-      geoviewLayerId,
-      geoviewLayerName,
-      url,
-      isTimeAware,
-      layerIds.map((layerId) => {
-        return { id: layerId };
-      })
-    );
+    const layerConfig = GeoTIFF.createGeoviewLayerConfig(geoviewLayerId, geoviewLayerName, url, isTimeAware, layerEntries);
 
     // Create the class from geoview-layers package
     const myLayer = new GeoTIFF(layerConfig);

@@ -18,6 +18,7 @@ import { logger } from '@/core/utils/logger';
 import { LayerEntryNotSupportingProjectionError } from '@/core/exceptions/layer-entry-config-exceptions';
 import { GVVectorTiles } from '@/geo/layer/gv-layers/vector/gv-vector-tiles';
 import type { DisplayDateMode } from '@/api/types/map-schema-types';
+import type { FetchWithProxyResult } from '@/geo/utils/utilities';
 
 // TODO: Implement method to validate Vector Tiles service
 // TODO: Add more customization (minZoom, maxZoom, TMS)
@@ -64,13 +65,11 @@ export class VectorTiles extends AbstractGeoViewRaster {
   /**
    * Overrides the way the metadata is fetched.
    *
-   * Resolves with the Json object or undefined when no metadata is to be expected for a particular layer type.
-   *
-   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process.
-   * @returns A promise with the metadata or undefined when no metadata for the particular layer type.
-   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error.
+   * @param abortSignal - Optional {@link AbortSignal} used to cancel the layer creation process
+   * @returns A promise that resolves with the fetched metadata and proxy information
+   * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    */
-  protected override onFetchServiceMetadata<T>(abortSignal?: AbortSignal): Promise<T> {
+  protected override onFetchServiceMetadata(abortSignal?: AbortSignal): Promise<FetchWithProxyResult<unknown>> {
     // Redirect using default way of fetching service metadata which is to use the url with f=json parameter
     return this.helperFetchServiceMetadataWithFJson(abortSignal);
   }
@@ -258,7 +257,7 @@ export class VectorTiles extends AbstractGeoViewRaster {
    */
   static createGeoviewLayerConfig(
     geoviewLayerId: string,
-    geoviewLayerName: string,
+    geoviewLayerName: string | undefined,
     metadataAccessPath: string,
     isTimeAware: boolean | undefined,
     layerEntries: TypeLayerEntryShell[]
@@ -296,7 +295,7 @@ export class VectorTiles extends AbstractGeoViewRaster {
    * @param geoviewLayerId - The unique identifier for the GeoView layer.
    * @param geoviewLayerName - The display name for the GeoView layer.
    * @param url - The URL of the service endpoint.
-   * @param layerIds - An array of layer IDs to include in the configuration.
+   * @param layerEntries - An array of layer entry shells to include in the configuration.
    * @param isTimeAware - Indicates if the layer is time aware.
    * @returns A promise that resolves to an array of layer configurations.
    */
@@ -304,19 +303,11 @@ export class VectorTiles extends AbstractGeoViewRaster {
     geoviewLayerId: string,
     geoviewLayerName: string,
     url: string,
-    layerIds: string[],
+    layerEntries: TypeLayerEntryShell[],
     isTimeAware: boolean
   ): Promise<ConfigBaseClass[]> {
     // Create the Layer config
-    const layerConfig = VectorTiles.createGeoviewLayerConfig(
-      geoviewLayerId,
-      geoviewLayerName,
-      url,
-      isTimeAware,
-      layerIds.map((layerId) => {
-        return { id: layerId };
-      })
-    );
+    const layerConfig = VectorTiles.createGeoviewLayerConfig(geoviewLayerId, geoviewLayerName, url, isTimeAware, layerEntries);
 
     // Create the class from geoview-layers package
     const myLayer = new VectorTiles(layerConfig);

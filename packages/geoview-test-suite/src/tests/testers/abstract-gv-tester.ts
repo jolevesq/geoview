@@ -9,6 +9,7 @@ import type { TypeLegendItem } from 'geoview-core/core/components/layers/types';
 import type { ControllerRegistry } from 'geoview-core/core/controllers/base/controller-registry';
 import { getStoreLayerLegendLayerByPath } from 'geoview-core/core/stores/states/layer-state';
 import type { GeometryApi } from 'geoview-core/geo/layer/geometry/geometry';
+import { delay, whenThisThen } from 'geoview-core/core/utils/utilities';
 
 /**
  * Main GeoView Abstract Tester class.
@@ -38,7 +39,7 @@ export abstract class GVAbstractTester extends AbstractTester {
    * Fake url acting like a WMS/WFS url for a GetCapabilities call - the proxy is a good url to use to fake this.
    * Something like https://google.ca will get turned into https://google.ca/?service=WFS&request=GetCapabilities and that's
    * not a 200 response and we can't test with that.
-   * Not using the core config url constant on purpose, because it serves a whole different purpose here.
+   * The Esri proxy is special in the sense that it returns a non-typical 200 with an error written inside the content.
    */
   static FAKE_URL_ALWAYS_RETURNING_RESPONSE_INSTEAD_OF_NETWORK_ERROR = 'https://maps.canada.ca/wmsproxy/ws/wmsproxy/executeFromProxy';
 
@@ -117,7 +118,6 @@ export abstract class GVAbstractTester extends AbstractTester {
     'https://maps-cartes.services.geo.ca/server_serveur/rest/services/NRCan/forest_industry_hotspots_en/MapServer';
   static readonly FOREST_INDUSTRY_LAYER_ID: string = '0';
   static readonly FOREST_INDUSTRY_LAYER_NAME: string = 'Location of mill facilities';
-  static readonly FOREST_INDUSTRY_FEATURE_SERVER: string = `${GVAbstractTester.FOREST_INDUSTRY_MAP_SERVER}/${GVAbstractTester.FOREST_INDUSTRY_LAYER_ID}`;
 
   static readonly FOREST_INDUSTRY_ICON_LIST: TypeLegendItem[] = [
     {
@@ -356,9 +356,29 @@ export abstract class GVAbstractTester extends AbstractTester {
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAV4AAABICAYAAAC+050oAAAOlUlEQVR4AeydCawd0x/Hf7+GaEgpQgghtCGEiLVNLalIixBiKSpEY0lLQyqkao99iYYQW4Q8IWgJIXaxpA2xLyEEVUsIIfYQQvr+7zPzzr9nTufed/vezH33Xt/mnfs7y2/OmfuZM7+eOzP3e8f0658IiIAIiEBbCYwx/RMBERABEWgrAQXetuLWYCIgAh1LoI07psDbRtgaSgREQAQgoMALBSUREAERaCMBBd42wtZQIiACq0ugN/0VeHvzuOpdiYAIdDABBd4OPjjaNREQgd4koMDbm8dV70oE6iSgvkdIQIF3hAC1uQiIgAisLgEF3tUlJn8REAERGCEBBd4RAtTmItApBLQf3UNAgbd7jpX2VAREoEcIKPD2yIHU2xABEegeAgq83XOstKfdSED7LAIlBBR4S6CoSgREQATqJKDAWyfdgb6feOIJO+qoo5TEoCPnAPNzYJrqr80EFHhrBn733Xfbgw8+qNRRDHQ8wpxkftZ8Cqj7EgIKvCVQ6qhydxszZoytscYatuaaa9paa61lY8eOtbXXXtvWWWcdGzdunK277ro2fvx422CDDWzDDTe0jTbayDbeeGPbZJNNbNNNN7XNNtvMNt98c9tiiy1syy23tK222somTJhgEydOtG222ca23XZb22677Wz77be3HXbYwXbccUfbaaedbOedd7ZddtnFdtttN9t9991t0qRJNnnyZJsyZYrtueeetvfee9s+++xjU6dOtX333df2228/mzZtmk2fPt0OOOAAO/DAA+2ggw6ygw8+2A455BA79NBD7bDDDrPDDz/cjjzyyGwld/TRR9vMmTPt2GOPteOOO86OP/54O+GEE2zWrFl24okn2kknnWSnnHKKzZ492+bMmWOnnXaazZ07104//XQ744wzbN68eXbmmWfaWWedZWeffbbNnz/fFixYYOeee66df/75dsEFF9hFF11kF198sV1yySV26aWX2uWXX25XXHGFXXXVVXb11Vfbtddea9ddd50tXLjQrr/+ervhhhvsxhtvtJtuusluvvlmu+WWW+y2226z22+/3e644w6788477a677rK+vj4jAN1zzz1277332n333Wf333+/LVq0KPsP86GHHrKHH37YHnnkEXv00Uftscces8cff9xY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';
   static readonly DATACUBE_RING_FIRE_LAYER_ID_VICTORIA: string = 'victoria';
 
-  /** Geomet */
+  /** Geomet (serves WMS and WFS) */
   static readonly GEOMET_URL: string = 'https://geo.weather.gc.ca/geomet';
   static readonly GEOMET_URL_CURRENT_COND_LAYER_ID: string = 'ec-msc:CURRENT_CONDITIONS';
+
+  /** WMS — Nonna service (CORS blocked, triggers proxy fallback) */
+  static readonly NONNA_WMS_URL: string = 'https://nonna-geoserver.data.chs-shc.ca/geoserver/wms';
+  static readonly NONNA_WMS_LAYER_ID: string = 'nonna:NONNA 10';
+
+  /** WFS — Belgium Meteo service (CORS blocked, triggers proxy fallback) */
+  static readonly BELGIUM_WFS_URL: string = 'https://opendata.meteo.be/service/aws/ows';
+
+  /** WMTS — Taiwan NLSC service (CORS blocked, triggers proxy fallback) */
+  static readonly TAIWAN_WMTS_URL: string = 'https://maps.nlsc.gov.tw/S_Maps/wmt';
+
+  /** JSON endpoint (CORS blocked, triggers proxy fallback) */
+  // GV Not working anymore, url got blocked by NRCan, have to find another public CORS example to replace this test..
+  static readonly PUBLIC_JSON_URL_CORS: string = 'https://fantasy.premierleague.com/api/bootstrap-static/';
+
+  /** WMTS — ArcGIS World Timezones sample service */
+  static readonly WORLD_TIMEZONES_WMTS_URL: string =
+    'https://sampleserver6.arcgisonline.com/arcgis/rest/services/WorldTimeZones/MapServer/WMTS';
+  static readonly WORLD_TIMEZONES_WMTS_URL_LAYER_ID: string = '0';
+  static readonly WORLD_TIMEZONES_WMTS_URL_MATRIX_SET_ID: string = 'default028mm';
 
   // GV: Can't add the icon property here, because it's a randomly generated color depending on the layers processed on the map
   static readonly GEOMET_ICON_LIST: Partial<TypeLegendItem>[] = [
@@ -457,6 +477,10 @@ export abstract class GVAbstractTester extends AbstractTester {
   static readonly VECTOR_TILES_CBMT_3978_URL: string =
     'https://tiles.arcgis.com/tiles/HsjBaDykC1mjhXz9/arcgis/rest/services/CBMT_CBCT_3978_V_OSM/VectorTileServer';
   static readonly VECTOR_TILES_CBMT_3978_LAYER_NAME: string = 'CBMT 3978 Vector Tiles';
+
+  /** XYZ Tiles — OpenStreetMap standard tile server. */
+  static readonly XYZ_TILES_OSM_URL: string = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  static readonly XYZ_TILES_OSM_LAYER_ID: string = 'OpenStreetMapXYZ';
 
   /** Water Network (has fields with coded value domains, e.g. "material" on layer 16). */
   static readonly WATER_NETWORK_MAP_SERVER: string = 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Water_Network/MapServer';
@@ -582,6 +606,42 @@ export abstract class GVAbstractTester extends AbstractTester {
   }
 
   /**
+   * Destroys the current map and creates a new one from the given config.
+   *
+   * Deletes the existing map viewer, creates a fresh instance via `createMapFromConfigFast`,
+   * reassigns the tester's internal references, and waits for all layers to finish loading.
+   *
+   * @param test - The test instance used to log each step
+   * @param mapId - The map identifier to destroy and recreate
+   * @param mapConfig - The map configuration object (will be JSON-stringified)
+   * @returns A promise that resolves with the newly created MapViewer
+   */
+  async replaceMap<T>(test: Test<T>, mapId: string, mapConfig: unknown): Promise<MapViewer> {
+    // Delete current map
+    test.addStep('Deleting current map...');
+    await this.getApi().deleteMapViewer(mapId, false);
+
+    // Wait for layer to load and data table to initialize
+    test.addStep('Creating the map from config...');
+    const mapViewer = await this.getApi().createMapFromConfigFast(mapId, JSON.stringify(mapConfig), 500);
+
+    // Replace the map viewer and the controller registry in the tester with the new one created from config
+    this.reassignMapViewerAndControllers(mapViewer, mapViewer.controllers);
+
+    // Wait for layer to load and data table to initialize
+    test.addStep('Waiting for layers to get loaded...');
+    const loadedLayersCount = await this.getControllersRegistry().layerController.waitForLayersLoaded();
+    test.addStep(`Layers loaded (${loadedLayersCount})`);
+
+    // Force a synchronous render so OL populates frameState_ (required for getPixelFromCoordinate to work in hidden tabs)
+    test.addStep('Waiting for map render...');
+    await mapViewer.waitForRender();
+
+    // Return the map viewer
+    return mapViewer;
+  }
+
+  /**
    * Removes a layer from the map using its path and asserts that it no longer exists in the legend store.
    *
    * Each step is logged to the provided test instance for traceability.
@@ -603,5 +663,167 @@ export abstract class GVAbstractTester extends AbstractTester {
     test.addStep(`Check that the layer is indeed removed...`);
     const legendLayer = getStoreLayerLegendLayerByPath(this.getMapId(), layerPath);
     Test.assertIsUndefined('legendLayer', legendLayer);
+  }
+
+  /**
+   * Returns a promise that resolves when an element matching the given selector exists in the DOM.
+   *
+   * Resolves immediately if the element already exists. Otherwise, uses a MutationObserver on the parent
+   * to wait for the element to appear. Useful for waiting on React to mount a component.
+   *
+   * @param selector - The CSS selector to query for
+   * @param parent - Optional parent element to observe (default: document.body)
+   * @param timeout - Optional maximum duration in milliseconds to wait before rejecting. When omitted, waits indefinitely
+   * @returns A promise that resolves with the matched element
+   */
+  static waitForDomElement(selector: string, parent?: Element, timeout?: number): Promise<Element> {
+    const root = parent ?? document.body;
+
+    // If the element already exists, resolve immediately
+    const existing = root.querySelector(selector);
+    if (existing) {
+      return Promise.resolve(existing);
+    }
+
+    return new Promise<Element>((resolve, reject) => {
+      const state = { resolved: false };
+      const observer = new MutationObserver(() => {
+        if (state.resolved) return;
+        const el = root.querySelector(selector);
+        if (el) {
+          state.resolved = true;
+          observer.disconnect();
+          resolve(el);
+        }
+      });
+      observer.observe(root, { childList: true, subtree: true });
+
+      // Only set up the timeout when a duration is provided; otherwise wait indefinitely
+      if (timeout !== undefined) {
+        setTimeout(() => {
+          if (state.resolved) return;
+          state.resolved = true;
+          observer.disconnect();
+          reject(new Error(`waitForDomElement timed out after ${timeout}ms waiting for "${selector}"`));
+        }, timeout);
+      }
+    });
+  }
+
+  /**
+   * Returns a promise that resolves when the given element has non-empty text content.
+   *
+   * Resolves immediately if the element already has text content. Otherwise, delegates to waitForDomChange
+   * with a filter that checks for non-empty text. Useful for waiting on React to render text into a DOM element.
+   *
+   * @param element - The DOM element to check for text content
+   * @param timeout - Optional maximum duration in milliseconds to wait before rejecting. When omitted, waits indefinitely
+   * @returns A promise that resolves when the element has text content, or rejects on timeout
+   */
+  static waitForDomContent(element: Element, timeout?: number): Promise<void> {
+    // If the element already has content, resolve immediately
+    if (element.textContent?.trim()) {
+      return Promise.resolve();
+    }
+
+    // Otherwise, wait for a DOM change that results in non-empty text content
+    return GVAbstractTester.waitForDomChange(element, () => !!element.textContent?.trim(), timeout);
+  }
+
+  /**
+   * Returns a promise that resolves when a DOM mutation is observed on the given element.
+   *
+   * Uses a MutationObserver to detect changes (childList, subtree, characterData) without polling.
+   * Useful for waiting on React UI updates after a store change.
+   * When a filter is provided, the observer keeps listening until the filter returns true.
+   *
+   * @param element - The DOM element to observe for changes
+   * @param filter - Optional predicate evaluated on each mutation. When provided, only resolves when filter returns true
+   * @param timeout - Optional maximum duration in milliseconds to wait before rejecting. When omitted, waits indefinitely
+   * @returns A promise that resolves when the DOM changes (and passes the filter), or rejects on timeout
+   */
+  static waitForDomChange(element: Element, filter?: () => boolean, timeout?: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const state = { resolved: false };
+      const observer = new MutationObserver(() => {
+        if (state.resolved) return;
+        if (filter && !filter()) return;
+        state.resolved = true;
+        observer.disconnect();
+        resolve();
+      });
+      observer.observe(element, { childList: true, subtree: true, characterData: true });
+
+      // Only set up the timeout when a duration is provided; otherwise wait indefinitely
+      if (timeout !== undefined) {
+        setTimeout(() => {
+          if (state.resolved) return;
+          state.resolved = true;
+          observer.disconnect();
+          reject(new Error(`waitForDomChange timed out after ${timeout}ms`));
+        }, timeout);
+      }
+    });
+  }
+
+  /**
+   * Polls a condition at short intervals until it returns true, then resolves.
+   *
+   * This is the preferred way to wait for an expected state change (e.g., store update, layer registration)
+   * rather than using a fixed delay. Delegates to `whenThisThen` from geoview-core utilities.
+   *
+   * @param condition - A predicate that returns true when the expected state is reached
+   * @param timeout - Optional maximum duration in milliseconds to wait before rejecting
+   * @returns A promise that resolves with true when the condition is met, or rejects on timeout
+   */
+  static waitForCondition(condition: () => boolean, timeout?: number): Promise<boolean> {
+    return whenThisThen(condition, timeout);
+  }
+
+  /**
+   * Waits for a fixed delay to allow React to re-render after a store update.
+   *
+   * This is a brute-force workaround that should only be used as a last resort when no DOM signal
+   * is available to observe. Prefer {@link waitForDomElement}, {@link waitForDomContent}, or
+   * {@link waitForDomChange} which react to actual DOM mutations instead of relying on an arbitrary delay.
+   * The default period is rather long, because it's a very arbitrary period to wait for.. and when many tests are
+   * happening in parallel, react will be much slower at rendering and triggering the components useEffects.
+   *
+   * @param period - Optional delay in milliseconds (default: 5000)
+   * @returns A promise that resolves after the fixed delay
+   */
+  static waitForUI(period = 5000): Promise<void> {
+    // Wait for a short delay to allow React to process the store update and re-render components
+    return delay(period);
+  }
+
+  /**
+   * Waits until the browser's main thread becomes idle using `requestIdleCallback`.
+   *
+   * This is useful for waiting until React has finished its render and commit phases, since the
+   * idle callback fires only after all pending tasks (renders, effects, layout) have completed.
+   * Prefer polling with `whenThisThen` for specific expected outcomes; use this when you need a
+   * lightweight "wait for React to settle" without knowing the exact condition to check.
+   *
+   * @returns A promise that resolves when the browser reports an idle period
+   */
+  static waitForBrowserIdle(): Promise<void> {
+    return new Promise((resolve) => {
+      (window as unknown as { requestIdleCallback: (cb: () => void) => void }).requestIdleCallback(resolve);
+    });
+  }
+
+  /**
+   * Waits for a purely aesthetic delay to allow the test UI to visually catch up.
+   *
+   * This should only be used for display purposes (e.g., giving the human observer time to see
+   * intermediate state changes in the test runner UI). Never use this for functional synchronization.
+   *
+   * @param period - Optional delay in milliseconds (default: 5000)
+   * @returns A promise that resolves after the delay
+   */
+  static waitForFun(period = 5000): Promise<void> {
+    // Wait for the React UI to actually pick up on the store update
+    return delay(period);
   }
 }

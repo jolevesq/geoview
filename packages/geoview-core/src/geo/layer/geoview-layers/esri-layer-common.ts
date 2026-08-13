@@ -36,7 +36,6 @@ import { AbstractGeoViewLayer } from '@/geo/layer/geoview-layers/abstract-geovie
 import { EsriRenderer } from '@/geo/utils/renderer/esri-renderer';
 import { EsriDynamic } from '@/geo/layer/geoview-layers/raster/esri-dynamic';
 import { EsriFeature } from '@/geo/layer/geoview-layers/vector/esri-feature';
-import type { EsriImage } from '@/geo/layer/geoview-layers/raster/esri-image';
 import {
   LayerEntryConfigLayerIdEsriMustBeNumberError,
   LayerNotFeatureLayerError,
@@ -67,18 +66,13 @@ export class EsriUtilities {
    * @returns A promise that resolves once the layer configuration has its metadata processed
    * @throws {LayerServiceMetadataUnableToFetchError} When the metadata fetch fails or contains an error
    */
-  static async initLayerMetadata<
-    T extends EsriDynamic | EsriFeature | EsriImage,
-    U extends EsriDynamicLayerEntryConfig | EsriFeatureLayerEntryConfig | EsriImageLayerEntryConfig,
-  >(layer: T, layerConfig: U, displayDateMode?: DisplayDateMode, abortSignal?: AbortSignal): Promise<U> {
+  static async initLayerMetadata<T extends EsriDynamicLayerEntryConfig | EsriFeatureLayerEntryConfig | EsriImageLayerEntryConfig>(
+    layerConfig: T,
+    displayDateMode?: DisplayDateMode,
+    abortSignal?: AbortSignal
+  ): Promise<T> {
     // User-defined groups do not have metadata provided by the service endpoint.
     if (layerConfig.getEntryTypeIsGroup() && !layerConfig.getIsMetadataLayerGroup()) return layerConfig;
-
-    // If a proxy was necessary when the metadata were fetched
-    if (layer.getIsUsingProxy()) {
-      // Indicate the proxy that was used
-      layerConfig.setProxyUrl(layer.getProxyUrl());
-    }
 
     // If the layer is EsriDynamic or EsriFeature (basically not EsriImage)
     let layerMetadata: TypeMetadataEsriDynamicLayer | TypeMetadataEsriFeatureLayer | TypeMetadataEsriImage;
@@ -640,6 +634,20 @@ export class EsriUtilities {
     // Initialize the outfields
     // dynamic group layer doesn't have fields definition
     if (hasFields && !isGroupLayer) {
+      // Always detect and store the geometry field from the metadata, regardless of whether outfields are user-configured.
+      // This ensures we can still fetch geometry when needed even when the user's outfields don't include the geometry field.
+      if (layerMetadataEsriDynamicLayer.geometryField) {
+        const geoField = fields.find((f) => f.name === layerMetadataEsriDynamicLayer.geometryField?.name);
+        if (geoField) {
+          layerConfig.setGeometryField({
+            name: geoField.name,
+            alias: geoField.alias || geoField.name,
+            // TODO: CHECK - Mismatch of TypeOutfieldsType and geometryType as string. This seems wrong, should the TypeOutfieldsType be enhanced to include geometry types?
+            type: layerMetadataEsriDynamicLayer.geometryType as TypeOutfieldsType,
+          });
+        }
+      }
+
       // Get the outfields
       let outfields = layerConfig.getOutfields();
 
@@ -650,17 +658,8 @@ export class EsriUtilities {
 
         // Loop
         fields.forEach((fieldEntry) => {
-          // If the field is the geometry field
+          // Skip the geometry field - it was already stored above
           if (layerMetadataEsriDynamicLayer.geometryField && fieldEntry?.name === layerMetadataEsriDynamicLayer.geometryField?.name) {
-            // Keep the geometry field for future use
-            layerConfig.setGeometryField({
-              name: fieldEntry.name,
-              alias: fieldEntry.alias || fieldEntry.name,
-              // TODO: CHECK - Mismatch of TypeOutfieldsType and geometryType as string. This seems wrong, should the TypeOutfieldsType be enhanced to include geometry types?
-              type: layerMetadataEsriDynamicLayer.geometryType as TypeOutfieldsType,
-            });
-
-            // Skip that geometry field
             return;
           }
 
