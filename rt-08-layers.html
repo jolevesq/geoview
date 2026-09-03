@@ -1,6 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>RT-08 Layers Panel - Release Testing</title><link rel="shortcut icon" href="./favicon.ico"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div id="page-header"></div><div><div class="back-to-main"><a href="./release-testing.html">← Back to Release Testing</a></div><div class="demo-section"><h4>08 — Layers Panel Tests</h4><p>Left panel (reorder, visibility, collapse, delete), right panel (info, settings, shortcuts, actions, opacity, style classes). For "Add Layer" tests, use the dedicated <a href="../demos/add-layers.html" target="_blank">Add Layers demo page</a>.</p><p><strong>Test plan:</strong> <a href="https://github.com/Canadian-Geospatial-Platform/geoview/blob/develop/docs/programming/release-testing/08-layers.md" target="_blank">08-layers.md</a></p></div><h5>Map 1 — Layers Panel (Groups, Settings, Style Classes)</h5><p>GeoCore group layers (Fieldnotes = ESRI dynamic groups, Hydro = WMS groups with scale limits) + simple layer + ESRI Feature layers with uniqueValue/classBreaks style classes. Layers panel in footer bar for reorder, visibility, settings, opacity, shortcuts.</p><div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px;"><button onclick="collapseAll()">Collapse All</button> <button onclick="expandAll()">Expand All</button> <button onclick="toggleAllVisOff()">All Visibility OFF</button> <button onclick="toggleAllVisOn()">All Visibility ON</button></div><div id="map1" class="geoview-map" data-lang="en" data-config="{
           'map': {
-            'interaction': 'dynamic',
             'viewSettings': { 'projection': 3978, 'initialView': { 'zoomAndCenter': [4, [-90, 60]] } },
             'basemapOptions': { 'basemapId': 'transport', 'shaded': true, 'labeled': true },
             'listOfGeoviewLayerConfig': [
@@ -38,7 +37,6 @@
           'theme': 'geo.ca'
         }"></div><h5>Map 2 — WMS & ESRI Image Layer Settings</h5><p>WMS layers from wms.json with settings panels. ESRI Image layer for raster function and mosaic rule settings.</p><div id="map2" class="geoview-map" data-lang="en" data-config="{
           'map': {
-            'interaction': 'dynamic',
             'viewSettings': { 'projection': 3978, 'initialView': { 'zoomAndCenter': [4, [-90, 60]] } },
             'basemapOptions': { 'basemapId': 'transport', 'shaded': true, 'labeled': true },
             'listOfGeoviewLayerConfig': [
@@ -71,7 +69,6 @@
           'theme': 'geo.ca'
         }"></div><h5>Map 3 — Esri Dynamic: Group of Groups</h5><p>Multi-level group hierarchy (groups within groups). Tests expand/collapse, visibility per level, feature query on nested leaves.</p><div id="map3" class="geoview-map" data-lang="en" data-config="{
           'map': {
-            'interaction': 'dynamic',
             'viewSettings': { 'projection': 3857, 'initialView': { 'zoomAndCenter': [10, [-75.370748, 45.001058]] } },
             'basemapOptions': { 'basemapId': 'transport', 'shaded': false, 'labeled': true },
             'listOfGeoviewLayerConfig': [
@@ -98,7 +95,6 @@
           'theme': 'geo.ca'
         }"></div><h5>Map 4 — Esri Dynamic: Projections (forceServiceProjection)</h5><p>Tests forceServiceProjection flag: OL reproject-on-the-fly vs server-side reprojection. Switch projection and verify no artifacts.</p><div id="map4" class="geoview-map" data-lang="en" data-config="{
           'map': {
-            'interaction': 'dynamic',
             'viewSettings': { 'projection': 3857, 'initialView': { 'zoomAndCenter': [5, [-90, 50]] } },
             'basemapOptions': { 'basemapId': 'transport', 'shaded': true, 'labeled': true },
             'listOfGeoviewLayerConfig': [
@@ -122,7 +118,6 @@
           'theme': 'geo.ca'
         }"></div><h5>Map 5 — Vector Tiles</h5><p>CBCT French and CBMT English vector tile layers with styleUrl. Toggle independently, zoom for level-of-detail.</p><div id="map5" class="geoview-map" data-lang="en" data-config="{
           'map': {
-            'interaction': 'dynamic',
             'viewSettings': { 'projection': 3978 },
             'basemapOptions': { 'basemapId': 'imagery', 'shaded': false, 'labeled': false },
             'listOfGeoviewLayerConfig': [
@@ -148,7 +143,6 @@
           'theme': 'geo.ca'
         }"></div><h5>Map 6 — WKB (Well-Known Binary)</h5><p>Two WKB layers (South Africa polygons): one from metadataAccessPath hex string, one from dataAccessPath. Initial view zooms to layerIds.</p><div id="map6" class="geoview-map" data-lang="en" data-config="{
           'map': {
-            'interaction': 'dynamic',
             'viewSettings': { 'projection': 3857, 'maxExtent': [-180, -90, 180, 90], 'initialView': { 'layerIds': ['wkbLYR1/1'] } },
             'basemapOptions': { 'basemapId': 'transport', 'shaded': true, 'labeled': false },
             'listOfGeoviewLayerConfig': [

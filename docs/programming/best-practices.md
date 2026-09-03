@@ -213,7 +213,7 @@ Tags Worth Using
 - @returns
 - @throws (@throws {TheErrorType} (description)  e.g. @throws {LayerNotGeoJsonError} When...)
 - @example
-- @deprecated
+- @deprecated (must include a reason, e.g. `@deprecated Use \`newMethod()\` instead`)
 - @see
 
 Tags Usually Overkill in TS
@@ -247,6 +247,31 @@ Advanced Best Practice
  */
 ```
 
+### Propagating `@throws` from called functions
+
+When a function calls another function that throws and does **not** catch the error, the caller must list each specific `@throws` from the callee — not a generic `@throws {Error}`. Copy the exact error types and descriptions, appending `(propagated from \`calledFunction()\`)` to each.
+
+```ts
+// ❌ Bad: generic @throws hides the actual error types callers need to handle
+/**
+ * @throws {Error} When the guide file cannot be fetched (propagated from `Fetch.fetchText()`)
+ */
+
+// ✅ Good: each specific error type from the callee is listed individually
+/**
+ * @throws {RequestTimeoutError} When the request exceeds the timeout duration (propagated from `Fetch.fetchText()`)
+ * @throws {RequestAbortedError} When the request was aborted by the caller's signal (propagated from `Fetch.fetchText()`)
+ * @throws {ResponseError} When the response is not OK / non-2xx (propagated from `Fetch.fetchText()`)
+ * @throws {ResponseEmptyError} When the text response is empty (propagated from `Fetch.fetchText()`)
+ * @throws {NetworkError} When a network issue happened (propagated from `Fetch.fetchText()`)
+ */
+```
+
+**Rules:**
+- If the caller catches and handles the error (e.g., logs it, returns a fallback), do **not** add `@throws`
+- If the caller wraps the error into a new error type, document the new type only
+- If the callee has no `@throws` documentation, check its implementation and document what it actually throws
+
 ## 10- How we order functions in component
 
 In components, functions should be ordered in the following way:
@@ -277,57 +302,80 @@ export class MyController extends AbstractMapViewerController {
   // properties …
 
   // #region OVERRIDES
-  override onHook(): void { /* … */ }
+  override onHook(): void {
+    /* … */
+  }
   // #endregion OVERRIDES
 
   // #region PUBLIC METHODS
-  doSomething(): void { /* … */ }
+  doSomething(): void {
+    /* … */
+  }
   // #endregion PUBLIC METHODS
 
   // #region PROTECTED METHODS
-  protected helperMethod(): void { /* … */ }
+  protected helperMethod(): void {
+    /* … */
+  }
   // #endregion PROTECTED METHODS
 
   // #region PRIVATE METHODS
-  #internalWork(): void { /* … */ }
+  #internalWork(): void {
+    /* … */
+  }
   // #endregion PRIVATE METHODS
 
   // #region DOMAIN HANDLERS
-  #handleLayerLoaded(sender: unknown, event: LayerLoadedEvent): void { /* … */ }
+  #handleLayerLoaded(sender: unknown, event: LayerLoadedEvent): void {
+    /* … */
+  }
   // #endregion DOMAIN HANDLERS
 
   // #region EVENTS
-  #emitMyEvent(event: MyEvent): void { /* … */ }
-  onceMyEvent(): Promise<MyEvent> { /* … */ }
-  onMyEvent(callback: MyDelegate): void { /* … */ }
-  offMyEvent(callback: MyDelegate): void { /* … */ }
+  #emitMyEvent(event: MyEvent): void {
+    /* … */
+  }
+  onceMyEvent(): Promise<MyEvent> {
+    /* … */
+  }
+  onMyEvent(callback: MyDelegate): void {
+    /* … */
+  }
+  offMyEvent(callback: MyDelegate): void {
+    /* … */
+  }
   // #endregion EVENTS
 
   // #region STATIC METHODS
-  static createConfig(): MyConfig { /* … */ }
+  static createConfig(): MyConfig {
+    /* … */
+  }
   // #endregion STATIC METHODS
 }
 
 // #region EVENT TYPES
 type MyDelegate = EventDelegateBase<MyController, MyEvent, void>;
-export type MyEvent = { /* … */ };
+export type MyEvent = {
+  /* … */
+};
 // #endregion EVENT TYPES
 ```
 
 **Common region labels used in the codebase:**
 
-| Region label | Contents |
-|---|---|
-| `OVERRIDES` | Abstract / override methods |
-| `PUBLIC METHODS` | Public instance methods (may have sub-regions like `PUBLIC METHODS - DOMAIN SIMPLE GETTERS`) |
-| `PROTECTED METHODS` | Protected instance methods |
-| `PRIVATE METHODS` | Private instance methods |
-| `DOMAIN HANDLERS` | Private handlers subscribed to domain events |
-| `EVENTS` | Event emit/once/on/off methods (order: `#emit`, `once`, `on`, `off` per event) |
-| `STATIC METHODS` | Static public and private methods |
-| `EVENT TYPES` or `EVENTS & DELEGATES` | Delegate types and event interfaces (outside the class body) |
+| Region label                          | Contents                                                                                     |
+| ------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `OVERRIDES`                           | Abstract / override methods                                                                  |
+| `PUBLIC METHODS`                      | Public instance methods (may have sub-regions like `PUBLIC METHODS - DOMAIN SIMPLE GETTERS`) |
+| `PROTECTED METHODS`                   | Protected instance methods                                                                   |
+| `PRIVATE METHODS`                     | Private instance methods                                                                     |
+| `DOMAIN HANDLERS`                     | Private handlers subscribed to domain events                                                 |
+| `EVENTS`                              | Event emit/once/on/off methods (order: `#emit`, `once`, `on`, `off` per event)               |
+| `STATIC METHODS`                      | Static public and private methods                                                            |
+| `EVENT TYPES` or `EVENTS & DELEGATES` | Delegate types and event interfaces (outside the class body)                                 |
 
 **Rules:**
+
 - A region is only needed when the group has at least one member
 - Sub-regions are allowed for large classes (e.g., `PUBLIC METHODS - UI RELATED`)
 - The `// #endregion` comment should repeat the label for readability
@@ -342,7 +390,7 @@ This naming is required for consistency and readability across the codebase. The
 ```ts
 // ✅ Good: EventHelper delegate naming convention
 this.getMapViewer().onMapMoveEnd((sender, event): void => {
-  logger.logDebug('Map moved', event.lonlat);
+  logger.logDebug("Map moved", event.lonlat);
 });
 
 // ✅ Also good when one parameter is intentionally unused
@@ -444,17 +492,17 @@ waitForMapReady(): Promise<MapBaseEvent> {
 
 **Existing examples:**
 
-| Method | Class | Resolves when... |
-|---|---|---|
-| `waitForMapReady()` | `MapViewer` | The map is fully initialized |
-| `waitForMoveEnd()` | `MapViewer` | The current animation/interaction completes |
-| `waitForRender()` | `MapViewer` | The next `rendercomplete` event fires |
-| `waitForBounds()` | `AbstractBaseGVLayer` | The layer's bounds become available |
-| `waitForLoadedOnce()` | `AbstractGVLayer` | The layer reaches its first `loaded` state |
-| `waitForLayerToGetRegistered()` | `AbstractLayerSet` | A layer path is registered in the set |
-| `waitForAllLayersStatus()` | `LayerController` | All layers reach a given status |
-| `waitForLayersLoaded()` | `LayerController` | Map is ready + all layers are loaded |
-| `waitForOverviewMapVisibility()` | `MapController` | Overview map reaches expected visibility |
+| Method                           | Class                 | Resolves when...                            |
+| -------------------------------- | --------------------- | ------------------------------------------- |
+| `waitForMapReady()`              | `MapViewer`           | The map is fully initialized                |
+| `waitForMoveEnd()`               | `MapViewer`           | The current animation/interaction completes |
+| `waitForRender()`                | `MapViewer`           | The next `rendercomplete` event fires       |
+| `waitForBounds()`                | `AbstractBaseGVLayer` | The layer's bounds become available         |
+| `waitForLoadedOnce()`            | `AbstractGVLayer`     | The layer reaches its first `loaded` state  |
+| `waitForLayerToGetRegistered()`  | `AbstractLayerSet`    | A layer path is registered in the set       |
+| `waitForAllLayersStatus()`       | `LayerController`     | All layers reach a given status             |
+| `waitForLayersLoaded()`          | `LayerController`     | Map is ready + all layers are loaded        |
+| `waitForOverviewMapVisibility()` | `MapController`       | Overview map reaches expected visibility    |
 
 **Why prefer `waitFor*` over `whenThisThen` polling:**
 
@@ -491,3 +539,29 @@ onceLayerQueried(filter?: (event: LayerQueriedEvent) => boolean): Promise<LayerQ
 ```
 
 **Checklist when adding a new event:** After writing the `#emit*`, `once*`, `on*`, `off*` group, verify that `once*` has `filter?: (event: EventType) => boolean` in its signature and passes it to `onceEventPromise`.
+
+## <a id="accessibility"></a>17- Accessibility (WCAG 2.1 Level AA)
+
+**For detailed patterns with code examples, see [accessibility.md Section 008](app/accessibility.md#code-review-checklist).**
+
+**Note:** `IconButton` `aria-label` is TypeScript-enforced — the compiler prevents missing labels, no manual check needed.
+
+**Quick reference — Common issues to check during code review:**
+
+- `onClick` on `<div>`, `<span>`, `<Box>` without `role="button"` + `tabIndex={0}` + keyboard handler for Enter/Space
+- Ternary operator in `aria-label` on toggle buttons (use stable label + `aria-pressed` instead)
+- `disabled={state}` on buttons that toggle between enabled/disabled (use `aria-disabled` to prevent focus loss)
+- Modal/Dialog/Drawer without `onKeyDown` handler calling `handleEscapeKey(event.key, onClose)` from `@/core/utils/utilities`
+- Images without `alt` attribute (use `alt=""` for decorative, descriptive text for informative)
+- `<Tooltip>` wrapping non-interactive elements like `ListItem`, `Box`, `Typography` (use `ListItemButton` or other interactive wrapper)
+- Duplicate IDs in loops (add unique suffixes like `${mapId}-layer-${id}` or use `generateId(8)`)
+
+**See [accessibility.md Section 008](app/accessibility.md#code-review-checklist) for:**
+
+- Complete ❌ VIOLATION / ✅ CORRECT code examples
+- Search patterns for each check
+- "Why this matters" explanations
+- TypeScript enforcement details
+- Priority levels (HIGH/MEDIUM/ENHANCEMENT)
+
+**For comprehensive WCAG 2.1 Level AA guidance, see [accessibility.md](app/accessibility.md).**

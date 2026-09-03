@@ -1,6 +1,5 @@
 {
   "map": {
-    "interaction": "dynamic",
     "viewSettings": {
       "initialView": {
         "zoomAndCenter": [
@@ -103,6 +102,9 @@
   "corePackages": [
     "swiper"
   ],
+  "globalSettings": {
+    "canRemoveSublayers": false
+  },
   "theme": "geo.ca",
   "corePackagesConfig": [
     {
