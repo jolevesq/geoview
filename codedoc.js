@@ -515,7 +515,10 @@ function testSuiteCreateTable(plugin) {
       Suites: <span id="suitesCompleted-${mapId}">0</span>/<span id="suitesTotal-${mapId}">0</span>
     </div>
     <div style="text-align:right;">
-      Running: <span id="testsRunning-${mapId}">0</span> | Success: <span id="testsDoneSuccess-${mapId}" style="color:green;">0</span> | Failed: <span id="testsDoneFailed-${mapId}" style="color:green;">0</span> | Done: <span id="testsDone-${mapId}">0</span>/<span id="testsTotal-${mapId}">0</span>
+      Running: <span id="testsRunning-${mapId}">0</span> | Success: <span id="testsDoneSuccess-${mapId}" style="color:green;">0</span> | Skipped: <span id="testsDoneSkipped-${mapId}" style="color:orange;">0</span> | Failed: <span id="testsDoneFailed-${mapId}" style="color:green;">0</span> | Done: <span id="testsDone-${mapId}">0</span>/<span id="testsTotal-${mapId}">0</span>/<span id="testsTotalFinal-${mapId}">0</span>
+    </div>
+    <div style="text-align:right;">
+      Duration: <span id="testsDuration-${mapId}">0</span>
     </div>
     <button id="btnLaunchTest-${mapId}" class="btnLaunchTests" onclick="launchTests('${mapId}')" disabled="true">LAUNCH TESTS ${mapId} !</button>
     <br/><br/>
@@ -526,13 +529,65 @@ function testSuiteCreateTable(plugin) {
         <col>
       </colgroup>
       <thead>
-        <tr><td>TEST</td><td>RESULT</td><td>DETAILS</td></tr>
+        <tr><td>TEST</td><td>RESULT</td><td>DURATION</td><td>DETAILS</td></tr>
       </thead>
       <tbody id="tableBody-${mapId}"></tbody>
     </table>
   `;
 
   return wrapper;
+}
+
+const testSuiteDurationTimers = {};
+
+function getTestSuiteDurationTimerKey(plugin, idPrefix = '') {
+  return `${idPrefix || 'default'}-${plugin.mapViewer.mapId}`;
+}
+
+function testSuiteStartLiveDuration(plugin, idPrefix = '') {
+  const prefix = idPrefix ? idPrefix + '-' : '';
+  const testsDurationSpan = document.getElementById(prefix + 'testsDuration-' + plugin.mapViewer.mapId);
+  if (!testsDurationSpan) return;
+
+  // Clear any stale timer before starting a new run.
+  testSuiteStopLiveDuration(plugin, idPrefix);
+
+  const timerKey = getTestSuiteDurationTimerKey(plugin, idPrefix);
+  const startedAt = Date.now();
+  const intervalId = setInterval(() => {
+    const duration = Date.now() - startedAt;
+    testsDurationSpan.innerText = cgpv.api.utilities.core.formatDuration(duration);
+  }, 200);
+
+  testSuiteDurationTimers[timerKey] = {
+    intervalId,
+    startedAt,
+  };
+}
+
+function testSuiteStopLiveDuration(plugin, idPrefix = '', finalDurationMs) {
+  const timerKey = getTestSuiteDurationTimerKey(plugin, idPrefix);
+  const timerInfo = testSuiteDurationTimers[timerKey];
+  if (timerInfo) {
+    clearInterval(timerInfo.intervalId);
+    delete testSuiteDurationTimers[timerKey];
+  }
+
+  if (finalDurationMs !== undefined) {
+    const prefix = idPrefix ? idPrefix + '-' : '';
+    const testsDurationSpan = document.getElementById(prefix + 'testsDuration-' + plugin.mapViewer.mapId);
+    if (testsDurationSpan) {
+      testsDurationSpan.innerText = cgpv.api.utilities.core.formatDuration(finalDurationMs);
+    }
+  }
+}
+
+function testSuiteGetLiveDuration(plugin, idPrefix = '') {
+  const timerKey = getTestSuiteDurationTimerKey(plugin, idPrefix);
+  const timerInfo = testSuiteDurationTimers[timerKey];
+  if (!timerInfo) return undefined;
+
+  return Date.now() - timerInfo.startedAt;
 }
 
 function testSuiteUpdateTotals(plugin, idPrefix = '') {
@@ -553,6 +608,9 @@ function testSuiteUpdateTotals(plugin, idPrefix = '') {
   if (testsRunning) testsRunning.textContent = plugin.getTestsRunning();
   const testsDoneSuccess = document.getElementById(prefix + 'testsDoneSuccess-' + plugin.mapViewer.mapId);
   if (testsDoneSuccess) testsDoneSuccess.textContent = plugin.getTestsDoneSuccess();
+  const testsDoneSkipped = document.getElementById(prefix + 'testsDoneSkipped-' + plugin.mapViewer.mapId);
+  if (testsDoneSkipped) testsDoneSkipped.textContent = plugin.getTestsDoneSkipped();
+
   const testsDoneFailed = document.getElementById(prefix + 'testsDoneFailed-' + plugin.mapViewer.mapId);
   if (testsDoneFailed) {
     testsDoneFailed.textContent = plugin.getTestsDoneFailed();
@@ -565,6 +623,24 @@ function testSuiteUpdateTotals(plugin, idPrefix = '') {
   if (testsDone) testsDone.textContent = plugin.getTestsDone();
   const testsTotal = document.getElementById(prefix + 'testsTotal-' + plugin.mapViewer.mapId);
   if (testsTotal) testsTotal.textContent = plugin.getTestsTotal();
+  const testsTotalFinal = document.getElementById(prefix + 'testsTotalFinal-' + plugin.mapViewer.mapId);
+  if (testsTotalFinal) testsTotalFinal.textContent = plugin.getTestsTotalFinal();
+}
+
+function testSuiteUpdateTotalsDurations(plugin, idPrefix = '') {
+  const prefix = idPrefix ? idPrefix + '-' : '';
+  const testsDurationSpan = document.getElementById(prefix + 'testsDuration-' + plugin.mapViewer.mapId);
+  if (testsDurationSpan) {
+    const liveDuration = testSuiteGetLiveDuration(plugin, idPrefix);
+
+    // Always prefer live duration while a timer is active.
+    if (liveDuration !== undefined) {
+      testsDurationSpan.innerText = cgpv.api.utilities.core.formatDuration(liveDuration);
+    } else if (plugin.getTestsRunning() === 0) {
+      const duration = plugin.getDurationAllSuites();
+      testsDurationSpan.innerText = cgpv.api.utilities.core.formatDuration(duration);
+    }
+  }
 }
 
 function testSuiteUpdateGrandTotal(plugins) {
@@ -572,18 +648,22 @@ function testSuiteUpdateGrandTotal(plugins) {
   let totalSuitesTotal = 0;
   let totalTestsRunning = 0;
   let totalTestsDoneSuccess = 0;
+  let totalTestsDoneSkipped = 0;
   let totalTestsDoneFailed = 0;
   let totalTestsDone = 0;
   let totalTestsTotal = 0;
+  let totalTestsTotalFinal = 0;
   const thePlugins = Object.values(plugins);
   thePlugins.forEach((plugin) => {
     totalSuitesCompleted += plugin.getSuitesCompleted();
     totalSuitesTotal += plugin.getSuitesTotal();
     totalTestsRunning += plugin.getTestsRunning();
     totalTestsDoneSuccess += plugin.getTestsDoneSuccess();
+    totalTestsDoneSkipped += plugin.getTestsDoneSkipped();
     totalTestsDoneFailed += plugin.getTestsDoneFailed();
     totalTestsDone += plugin.getTestsDone();
     totalTestsTotal += plugin.getTestsTotal();
+    totalTestsTotalFinal += plugin.getTestsTotalFinal();
   });
   const suitesCompleted = document.getElementById('allSuitesCompleted');
   suitesCompleted.textContent = totalSuitesCompleted;
@@ -599,18 +679,38 @@ function testSuiteUpdateGrandTotal(plugins) {
   testsRunning.textContent = totalTestsRunning;
   const testsDoneSuccess = document.getElementById('allSuitesTestsDoneSuccess');
   testsDoneSuccess.textContent = totalTestsDoneSuccess;
+  const testsDoneSkipped = document.getElementById('allSuitesTestsDoneSkipped');
+  testsDoneSkipped.textContent = totalTestsDoneSkipped;
   const testsDoneFailed = document.getElementById('allSuitesTestsDoneFailed');
   testsDoneFailed.textContent = totalTestsDoneFailed;
   const testsDone = document.getElementById('allSuitesTestsDone');
   testsDone.textContent = totalTestsDone;
   const testsTotal = document.getElementById('allSuitesTestsTotal');
   testsTotal.textContent = totalTestsTotal;
+  const testsTotalFinal = document.getElementById('allSuitesTestsTotalFinal');
+  testsTotalFinal.textContent = totalTestsTotalFinal;
 }
 
-function testSuiteAddOrUpdateTestResultRow(plugin, testSuite, testTester, test, details, idPrefix = '') {
-  let passed = null;
-  if (test.getStatus() === 'success') passed = true;
-  else if (test.getStatus() === 'failed') passed = false;
+function testSuiteUpdateGrandTotalDurations(plugins) {
+  let maxDuration = 0;
+  const thePlugins = Object.values(plugins);
+  thePlugins.forEach((plugin) => {
+    let pluginDuration = plugin.getDurationAllSuites();
+    if (plugin.getTestsRunning() > 0) {
+      const liveDuration = testSuiteGetLiveDuration(plugin);
+      pluginDuration = liveDuration ?? pluginDuration;
+    }
+
+    maxDuration = Math.max(maxDuration, pluginDuration);
+  });
+
+  const allSuitesTotalDurationSpan = document.getElementById('allSuitesTotalDuration');
+  allSuitesTotalDurationSpan.innerText = cgpv.api.utilities.core.formatDuration(maxDuration);
+}
+
+function testSuiteAddOrUpdateTestResultRow(plugin, testSuite, testTester, test, idPrefix = '') {
+  // If the test is not success, return
+  // if (test.getStatus() !== 'success') return;
 
   const prefix = idPrefix ? idPrefix + '-' : '';
 
@@ -630,6 +730,7 @@ function testSuiteAddOrUpdateTestResultRow(plugin, testSuite, testTester, test, 
     row.classList.add('expanded');
 
     // Create and append the three cells
+    row.appendChild(document.createElement('td'));
     row.appendChild(document.createElement('td'));
     row.appendChild(document.createElement('td'));
     row.appendChild(document.createElement('td'));
@@ -657,39 +758,68 @@ function testSuiteAddOrUpdateTestResultRow(plugin, testSuite, testTester, test, 
   testMessage += '<div class="collapsible-content" style="margin-top: 5px;">';
   testMessage += '<font style="font-size: x-small;">' + '<i>[' + testSuite.getName() + ' | ' + testTester.getName() + ']' + '</i></font>';
   testMessage += test.getStepsAsHtml();
+  testMessage += '</div>';
   testCell.innerHTML = testMessage;
 
   const resultCell = row.cells?.[1];
-  const detailsCell = row.cells?.[2];
+  resultCell.style.textAlign = 'center';
 
-  if (resultCell) {
-    resultCell.style.textAlign = 'center';
-    if (passed === true) {
-      row.classList.add('collapsed');
-      row.classList.remove('expanded');
-      resultCell.style.color = 'green';
-      resultCell.textContent = '✔';
-    } else if (passed === false) {
-      // Expand the row
-      row.classList.add('expanded');
-      row.classList.remove('collapsed');
-      resultCell.style.color = 'red';
-      resultCell.textContent = '✘';
-      detailsCell.textContent = details;
-      detailsCell.style.whiteSpace = 'pre-line';
-    } else {
-      resultCell.style.color = 'black';
-      resultCell.textContent = '⏳';
-    }
+  const execTimeCell = row.cells?.[2];
+  execTimeCell.style.textAlign = 'center';
+
+  const detailsCell = row.cells?.[3];
+  detailsCell.style.whiteSpace = 'pre-line';
+
+  // Results cell section
+  if (test.getStatus() === 'success') {
+    row.classList.add('collapsed');
+    row.classList.remove('expanded');
+    resultCell.style.color = 'green';
+    resultCell.textContent = '✔';
+  } else if (test.getStatus() === 'skipped') {
+    row.classList.add('collapsed');
+    row.classList.remove('expanded');
+    resultCell.style.color = 'orange';
+    resultCell.style.fontWeight = 'bold';
+    resultCell.textContent = '↷';
+  } else if (test.getStatus() === 'failed') {
+    // Expand the row
+    row.classList.add('expanded');
+    row.classList.remove('collapsed');
+    resultCell.style.color = 'red';
+    resultCell.textContent = '✘';
+  } else {
+    resultCell.style.color = 'black';
+    resultCell.textContent = '⏳';
   }
-  testMessage += '</div>';
+
+  // Exec time section
+  const durationAllFormatted = test.getDurationFormatted();
+  const durationStarvation = test.getDurationStarvationMs();
+  const durationStarvationFormatted = test.getDurationStarvationFormatted();
+
+  // If the test was starved for over 1 second, put it red
+  let durationStarvationIndicator = '';
+  if (durationStarvation > 1000) {
+    durationStarvationIndicator = ` <span style='color:orange' title='Estimated starvation duration'>(${durationStarvationFormatted})</span>`;
+  }
+
+  const duration = `<span>${durationAllFormatted}</span>${durationStarvationIndicator}`;
+  execTimeCell.innerHTML = duration;
+
+  // Details section
+  const details = test.getError()?.message ?? test.getSkippedReason() ?? '';
+  detailsCell.textContent = details;
 }
 
-function testSuiteEmptyTestResults(plugin) {
+function testSuiteEmptyTestResults(plugin, idPrefix = '') {
+  const prefix = idPrefix ? idPrefix + '-' : '';
   // Empty the table
-  const tableBody = document.getElementById('tableBody-' + plugin.mapViewer.mapId);
-  while (tableBody.firstChild) {
-    tableBody.removeChild(tableBody.firstChild);
+  const tableBody = document.getElementById(prefix + 'tableBody-' + plugin.mapViewer.mapId);
+  if (tableBody) {
+    while (tableBody.firstChild) {
+      tableBody.removeChild(tableBody.firstChild);
+    }
   }
 }
 

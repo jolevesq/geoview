@@ -107,6 +107,8 @@ _(User-facing features added or enabled)_
 - Map view now uses `viewOptions.padding` to account for the map-info bar height (#3562)
 - New `MapViewer.updateViewPadding()` and `mapController.updateViewPadding()` for dynamic map-info bar padding (#3562)
 - New `waitForLayerQueryToFinish` timeout parameter on `AllFeatureInfoLayerSet` (#3562)
+- Development builds (local `rush serve` / `rush build-dev` and the gh-pages develop preview) now show a `-dev.<shortHash>` suffix in the app bar Version popover (e.g. `v.2.3.0-dev.a1b2c3d`) so users can distinguish them from official releases, which stay clean (`v.2.3.0`) (#3610)
+- Added built-in `canada.ca` display theme with Government of Canada-inspired colors and typography (#3609)
 
 ## Bug Fixes
 
@@ -146,11 +148,14 @@ _(Fixes discovered or applied during this cycle)_
 - Fixed WMS CRS override when layers are behind a proxy — was re-encoding the entire string instead of only adjusting CRS and BBOX properties (#3562)
 - Fixed zoom-to-feature-geometry working even when the geometry field is not included in the outFields configuration (#3562)
 - Fixed initial extent being slightly off vertically vs the home view extent, causing the home view button to shift the map (#3562)
+- Fixed configured `geoview-map` height being exceeded when the collapsed footer bar is rendered (#3601)
 - Fixed CESI layer in outlier-style.html template to point to a valid layer id (#3562)
 - Fixed Permafrost by Ecoprovince in outlier-metadata template to point to a valid layer URL (#3562)
 - Fixed broken layer in performance.json template demo (#3562)
 - Fixed creationDate field type in metadata (#3562)
 - Added precision slack on zoom-to-extent to compensate for minor floating-point precision issues (#3562)
+- Fixed WMS services with duplicate group `<Name>` values at different nesting levels (e.g. `canimage_en`: `canimage → canimage → canimage-030`) causing crashes — `RangeError: Maximum call stack size exceeded` in the Add Layer tree and an infinite loop on config-based add. Layer lookups now resolve by full view path instead of bare-id first-match (#3521)
+- Fixed WMS layers whose defined (native) CRS is a deprecated or non-existent EPSG code (e.g. `EPSG:42304`) killing layer creation — the invalid bounding-box/native CRS is now skipped so the layer still renders when the map projection is supported, and a `warning.layer.projectionNotValid` notification is shown to the user (#3521)
 
 ## Build & Dependencies
 
@@ -229,12 +234,12 @@ _(Doc updates, demo cleanup, code organization)_
 _(Tests added, moved, removed, or reorganized)_
 
 - New automated test case for group layer with `defaultVisibility: false` (#3544)
-- New `suite-data-table` test suite (13 tests): allFeaturesDataArray populated, row count, geoviewID hidden, mapFilteredRecord, global filter + DOM disabled check, column filters set/clear, tableFilters on apply, column visibility toggle, rowsFilteredRecord, filter-by-extent absent for esriDynamic, filter-by-extent on GeoJSON, showUnsymbolizedFeatures pre-filter
+- New `suite-data-table` test suite (12 tests): allFeaturesDataArray populated, geoviewID hidden, mapFilteredRecord, global filter + DOM disabled check, column filters set/clear, column visibility toggle, rowsFilteredRecord, filter-by-extent absent for esriDynamic, filter-by-extent on GeoJSON, showUnsymbolizedFeatures pre-filter
 - New `suite-details` tests (6 total): details panel query, clear all highlights, zoom to feature, nameField as label, summary false hides field, field alias renames field
 - Added `getStoreDataTableLayerSettings` getter to `data-table-state.ts` (moved paired hook from OTHERS region to main region)
 - Added `getStoreMapClickMarker` and `getStoreMapNorthArrow` getters to `map-state.ts` (moved from OTHERS to main region)
 - Map 11 test page added for `suite-data-table` (GeoJSON + Commemorative Map + Esri Dynamic + Permafrost layers)
-- Updated test-catalog.md: total 196 tests, 00-automated-suite.md: ~200, README: 901 (60/169/672)
+- Updated test-catalog.md and automated-suite documentation to distinguish declared suite totals from release-run executions. The current registered suites declare 229 tests; the release checklist runs the layer suite on both LCC and Web Mercator maps, for 272 executions when all listed suites run.
 - Added WMTS, VectorTiles, and XYZTiles layer types to automated functional testing (#3562)
 - Moved `testAddGeocoreWithGroupDefaultVisibilityFalse` to end of suite to reduce resource contention with other tests (#3562)
 - Fixed automated tests for new `viewSettings` padding behavior (#3562)
@@ -247,19 +252,26 @@ _(Tests added, moved, removed, or reorganized)_
 - New `RUN_DEBUG_ONLY` flag for isolating test execution during development (#3562)
 - Added a swiper rendering-isolation regression test covering descendant path resolution, per-target OL render handlers, CSS clip-path removal, and listener cleanup
 - Added `suite-time-slider` with reset-to-default and dual-handle overlap constraint regression tests, plus a dedicated temporal-layer test map
+- Added fixed-height map layout tests for maps with and without a footer bar (#3601)
+- Audited suite totals against active full-suite tester calls: corrected `suite-map-config` to 39; debug-only and commented-out calls remain excluded
+- Fixed sequential execution in `suite-core` so the XYZ tile URL test is awaited before the following test
+- Added 3 manual layers tests for WMS services with duplicate group `<Name>` values at different nesting levels (#3521): Add Layer UI selection of the `canimage` group (no `RangeError`) plus a new config-based Map 10 (`rt-08-layers.html`) verifying the `canimage`/`canimage` duplicate group loads and renders without hanging
+- Added automated `suite-layer` test `testAddWMSDuplicateGroupNames` (LayerTester) guarding issue #3521 — loads the `canimage_en` WMS by its duplicate top group id, asserts the nested `canimage/canimage` path is built and a deep leaf loads without infinite-looping (`suite-layer` total 41 → 43: +1 for the new test and +1 for correctly counting the heavy-conditional test that was previously excluded)
 
 ## Config Schema Changes
 
 _(Properties added, renamed, or with changed defaults)_
 
+- Added `canada.ca` as a valid `theme` configuration value; default remains `geo.ca` (#3609)
+
 ## Updated Counts
 
 | Metric        | Before | After |
 | ------------- | ------ | ----- |
-| Total tests   | 900    | 901   |
-| Automated (A) | 59     | 60    |
+| Total tests   | 901    | 906   |
+| Automated (A) | 60     | 62    |
 | Candidate (C) | 169    | 169   |
-| Manual (M)    | 672    | 672   |
+| Manual (M)    | 672    | 675   |
 
 ## Notes for Release Notes Author
 
