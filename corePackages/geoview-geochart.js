@@ -1,4 +1,4 @@
-/*! Package:geoview-geochart: 2.3.0-dev.058bf15 - "058bf15a29d69f14c648c4cdb1c7dcfe8a6f6185" - 2026-09-10T19:54:32.227Z */
+/*! Package:geoview-geochart: 2.3.0-dev.c5746ff - "c5746ff280eb121190d8748e1bbf286c542f9ecf" - 2026-09-11T12:11:20.007Z */
 /*
  * ATTENTION: An "eval-source-map" devtool has been used.
  * This devtool is neither made for production nor for readable output files.
