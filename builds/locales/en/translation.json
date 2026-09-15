@@ -189,6 +189,7 @@
     "layer": "Layer",
     "hidden": "Layer is hidden",
     "parentHidden": "Parent layer is hidden",
+    "hiddenLayersSection": "Hidden layers",
     "stepOne": "Upload data",
     "stepOneLoading": "Uploading data...",
     "stepTwo": "Select format",

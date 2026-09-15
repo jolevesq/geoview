@@ -189,6 +189,7 @@
     "layer": "Couche",
     "hidden": "La couche est cachée",
     "parentHidden": "La couche parent est cachée",
+    "hiddenLayersSection": "Couches cachées",
     "stepOne": "Télécharger des données",
     "stepOneLoading": "Téléchargement des données...",
     "stepTwo": "Sélectionner le format",
