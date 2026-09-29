@@ -1,4 +1,4 @@
-/*! Package:geoview-about-panel: 2.3.0-dev.d9564ea - "d9564ea7594816cdf28a09d5513ce06c0a95d560" - 2026-09-29T16:13:42.990Z */
+/*! Package:geoview-about-panel: 2.3.0-dev.0dfae9c - "0dfae9c1e0c91f2d0e53135036c080022f47f5cd" - 2026-09-29T17:14:48.154Z */
 "use strict";
 /*
  * ATTENTION: An "eval-source-map" devtool has been used.
