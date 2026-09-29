@@ -1,4 +1,4 @@
-/*! Package:geoview-drawer: 2.3.0-dev.0dfae9c - "0dfae9c1e0c91f2d0e53135036c080022f47f5cd" - 2026-09-29T17:14:48.154Z */
+/*! Package:geoview-drawer: 2.3.0-dev.be57528 - "be5752841e12a1bf6034f274752a7f8c18a289d3" - 2026-09-29T18:35:06.999Z */
 "use strict";
 /*
  * ATTENTION: An "eval-source-map" devtool has been used.
