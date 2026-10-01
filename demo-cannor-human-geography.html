@@ -1,37 +1,4 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>CanNor Human Geography Demo - Canadian Geospatial Platform Viewer</title>
-    <link rel="shortcut icon" href="./favicon.ico" />
-    <meta name="msapplication-TileColor" content="#da532c" />
-    <meta name="msapplication-config" content="./img/browserconfig.xml" />
-    <meta name="theme-color" content="#ffffff" />
-    <meta name="msapplication-TileColor" content="#da532c" />
-    <meta name="theme-color" content="#ffffff" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
-    <link rel="stylesheet" href="css/style.css" />
-  <script src="cgpv-main.js"></script></head>
-
-  <body>
-    <div id="page-header"></div>
-    <div>
-      <!-- <div class="back-to-main">
-        <a href="./index.html?tab=specific-demos">← Back to Main</a>
-      </div> -->
-
-      <div class="demo-section">
-        <h4>CanNor - Human Geography Demo</h4>
-        <p>Demonstration of Canadian Northern Economic Development Agency - Human Geography in GeoView</p>
-      </div>
-    </div>
-    <div
-      id="Map1"
-      class="geoview-map"
-      data-lang="en"
-      data-config="{
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>CanNor Human Geography Demo - Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="theme-color" content="#ffffff"/><link href="https://fonts.googleapis.com/css?family=Roboto|Montserrat:200,300,400,900|Merriweather" rel="stylesheet"/><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div id="page-header"></div><div><div class="back-to-main"><a href="./index.html?tab=specific-demos">← Back to Main</a></div><div class="demo-section"><h4>CanNor - Human Geography Demo</h4><p>Demonstration of Canadian Northern Economic Development Agency - Human Geography in GeoView</p></div></div><div id="Map1" class="geoview-map" data-lang="en" data-config="{
         'map': {
           'interaction': 'dynamic',
           'viewSettings': {
@@ -102,16 +69,6 @@
           },
           {
                 'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': '5f46f0c0-277f-479c-b34d-a1385f0fe88b',
-                'initialSettings': {
-                      'states': {
-                        'visible': false,
-                        'opacity': 0.3
-                       }
-                }
-          },
-          {
-                'geoviewLayerType': 'geoCore',
                 'geoviewLayerId': '2dac78ba-8543-48a6-8f07-faeef56f9895',
                 'initialSettings': {
                       'states': {
@@ -143,7 +100,7 @@
         'navBar': ['zoom', 'fullscreen', 'home', 'measurement'],
         'appBar': {
           'tabs': {
-            'core': ['geolocator', 'legend', 'details','export']
+            'core': ['geolocator', 'aoi-panel', 'legend', 'details', 'export', 'about-panel']
           }
         },
         'footerBar': {
@@ -151,15 +108,68 @@
             'core': ['layers', 'time-slider', 'data-table', 'guide']
           }
         },
-        'theme': 'geo.ca'
-      }"
-    ></div>
-    <button type="button" class="collapsible">Configuration Snippet</button>
-    <pre id="Map1CS" class="panel"></pre>
+        'theme': 'geo.ca',
+        'corePackagesConfig': [
+        {
+            'aoi-panel': {
+                'isOpen': true,
+                'aoiList': [
+                    {
+                        'imageUrl': 'https://www.canada.ca/content/dam/pco-bcp/mpo-bgp/projects/indiv/grays-bay/MPO_GraysBay_Extra1.png',
+                        'aoiTitle': 'Grays Bay Road and Port',
+                        'extent': [
+                            -111.4,
+                            67.5,
+                            -110.7,
+                            67.9
+                        ]
+                    },
+                    {
+                        'imageUrl': 'https://www.canada.ca/content/dam/pco-bcp/mpo-bgp/projects/indiv/mackenzie/1.png',
+                        'aoiTitle': 'Mackenzie Valley Highway',
+                        'extent': [
+                            -134.7,
+                            62.8,
+                            -122.5,
+                            68.75
+                        ]
+                    },
+                    {
+                        'imageUrl': 'https://www.canada.ca/content/dam/pco-bcp/mpo-bgp/projects/indiv/taltson/MPO_Taltson_Extra1.png',
+                        'aoiTitle': 'Taltson Hydro Expansion',
+                        'extent': [
+                            -111.44,
+                            60.40,
+                            -111.35,
+                            60.45
+                        ]
+                    }
+                ],
+                'version': '1.0'
+            }
+        },
+        {
+            'about-panel': {
+              'isOpen': false,
+              'mdContent': [
+                '## Grays Bay Road and Port\n\nA proposed all-season road to an Arctic deepwater port and airfield, with potential to support critical-mineral exports and northern connectivity.\n\n[Learn more about Grays Bay Road and Port](https://www.canada.ca/en/privy-council/major-projects-office/projects/national/grays-bay.html)',
+                '## Mackenzie Valley Highway\n\nA proposed all-season highway connecting Wrigley to the Dempster Highway, improving year-round access for northern communities and supporting trade and resource development.\n\n[Learn more about the Mackenzie Valley Highway](https://www.canada.ca/en/privy-council/major-projects-office/projects/national/mackenzie.html)',
+                '## Taltson Hydro Expansion\n\nA clean-energy project to add hydro capacity and connect the North and South Slave electrical grids with a transmission line.\n\n[Learn more about the Taltson Hydro Expansion](https://www.canada.ca/en/privy-council/major-projects-office/projects/national/taltson.html)'
+              ]
+            }
+        }
+        {
+          'time-slider': {
+            'isOpen': false,
+            'layerPaths': ['16ec36d1-b320-4dcd-b71f-94670a59095a/0'],
+            'timeDimension': {
+              'default': [
+              2-24-]
 
-    <script src="codedoc.js"></script>
-    <script>
-      // insertPageHeader();
+          }
+        }
+    ]
+      }"></div><button type="button" class="collapsible">Configuration Snippet</button><pre id="Map1CS" class="panel"></pre><script src="codedoc.js"></script><script>// insertPageHeader();
 
       // initialize cgpv
       cgpv.init();
@@ -168,7 +178,4 @@
       window.addEventListener('load', () => {
         createCodeSnippet();
         createConfigSnippet();
-      });
-    </script>
-  </body>
-</html>
+      });</script></body></html>
