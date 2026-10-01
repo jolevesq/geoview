@@ -47,48 +47,34 @@
           },
           'listOfGeoviewLayerConfig': [
           {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': 'b64179f3-ea0f-4abb-9cc5-85432fc958a0'
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': 'f5f2db55-31e4-42fb-8c73-23e1c44de9b2'
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': '8f387c74-a5d9-46ec-9aff-32bc8e0ff3b1'
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': '6680f821-9a28-5fdd-025e-cb4582552478'
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': '9f4aacbb-42eb-be93-f0a0-9a30cf6d658f'
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': '69cca69f-6f5c-491d-b7d1-5035984dae3a'
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': '000183ed-8864-42f0-ae43-c4313a860720'
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': 'feb41d0b-ce69-4d92-8143-6a2ea63398ae'
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': '962a2eb6-0dfe-45da-90c2-446ee4568cd2'
+        'geoviewLayerType': 'geoCore',
+        'geoviewLayerId': 'b64179f3-ea0f-4abb-9cc5-85432fc958a0'
+      },
+      {
+        'geoviewLayerType': 'geoCore',
+        'geoviewLayerId': 'f5f2db55-31e4-42fb-8c73-23e1c44de9b2'
+      },
+      {
+        'geoviewLayerType': 'geoCore',
+        'geoviewLayerId': '8f387c74-a5d9-46ec-9aff-32bc8e0ff3b1'
+      },
+      {
+        'geoviewLayerType': 'geoCore',
+        'geoviewLayerId': '9f4aacbb-42eb-be93-f0a0-9a30cf6d658f',
+        'initialSettings': {
+          'states': {
+            'visible': false,
+            'opacity': 0.6
           }
+        }
+      }
           ]
         },
         'components': ['overview-map', 'north-arrow'],
-        'navBar': ['zoom', 'fullscreen', 'home', 'measurement'],
+        'navBar': ['zoom', 'fullscreen', 'home', 'measurement', 'drawer'],
         'appBar': {
           'tabs': {
-            'core': ['geolocator', 'legend', 'details', 'export', 'about-panel']
+            'core': ['geolocator', 'aoi-panel','legend', 'details', 'export', 'about-panel']
           }
         },
         'footerBar': {
@@ -98,6 +84,44 @@
         },
         'theme': 'geo.ca',
         'corePackagesConfig': [
+        {
+            'aoi-panel': {
+                'isOpen': true,
+                'aoiList': [
+                    {
+                        'imageUrl': 'https://www.canada.ca/content/dam/pco-bcp/mpo-bgp/projects/indiv/grays-bay/MPO_GraysBay_Extra1.png',
+                        'aoiTitle': 'Grays Bay Road and Port',
+                        'extent': [
+                            -111.4,
+                            67.5,
+                            -110.7,
+                            67.9
+                        ]
+                    },
+                    {
+                        'imageUrl': 'https://www.canada.ca/content/dam/pco-bcp/mpo-bgp/projects/indiv/mackenzie/1.png',
+                        'aoiTitle': 'Mackenzie Valley Highway',
+                        'extent': [
+                            -134.7,
+                            62.8,
+                            -122.5,
+                            68.75
+                        ]
+                    },
+                    {
+                        'imageUrl': 'https://www.canada.ca/content/dam/pco-bcp/mpo-bgp/projects/indiv/taltson/MPO_Taltson_Extra1.png',
+                        'aoiTitle': 'Taltson Hydro Expansion',
+                        'extent': [
+                            -111.44,
+                            60.40,
+                            -111.35,
+                            60.45
+                        ]
+                    }
+                ],
+                'version': '1.0'
+            }
+        },
           {
             'about-panel': {
               'isOpen': false,
@@ -107,7 +131,25 @@
                 '## Taltson Hydro Expansion\n\nA clean-energy project to add hydro capacity and connect the North and South Slave electrical grids with a transmission line.\n\n[Learn more about the Taltson Hydro Expansion](https://www.canada.ca/en/privy-council/major-projects-office/projects/national/taltson.html)'
               ]
             }
-          }
+          },
+          {
+            'drawer': {
+              'style': {
+                    'fillColor': 'rgba(0, 255, 255, 0.3)',
+                    'strokeColor': '#0000ff',
+                    'strokeWidth': 3
+                },
+                'activeGeom': 'Polygon',
+                'geomTypes': [
+                    'Point',
+                    'Text',
+                    'LineString',
+                    'Polygon',
+                    'Circle'
+                ],
+                'hideMeasurements': true
+            }
+        }
         ]
       }"
     ></div>

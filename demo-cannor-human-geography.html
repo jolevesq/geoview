@@ -95,17 +95,8 @@
                 'geoviewLayerId': '16ec36d1-b320-4dcd-b71f-94670a59095a',
                 'initialSettings': {
                       'states': {
-                        'visible': false,
+                        'visible': true,
                         'opacity': 0.3
-                       }
-                }
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': '2dac78ba-8543-48a6-8f07-faeef56f9895',
-                'initialSettings': {
-                      'states': {
-                        'visible': false
                        }
                 }
           },
@@ -114,23 +105,14 @@
                 'geoviewLayerId': '3a1eb6ef-6054-4f9d-b1f6-c30322cd7abf',
                 'initialSettings': {
                       'states': {
-                        'visible': false
-                       }
-                }
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': 'ac26807e-a1e8-49fa-87bf-451175a859b8',
-                'initialSettings': {
-                      'states': {
-                        'visible': false
+                        'visible': true
                        }
                 }
           }
           ]
         },
         'components': ['overview-map', 'north-arrow'],
-        'navBar': ['zoom', 'fullscreen', 'home', 'measurement'],
+        'navBar': ['zoom', 'fullscreen', 'home', 'measurement', 'drawer'],
         'appBar': {
           'tabs': {
             'core': ['geolocator', 'aoi-panel', 'legend', 'details', 'export', 'about-panel']
@@ -189,6 +171,24 @@
                 '## Mackenzie Valley Highway\n\nA proposed all-season highway connecting Wrigley to the Dempster Highway, improving year-round access for northern communities and supporting trade and resource development.\n\n[Learn more about the Mackenzie Valley Highway](https://www.canada.ca/en/privy-council/major-projects-office/projects/national/mackenzie.html)',
                 '## Taltson Hydro Expansion\n\nA clean-energy project to add hydro capacity and connect the North and South Slave electrical grids with a transmission line.\n\n[Learn more about the Taltson Hydro Expansion](https://www.canada.ca/en/privy-council/major-projects-office/projects/national/taltson.html)'
               ]
+            }
+        },
+        {
+            'drawer': {
+              'style': {
+                    'fillColor': 'rgba(0, 255, 255, 0.3)',
+                    'strokeColor': '#0000ff',
+                    'strokeWidth': 3
+                },
+                'activeGeom': 'Polygon',
+                'geomTypes': [
+                    'Point',
+                    'Text',
+                    'LineString',
+                    'Polygon',
+                    'Circle'
+                ],
+                'hideMeasurements': true
             }
         },
         {

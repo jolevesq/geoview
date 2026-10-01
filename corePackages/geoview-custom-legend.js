@@ -1,4 +1,4 @@
-/*! Package:geoview-custom-legend: 2.3.0-dev.be57528 - "be5752841e12a1bf6034f274752a7f8c18a289d3" - 2026-10-01T12:26:39.115Z */
+/*! Package:geoview-custom-legend: 2.3.0-dev.be57528 - "be5752841e12a1bf6034f274752a7f8c18a289d3" - 2026-10-01T15:09:27.918Z */
 "use strict";
 /*
  * ATTENTION: An "eval-source-map" devtool has been used.

@@ -48,36 +48,30 @@
           'listOfGeoviewLayerConfig': [
           {
                 'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': 'fe83a604-aa5a-4e46-903c-685f8b0cc33c'
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': '87127901-bd6d-46de-9142-e1362d980174'
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': '4baa66ad-aa29-4233-a6a8-7f5cbefb5ea8',
+                'geoviewLayerId': 'fe83a604-aa5a-4e46-903c-685f8b0cc33c',
                 'initialSettings': {
                       'states': {
-                        'visible': false
+                        'visible': true
                        }
                 }
           },
           {
                 'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': 'd1e2048b-ccff-5852-aaa5-b861bd55c367'
+                'geoviewLayerId': '87127901-bd6d-46de-9142-e1362d980174',
+                'initialSettings': {
+                      'states': {
+                        'visible': true
+                       }
+                }
           },
           {
                 'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': '6c343726-1e92-451a-876a-76e17d398a1c'
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': '47caa405-be2b-4e9e-8f53-c478ade2ca74'
-          },
-          {
-                'geoviewLayerType': 'geoCore',
-                'geoviewLayerId': 'c3d1771f-fa10-4a09-ba6e-dece0ceb5f37'
+                'geoviewLayerId': 'd1e2048b-ccff-5852-aaa5-b861bd55c367',
+                'initialSettings': {
+                      'states': {
+                        'visible': false
+                       }
+                }
           },
           {
                 'geoviewLayerType': 'geoCore',
@@ -91,10 +85,10 @@
           ]
         },
         'components': ['overview-map', 'north-arrow'],
-        'navBar': ['zoom', 'fullscreen', 'home', 'measurement'],
+        'navBar': ['zoom', 'fullscreen', 'home', 'measurement', 'drawer'],
         'appBar': {
           'tabs': {
-            'core': ['geolocator', 'legend', 'details', 'export', 'about-panel']
+            'core': ['geolocator', 'aoi-panel', 'legend', 'details', 'export', 'about-panel']
           }
         },
         'footerBar': {
@@ -104,16 +98,72 @@
         },
         'theme': 'geo.ca',
         'corePackagesConfig': [
+        {
+            'aoi-panel': {
+                'isOpen': true,
+                'aoiList': [
+                    {
+                        'imageUrl': 'https://www.canada.ca/content/dam/pco-bcp/mpo-bgp/projects/indiv/grays-bay/MPO_GraysBay_Extra1.png',
+                        'aoiTitle': 'Grays Bay Road and Port',
+                        'extent': [
+                            -111.4,
+                            67.5,
+                            -110.7,
+                            67.9
+                        ]
+                    },
+                    {
+                        'imageUrl': 'https://www.canada.ca/content/dam/pco-bcp/mpo-bgp/projects/indiv/mackenzie/1.png',
+                        'aoiTitle': 'Mackenzie Valley Highway',
+                        'extent': [
+                            -134.7,
+                            62.8,
+                            -122.5,
+                            68.75
+                        ]
+                    },
+                    {
+                        'imageUrl': 'https://www.canada.ca/content/dam/pco-bcp/mpo-bgp/projects/indiv/taltson/MPO_Taltson_Extra1.png',
+                        'aoiTitle': 'Taltson Hydro Expansion',
+                        'extent': [
+                            -111.44,
+                            60.40,
+                            -111.35,
+                            60.45
+                        ]
+                    }
+                ],
+                'version': '1.0'
+            }
+        },
           {
             'about-panel': {
-              'isOpen': false,
+              'isOpen': true,
               'mdContent': [
                 '## Grays Bay Road and Port\n\nA proposed all-season road to an Arctic deepwater port and airfield, with potential to support critical-mineral exports and northern connectivity.\n\n[Learn more about Grays Bay Road and Port](https://www.canada.ca/en/privy-council/major-projects-office/projects/national/grays-bay.html)',
                 '## Mackenzie Valley Highway\n\nA proposed all-season highway connecting Wrigley to the Dempster Highway, improving year-round access for northern communities and supporting trade and resource development.\n\n[Learn more about the Mackenzie Valley Highway](https://www.canada.ca/en/privy-council/major-projects-office/projects/national/mackenzie.html)',
                 '## Taltson Hydro Expansion\n\nA clean-energy project to add hydro capacity and connect the North and South Slave electrical grids with a transmission line.\n\n[Learn more about the Taltson Hydro Expansion](https://www.canada.ca/en/privy-council/major-projects-office/projects/national/taltson.html)'
               ]
             }
-          }
+          },
+          {
+            'drawer': {
+              'style': {
+                    'fillColor': 'rgba(0, 255, 255, 0.3)',
+                    'strokeColor': '#0000ff',
+                    'strokeWidth': 3
+                },
+                'activeGeom': 'Polygon',
+                'geomTypes': [
+                    'Point',
+                    'Text',
+                    'LineString',
+                    'Polygon',
+                    'Circle'
+                ],
+                'hideMeasurements': true
+            }
+        }
         ]
       }"
     ></div>
