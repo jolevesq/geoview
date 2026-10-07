@@ -1,4 +1,4 @@
-/*! Package:json-export-worker-script: 2.3.0-dev.860291a - "860291ac55b625179ff1b47155ec96561728075c" - 2026-10-07T12:16:38.591Z */
+/*! Package:json-export-worker-script: 2.3.0-dev.d2a428d - "d2a428de900605041b951480d22714f9264061fa" - 2026-10-07T17:45:30.437Z */
 /*
  * ATTENTION: An "eval-source-map" devtool has been used.
  * This devtool is neither made for production nor for readable output files.
