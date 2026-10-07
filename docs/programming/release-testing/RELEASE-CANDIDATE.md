@@ -89,6 +89,11 @@ The swiper package `layers` property changed shape (schema `version` bumped `1.0
 | `swiper` schema `version`  | Bumped from `"1.0"` to `"1.1"`                                                                                                                                                                         | #3625 |
 | `ConfigProps` (swiper pkg) | `layers` type changed from `string[]` to `{ layerPath: string; side: SwipeSide }[]`; added required-at-runtime `interactive: boolean`                                                                  | #3625 |
 
+### UI Components — Select and Slider Compatibility
+
+- `Select` now requires exactly one non-empty `label` or `aria-label`; invalid naming props log an error without interrupting rendering. `inputLabel.id` is no longer supported: use `labelId` to customize the associated label ID. These restrictions affect external consumers of the UI wrapper (#3678).
+- `Slider` removed the `ariaLabelledby` prop. Use standard `aria-labelledby` for a shared name or `getAriaLabel(index)` for distinct thumb names (issue #3657; #3678).
+
 ## Breaking Changes — Developer-Only (Internal)
 
 _(Internal code patterns, MUI props, build tooling — does NOT affect external consumers)_
@@ -133,6 +138,7 @@ _(User-facing features added or enabled)_
 
 _(Fixes discovered or applied during this cycle)_
 
+- Fixed Layers-panel reloads failing for layers that errored on first load and groups whose GV layers were never created. Reload now rebuilds the owning GeoView layer from its saved config, re-fetches and validates metadata, and preserves its ordered position while loading; added an automated regression test for reload order and a manual oversized-WMS recovery test (#3666)
 - Fixed large ESRI Feature layers (~30k+ features) failing to load on the first attempt: `EsriFeature.#fetchEsriFeaturesByChunk` fired every paged chunk request at once with no concurrency cap or retry, so a single load-induced `500 | Error performing query operation` on one chunk dropped the entire layer (it only worked on reload once the ArcGIS server had cached the queries). The loader now throttles concurrent chunk requests (`Math.min(10, hardwareConcurrency * 2)`, mirroring the ESRI worker) and retries transient failures (HTTP 5xx / ESRI embedded query error / network / timeout) with exponential backoff, so the layer loads reliably on the first try (#3613)
 - Fixed missing loading indicator when opening the data table for a vector layer: on the first click there was no visual feedback (no layer-box progress bar, no skeleton) while the table built, because vector layers have no real query (features are already downloaded) and the heavy synchronous table build blocked the first paint. Clicking a layer now sets a loading state that shows the left-panel progress bar and the right-panel skeleton, the table mount is deferred a frame so the skeleton paints first, and a table-rendered callback clears the indicator once the table is ready
 - Fixed viewer crash when opening the data table for a layer that exposes an empty/blank field name (e.g. a GeoPackage/GDAL unnamed column): Material React Table threw `Columns require an id when using an accessorFn`. Inferred vector layers (GeoJSON/CSV) now skip empty field names at outfield creation (`AbstractGeoViewVector.processFeatureInfoConfig`); the data-table column builders guard against blank keys (which is what protects GeoPackage, whose outfields are built by `GeoPackageReader` and bypass that inference); and the details panel drops label-less fields (#3621)
@@ -278,6 +284,11 @@ _(WCAG fixes and improvements)_
 - Fixed the nav bar "Expand Drawing tools group" icon button losing keyboard focus after being pressed in WCAG mode (#3630)
 - Fixed an empty `<ul>` element appearing in the generated legend layer container HTML (#3630)
 - Hidden-layers panel lists render as two separate semantic lists ("Available layers" / "Hidden layers") with `aria-labelledby` headings and an `aria-live` region announcing when a layer moves between lists; hidden rows are non-interactive (`tabIndex=-1`, no click/keydown handlers) with the eye toggle as the sole control, and focus is restored by stable id after a layer is re-enabled (the item re-mounts when moving between the two lists) (#3635)
+
+- Improved slider accessibility with distinct time-slider thumb names, formatted date/percentage value text, calendar-step keyboard navigation, and keyboard-friendly footer resize interaction (issue #3657; #3678).
+- Updated raster function, mosaic rule, and WMS style settings to use native button controls for expandable sections and selectable cards, with associated labels and decorative previews (issue #3656; #3678).
+- Updated Select controls across export, geolocator, layer settings, filter panel, and mobile tabs to use a single accessible naming source and automatically associated visible labels (#3678).
+- Localized the export preview loading message in English and French (#3678).
 
 ## Documentation & Cleanup
 
