@@ -77,7 +77,7 @@ This catalog lists every test in the GeoView test suite, organized by group, sui
 | 1. Core / Utility | `suite-config`          | `ConfigTester`                                                                                  | 39         | Parallel                    |
 | 1. Core / Utility | `suite-utilities`       | `UtilitiesCoreTester`, `UtilitiesDateTester`, `UtilitiesGeoTester`, `UtilitiesProjectionTester` | 53         | Parallel                    |
 | 2. Layers         | `suite-layer`           | `LayerTester`                                                                                   | 46         | Mixed parallel + sequential |
-| 2. Layers         | `suite-layer-functions` | `LayerTester`                                                                                   | 9          | Mixed parallel + sequential |
+| 2. Layers         | `suite-layer-functions` | `LayerTester`                                                                                   | 8          | Mixed parallel + sequential |
 | 3. Map            | `suite-map`             | `MapTester`                                                                                     | 16         | Complex mixed               |
 | 3. Map            | `suite-map-config`      | `MapConfigTester`                                                                               | 41         | Fully sequential            |
 | 4. Components     | `suite-ui`              | `UITester`                                                                                      | 2          | Parallel                    |
@@ -85,8 +85,8 @@ This catalog lists every test in the GeoView test suite, organized by group, sui
 | 4. Components     | `suite-data-table`      | `DataTableTester`                                                                               | 13         | Guarded sequential          |
 | 5. Packages       | `suite-geochart`        | `GeochartTester`                                                                                | 2          | Guarded sequential          |
 | 5. Packages       | `suite-swiper`          | `SwiperTester`                                                                                  | 7          | Guarded sequential          |
-| 5. Packages       | `suite-time-slider`     | `TimeSliderTester`                                                                              | 2          | Guarded sequential          |
-| **Total**         |                         |                                                                                                 | **250**    |                             |
+| 5. Packages       | `suite-time-slider`     | `TimeSliderTester`                                                                              | 3          | Guarded sequential          |
+| **Total**         |                         |                                                                                                 | **251**    |                             |
 
 ---
 
@@ -554,14 +554,6 @@ This catalog lists every test in the GeoView test suite, organized by group, sui
 | 6   | `testFeatureHasGeometryWhenOutfieldsHasNoGeometryField` | test | Test feature query still retrieves geometry when outfields omit geometry...   |
 | 7   | `testQueryWMSLayerForWFSFeaturesCities`                 | test | Test WMS layer retrieves feature results via its associated WFS (Cities)...   |
 | 8   | `testQueryWMSLayerForWFSFeaturesAirborne`               | test | Test WMS layer retrieves feature results via its associated WFS (Airborne)... |
-
-#### 2.2.4 Layer Reload (sequential)
-
-[↑ Back to top](#table-of-contents)
-
-| #   | Method                             | Type | Description                                                                                     |
-| --- | ---------------------------------- | ---- | ----------------------------------------------------------------------------------------------- |
-| 9   | `testReloadLayerPreservesPosition` | test | Test reloading a layer rebuilds it from scratch and keeps it at the same layer order (#3666)... |
 
 ---
 

@@ -33,12 +33,12 @@ The checklist counts release executions rather than unique test methods. `suite-
 
 | #   | Suite                                    | Tests   | Status   |
 | --- | ---------------------------------------- | ------- | -------- |
-| 1   | `suite-core`                             | 14      | [ ] Pass |
+| 1   | `suite-core`                             | 15      | [ ] Pass |
 | 2   | `suite-config`                           | 39      | [ ] Pass |
 | 3   | `suite-utilities`                        | 53      | [ ] Pass |
 | 4   | `suite-layer` (LCC — EPSG:3978)          | 46      | [ ] Pass |
 | 5   | `suite-layer` (WM — EPSG:3857)           | 46      | [ ] Pass |
-| 6   | `suite-layer-functions` (WM — EPSG:3857) | 9       | [ ] Pass |
+| 6   | `suite-layer-functions` (WM — EPSG:3857) | 8       | [ ] Pass |
 | 7   | `suite-map`                              | 16      | [ ] Pass |
 | 8   | `suite-map-config`                       | 41      | [ ] Pass |
 | 9   | `suite-ui`                               | 2       | [ ] Pass |
@@ -46,8 +46,8 @@ The checklist counts release executions rather than unique test methods. `suite-
 | 11  | `suite-data-table`                       | 13      | [ ] Pass |
 | 12  | `suite-geochart`                         | 2       | [ ] Pass |
 | 13  | `suite-swiper`                           | 7       | [ ] Pass |
-| 14  | `suite-time-slider`                      | 2       | [ ] Pass |
-|     | **Total**                                | **296** |          |
+| 14  | `suite-time-slider`                      | 3       | [ ] Pass |
+|     | **Total**                                | **297** |          |
 
 ## What to Do if a Suite Fails
 
