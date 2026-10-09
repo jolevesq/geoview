@@ -1,4 +1,4 @@
-/*! Package:geoview-time-slider: 2.3.0-dev.fb908e3 - "fb908e359379fe4b47c0c2444def2cfc168671dd" - 2026-10-09T17:20:10.644Z */
+/*! Package:geoview-time-slider: 2.3.0-dev.96b2327 - "96b2327d4c2d3e4a21ab6ab74598a87fcc37154d" - 2026-10-09T17:58:40.077Z */
 "use strict";
 /*
  * ATTENTION: An "eval-source-map" devtool has been used.
