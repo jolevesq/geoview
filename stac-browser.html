@@ -1,42 +1,4 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Package - STAC Browser (beta) - Canadian Geospatial Platform Viewer</title>
-    <link rel="shortcut icon" href="./favicon.ico" />
-    <meta name="msapplication-TileColor" content="#da532c" />
-    <meta name="msapplication-config" content="./img/browserconfig.xml" />
-    <meta name="theme-color" content="#ffffff" />
-    <link rel="stylesheet" href="css/style.css" />
-  <script src="cgpv-main.js"></script></head>
-
-  <body>
-    <div id="page-header"></div>
-    <div>
-      <div class="back-to-main">
-        <a href="./index.html?tab=demos">← Back to Main</a>
-      </div>
-
-      <div class="demo-section">
-        <h4>Package - STAC Browser (beta)</h4>
-        <p>This page is used to showcase the "STAC Browser" package for browsing and filtering STAC API catalogs.</p>
-        <ul class="demo-list" style="display: flex; flex-direction: column">
-          <li><a href="#HLCONF1">1. Stac browser for datacube</a></li>
-          <li><a href="#HLCONF2">2. Stac browser for NAPL</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="demo-section">
-      <h4 id="HLCONF1">1. Stac browser for datacube</h4>
-      <a class="ref-link" href="#top">Top</a>
-    </div>
-    <div
-      id="mapSTAC"
-      class="geoview-map"
-      data-lang="en"
-      data-config="{
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Package - STAC Browser (beta) - Canadian Geospatial Platform Viewer</title><link rel="shortcut icon" href="./favicon.ico"/><meta name="msapplication-TileColor" content="#da532c"/><meta name="msapplication-config" content="./img/browserconfig.xml"/><meta name="theme-color" content="#ffffff"/><link rel="stylesheet" href="css/style.css"/><script src="cgpv-main.js"></script></head><body><div id="page-header"></div><div><div class="back-to-main"><a href="./index.html?tab=demos">← Back to Main</a></div><div class="demo-section"><h4>Package - STAC Browser (beta)</h4><p>This page is used to showcase the "STAC Browser" package for browsing and filtering STAC API catalogs.</p><ul class="demo-list" style="display: flex; flex-direction: column"><li><a href="#HLCONF1">1. Stac browser for datacube</a></li><li><a href="#HLCONF2">2. Stac browser for NAPL</a></li></ul></div></div><div class="demo-section"><h4 id="HLCONF1">1. Stac browser for datacube</h4><a class="ref-link" href="#top">Top</a></div><div id="mapSTAC" class="geoview-map" data-lang="en" data-config="{
         'map': {
           'interaction': 'dynamic',
           'viewSettings': {
@@ -54,7 +16,7 @@
         'navBar': ['zoom', 'rotation', 'fullscreen', 'home', 'location', 'measurement', 'basemap-select', 'projection'],
         'appBar': {
           'tabs': {
-            'core': ['stac-browser']
+            'core': ['geolocator', 'stac-browser']
           }
         },
         'corePackagesConfig': [{
@@ -76,18 +38,7 @@
             'isOpen': true
           }
         }]
-      }"
-    ></div>
-
-     <div class="demo-section">
-      <h4 id="HLCONF2">2. Stac browser for NAPL</h4>
-      <a class="ref-link" href="#top">Top</a>
-    </div>
-    <div
-      id="mapSTAC2"
-      class="geoview-map"
-      data-lang="en"
-      data-config="{
+      }"></div><button type="button" class="collapsible">Configuration Snippet</button><pre id="mapSTACCS" class="panel"></pre><div class="demo-section"><h4 id="HLCONF2">2. Stac browser for NAPL</h4><a class="ref-link" href="#top">Top</a></div><div id="mapSTAC2" class="geoview-map" data-lang="en" data-config="{
         'map': {
           'interaction': 'dynamic',
           'viewSettings': {
@@ -105,32 +56,32 @@
         'navBar': ['zoom', 'fullscreen', 'home'],
         'appBar': {
           'tabs': {
-            'core': ['stac-browser']
+            'core': ['geolocator', 'stac-browser']
           }
         },
         'corePackagesConfig': [{
           'stac-browser': {
             'stacUrl': 'https://eodms-sgdot.nrcan-rncan.gc.ca/search',
+            'browseEnabled': false,
+            'defaultMode': 'search',
+            'searchDescription': 'stacBrowser.geolocatorSearchDescription',
             'collections': {
               'include': ['NAPL'],
               'default': 'NAPL'
             },
             'filters': {
-              'collections': true,
               'temporal': true,
               'spatial': true,
-              'keyword': true,
               'sort': true,
               'properties': [
-                { 'field': 'scale', 'label': 'Scale' },
-                { 'field': 'altitude', 'label': 'Altitude' },
                 { 'field': 'roll_number', 'label': 'Roll number' },
-                { 'field': 'order_key', 'label': 'Order key' },
                 { 'field': 'delivery_date', 'label': 'Delivery date' }
               ]
             },
             'defaults': {
               'limit': 50,
+              'useMapExtent': true,
+              'containedInExtent': true,
               'sortBy': [{ 'field': 'datetime', 'direction': 'desc' }]
             },
             'collectionOverrides': {
@@ -159,12 +110,9 @@
             'isOpen': true
           }
         }]
-      }"
-    ></div>
+      }"></div><button type="button" class="collapsible">Configuration Snippet</button><pre id="mapSTAC2CS" class="panel"></pre><script src="./js/page-header.js"></script><script src="codedoc.js"></script><script>cgpv.init();
 
-    <script src="./js/page-header.js"></script>
-    <script>
-      cgpv.init();
-    </script>
-  </body>
-</html>
+      // Create configuration snippets for both demos.
+      window.addEventListener('load', () => {
+        createConfigSnippet();
+      });</script></body></html>
