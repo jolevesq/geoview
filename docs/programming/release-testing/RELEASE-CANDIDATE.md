@@ -121,6 +121,7 @@ _(User-facing features added or enabled)_
 - New `waitForLayerConfigRegistered` in layer-domain and enhanced `waitForLayerRegistered` with optional timeout (#3562)
 - New `waitForLoadedOnce` lifecycle wait on GV layers; group layers wait for all descendant leaf layers before resolving
 - New `getRendererContainer` function on `AbstractBaseGVLayer` (#3562)
+- Added `MapViewer.getViewportBoundaryLonLat()` to sample the rendered viewport corners and edge midpoints, and `MapViewer.fitViewportToMidpointsLonLat()` to rotate and fit a captured set of west/south/east/north midpoint coordinates
 - New `waitForDomElement`, `waitForDomContent`, and `waitForDomChange` test utilities for explicit React UI tracking (#3562)
 - Map view now uses `viewOptions.padding` to account for the map-info bar height (#3562)
 - New `MapViewer.updateViewPadding()` and `mapController.updateViewPadding()` for dynamic map-info bar padding (#3562)
@@ -223,6 +224,7 @@ _(Dependency updates, build config changes)_
 - **MUI v7 → v9 upgrade**: @mui/material 7.3.2→9.1.2, @mui/icons-material 7.3.2→9.1.1, @mui/lab 7.0.0-beta.17→9.0.0-beta.5, @mui/system→9.1.2, @mui/x-date-pickers 7.20.0→9.7.0, @mui/x-tree-view 7.17.0→9.7.0, mui-color-input 7.0.0→9.0.0 (#3545)
 - Removed 4 duplicate MUI packages from devDependencies (#3545)
 - Webpack: Added `fullySpecified: false` for .mjs ESM resolution (#3545)
+- Upgraded `@mui/material`, `@mui/system` and `@mui/icons-material` from 9.1.x to 9.4.0 in `geoview-core` (and `@mui/material` in `geoview-drawer`) to adopt the theme-level `focusVisible` option (#3641)
 
 ## Architecture & Performance
 
@@ -292,6 +294,11 @@ _(WCAG fixes and improvements)_
 - Updated raster function, mosaic rule, and WMS style settings to use native button controls for expandable sections and selectable cards, with associated labels and decorative previews (issue #3656; #3678).
 - Updated Select controls across export, geolocator, layer settings, filter panel, and mobile tabs to use a single accessible naming source and automatically associated visible labels (#3678).
 - Localized the export preview loading message in English and French (#3678).
+- Adopted MUI 9.4 theme-level `focusVisible` for Material focus indicators (3px outline, 2px offset, 6px halo) and removed the broad `MuiButtonBase` focus override; `getFocusIndicatorStyles()` is retained for non-MUI/composite controls and external-theme fallbacks, and only the dense `MenuItem` keeps a fully inset outline without halo (#3642)
+- Replaced non-interactive elements used as buttons (cards, rows, tiles, undo/delete controls) with native `ButtonBase`/`IconButton`/`ListItemButton` in the layer delete/undo button, AOI panel, and checkbox list; removed hand-rolled `role="button"` + `tabIndex` + `onKeyDown` handlers (keyboard activation is detected via `event.detail === 0`). Delegated click containers (app bar, map info, footer tabs header) and focusable non-control regions (map, guide, rotation indicator) now carry justified `eslint-disable` comments (#3679)
+- Added `jsx-a11y` lint enforcement in `packages/eslint.config.js` (MUI component → DOM element mapping, interaction-handler scoping, `click-events-have-key-events`, `interactive-supports-focus`) plus a `no-restricted-syntax` warning against hand-rolled `role="button"` (#3679)
+- Swiper bar is now exposed as an accessible `slider` (`aria-valuenow`/`aria-valuetext`, orientation-aware label and keyboard instructions, decorative handle hidden), with the announced position updated live while dragging and debounced render cancelled on stop/unmount (new `positionLabel`, `positionFromLeft`, `positionFromTop`, `instructionsHorizontal`, `instructionsVertical` translations in EN/FR) (#3691)
+- Focus ring styling and accessibility documentation updates following the MUI 9.4 focus-indicator migration (tabs, slider and switch styles, guide/app-bar/data-table style clean-up, `docs/app/accessibility.md` and WCAG release-test page).
 
 ## Documentation & Cleanup
 
@@ -340,7 +347,7 @@ _(Tests added, moved, removed, or reorganized)_
 - Added `suite-time-slider` with reset-to-default and dual-handle overlap constraint regression tests, plus a dedicated temporal-layer test map
 - Added fixed-height map layout tests for maps with and without a footer bar (#3601)
 - Added a manual resizable-host-container test and demo covering width/height resizing, footer-panel sizing, and fullscreen transitions (`20-edge-cases.md`; manual test total 684 → 685)
-- Audited suite totals against active full-suite tester calls: corrected `suite-map-config` to 39; debug-only and commented-out calls remain excluded
+- Added 16 automated viewport boundary and midpoint-fitting executions to `suite-map-config`, covering projections, rotation enabled/disabled, padding, resizing, antimeridian continuity, invalid inputs, and interrupted animations. Validation groups share fixtures across five conditions each. The suite now has 57 tests; the test catalog has 267 declared tests and the automated release checklist has 313 executions.
 - Fixed sequential execution in `suite-core` so the XYZ tile URL test is awaited before the following test
 - Added 3 manual layers tests for WMS services with duplicate group `<Name>` values at different nesting levels (#3521): Add Layer UI selection of the `canimage` group (no `RangeError`) plus a new config-based Map 10 (`rt-08-layers.html`) verifying the `canimage`/`canimage` duplicate group loads and renders without hanging
 - Added automated `suite-layer` test `testAddWMSDuplicateGroupNames` (LayerTester) guarding issue #3521 — loads the `canimage_en` WMS by its duplicate top group id, asserts the nested `canimage/canimage` path is built and a deep leaf loads without infinite-looping (`suite-layer` total 41 → 43: +1 for the new test and +1 for correctly counting the heavy-conditional test that was previously excluded)
