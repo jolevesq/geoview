@@ -225,9 +225,9 @@ If proceeding, create a concrete plan:
 1. Create a feature branch: `git checkout -b dep/package-name-vX upstream/develop`
 2. Update `package.json` version(s)
 3. Run `rush update`
-4. Run `rush build` — fix all compile errors
+4. Run `rush build` — fix all compile errors (the build also fails on formatting or lint issues)
 5. Run `rush serve` — test in browser
-6. Run `npm run lint` and `npm run format` from `packages/`
+6. Run `npm run format` and `npm run fix` from `packages/` to correct issues
 7. Commit and create PR
 
 ---
@@ -247,14 +247,15 @@ With `ensureConsistentVersions: true`, Rush enforces that all packages use the s
 # Install dependencies after version changes
 rush update
 
-# Full clean reinstall (if something seems wrong)
-rush update --full
+# Clean reinstall from the committed lockfile (if something seems wrong)
+rush purge
+rush install
 
 # Build all packages to verify no compile errors
 rush build
 
-# Check formatting and linting
-cd packages && npm run format && npm run lint
+# Check formatting and linting without changing files
+cd packages && npm run check
 ```
 
 ### Common Coordinated Updates
@@ -308,7 +309,7 @@ function readPackage(pkg) {
 module.exports = { hooks: { readPackage } };
 ```
 
-After adding overrides, run `rush update --full` to regenerate the lockfile.
+After adding overrides, run `rush update` to apply them to the lockfile. Use `rush update --full` only if you also want every dependency re-resolved to its newest allowed version.
 
 ### Audit Checklist (include in every full audit report)
 
