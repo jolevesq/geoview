@@ -23,7 +23,17 @@ These files are **committed to git** (not gitignored). They serve as historical 
 - Rush automatically installs and uses the Rush/pnpm versions pinned in `rush.json`; no separate pnpm installation is needed. The pins are not automatically upgraded to the latest releases.
 - A global Rush launcher is optional: from the repository root, use `node common/scripts/install-run-rush.js <command>` instead of `rush <command>`. See [local setup](../../CONTRIBUTING.md#local-setup).
 
-The `rush.json` Node range and Rush/pnpm pins define this repository's supported toolchain. Changing the pnpm major is a tooling change, not a dependency update: migrate the lockfile format without `--full` so resolved versions stay unchanged, and validate install/build before merging. See [README-DEV.md](../../README-DEV.md#updating-the-pinned-pnpm-version) for the procedure.
+The `rush.json` Node range and Rush/pnpm pins define this repository's supported toolchain. Only maintainers change them; see [Upgrading the toolchain](#upgrading-the-toolchain-maintainers).
+
+## Upgrading the toolchain (maintainers)
+
+Changing the pnpm major is a tooling change, not a dependency update: resolved versions must stay unchanged.
+
+1. Change `pnpmVersion` (and `rushVersion` if needed) in `rush.json`, then run `rush update` from the repository root. Avoid `--full`: it re-resolves every dependency and pulls newer versions within the declared ranges.
+2. If the new pnpm cannot read the current lockfile format, convert it first with an intermediate pnpm release that reads the old format and writes the new one: run `rush update` with that version, copy `common/temp/pnpm-lock.yaml` to `common/config/rush/pnpm-lock.yaml`, then switch to the target version and run `rush update` again.
+3. A Rush upgrade regenerates `common/scripts/install-run*.js`; commit those generated files.
+4. Confirm the lockfile diff changes only its format, then verify with `node common/scripts/install-run-rush.js install` and `node common/scripts/install-run-rush.js build`.
+5. Tell developers to follow [Upgrading an existing clone](../../README-DEV.md#upgrading-an-existing-clone).
 
 ## Workflow 1 — Full Dependency Audit
 
@@ -257,6 +267,10 @@ rush build
 # Check formatting and linting without changing files
 cd packages && npm run check
 ```
+
+### Dependencies with Install Scripts
+
+pnpm only runs dependency install scripts for approved packages. If `rush update` fails with `ERR_PNPM_IGNORED_BUILDS` after adding a dependency, review the package and, if it is trusted and needs its script, run `rush-pnpm --subspace default approve-builds`. Rush records the approval in `globalAllowBuilds` in `common/config/rush/pnpm-config.json`; commit that file with the lockfile.
 
 ### Common Coordinated Updates
 
