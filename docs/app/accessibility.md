@@ -32,7 +32,7 @@ the full map viewport center, not the logical view center shifted by map-info-ba
 This remains true after panning, rotating, or expanding/collapsing the map info bar.
 Activating the keyboard crosshair replaces any stale mouse pointer position.
 
-On first tab into the viewer, users are prompted to enable keyboard navigation mode or skip the viewer. This mode enables a focus trap within the viewer; focusing the map activates crosshair-based interaction.
+On first tab into the viewer, users are prompted to enable keyboard navigation mode or skip the viewer. Enabling the mode activates a focus trap and, for dynamic maps, focuses the top "Skip to main content - Map" link. Activating that link focuses the map and activates crosshair-based interaction.
 
 - Press Ctrl + Q to exit keyboard navigation mode
 - Press Ctrl + M (or Cmd + M on macOS) with focus inside a dynamic viewer to focus the map and activate the crosshair
@@ -55,6 +55,8 @@ In keyboard navigation mode, activating a panel (e.g., Layers, Legend, Details) 
 - This speeds up navigation by preventing focus from cycling through the entire map
 - Close the active panel or selection by pressing **Esc** — focus returns to the associated button
 - A **Close** or **Exit** button is provided within each trapped panel for explicit closure
+
+With the crosshair active, pressing Enter on a feature opens Details and focuses the panel-header Close button. Focus remains there as the feature attributes load. Pressing Enter on Close or pressing Esc closes Details and returns focus to the map for another crosshair query.
 
 Sub-panels provide similar functionality.
 Scrollable right-panel content is also a keyboard stop; focus it and use the arrow keys to scroll
@@ -231,6 +233,13 @@ Pick the primitive by what the element does:
 Preserve the keyboard focus indicator when adapting the control's appearance to an existing layout.
 
 **Delegated listeners** — An `onClick` on a container that reacts to clicks bubbling from real child controls (e.g. scrolling the viewer into view) does not make the container a control. Clicking its empty space must remain harmless.
+
+App-bar and map-info activation reveals the complete map section, including map-info, when it fits
+in the viewport, leaving a 50px top gap (reduced when needed to fit the section). Sections already
+visible with that gap do not move. Taller sections use stable alignment with a 50px top gap.
+Scrolling respects reduced-motion preferences and does not itself change focus. Footer-tab scrolling
+keeps its separate footer alignment. Map-info buttons (expand, attribution, position, scale) stop
+propagation, so only clicks on the bar itself trigger this scroll. See the [shell scrolling implementation notes](https://github.com/Canadian-Geospatial-Platform/geoview/blob/develop/.github/ai/ui-style-a11y-i18n.md#shell-scrolling) for maintenance details.
 
 <a id="icon-buttons"></a>
 

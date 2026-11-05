@@ -76,18 +76,18 @@ This catalog lists every test in the GeoView test suite, organized by group, sui
 | ----------------- | ----------------------- | ----------------------------------------------------------------------------------------------- | ---------- | --------------------------- |
 | 1. Core / Utility | `suite-core`            | `CoreTester`                                                                                    | 16         | Parallel                    |
 | 1. Core / Utility | `suite-config`          | `ConfigTester`                                                                                  | 39         | Parallel                    |
-| 1. Core / Utility | `suite-utilities`       | `UtilitiesCoreTester`, `UtilitiesDateTester`, `UtilitiesGeoTester`, `UtilitiesProjectionTester` | 53         | Parallel                    |
+| 1. Core / Utility | `suite-utilities`       | `UtilitiesCoreTester`, `UtilitiesDateTester`, `UtilitiesGeoTester`, `UtilitiesProjectionTester` | 57         | Parallel                    |
 | 2. Layers         | `suite-layer`           | `LayerTester`                                                                                   | 49         | Mixed parallel + sequential |
-| 2. Layers         | `suite-layer-functions` | `LayerTester`                                                                                   | 9          | Mixed parallel + sequential |
+| 2. Layers         | `suite-layer-functions` | `LayerTester`                                                                                   | 11         | Mixed parallel + sequential |
 | 3. Map            | `suite-map`             | `MapTester`                                                                                     | 18         | Complex mixed               |
 | 3. Map            | `suite-map-config`      | `MapConfigTester`, `MapTester`                                                                  | 57         | Fully sequential            |
-| 4. Components     | `suite-ui`              | `UITester`                                                                                      | 2          | Parallel                    |
+| 4. Components     | `suite-ui`              | `UITester`                                                                                      | 6          | Mixed parallel + sequential |
 | 4. Components     | `suite-details`         | `DetailsTester`                                                                                 | 6          | Guarded sequential          |
-| 4. Components     | `suite-data-table`      | `DataTableTester`                                                                               | 14         | Guarded sequential          |
+| 4. Components     | `suite-data-table`      | `DataTableTester`                                                                               | 15         | Guarded sequential          |
 | 5. Packages       | `suite-geochart`        | `GeochartTester`                                                                                | 2          | Guarded sequential          |
 | 5. Packages       | `suite-swiper`          | `SwiperTester`                                                                                  | 7          | Guarded sequential          |
 | 5. Packages       | `suite-time-slider`     | `TimeSliderTester`                                                                              | 3          | Guarded sequential          |
-| **Total**         |                         |                                                                                                 | **274**    |                             |
+| **Total**         |                         |                                                                                                 | **285**    |                             |
 
 ---
 
@@ -100,7 +100,7 @@ This catalog lists every test in the GeoView test suite, organized by group, sui
 [↑ Back to top](#table-of-contents)
 
 **Suite:** `suite-core` · **File:** `tests/suites/suite-core.ts` · **Tester:** `CoreTester` (`tests/testers/core-tester.ts`)
-**Execution:** Fully parallel (`Promise.all`) · **Guard:** None
+**Execution:** Independent tests in parallel, then isolated page-scrolling tests sequentially · **Guard:** None
 
 | #   | Method                                  | Type      | Description                                                                           |
 | --- | --------------------------------------- | --------- | ------------------------------------------------------------------------------------- |
@@ -261,7 +261,7 @@ This catalog lists every test in the GeoView test suite, organized by group, sui
 [↑ Back to top](#table-of-contents)
 
 **Suite:** `suite-utilities` · **File:** `tests/suites/suite-utilities.ts` · **Guard:** None
-**Execution:** Fully parallel (`Promise.all`)
+**Execution:** Parallel (`Promise.all`), followed by sequential projection definition-request observation
 
 #### 1.3.1 UtilitiesCoreTester
 
@@ -322,19 +322,22 @@ This catalog lists every test in the GeoView test suite, organized by group, sui
 
 **File:** `tests/testers/utilities-geo-tester.ts`
 
-| #   | Method                        | Type | Description                                                        |
-| --- | ----------------------------- | ---- | ------------------------------------------------------------------ |
-| 1   | `testGetBaseUrl`              | test | Test GeoUtilities.getBaseUrl() extracts base URL...                |
-| 2   | `testGetMapServerUrl`         | test | Test GeoUtilities.getMapServerUrl() truncates at MapServer...      |
-| 3   | `testCoordFormatDMS`          | test | Test GeoUtilities.coordFormatDMS() converts decimal degrees...     |
-| 4   | `testIsPointInExtent`         | test | Test GeoUtilities.isPointInExtent() checks containment...          |
-| 5   | `testGetExtentUnion`          | test | Test GeoUtilities.getExtentUnion() computes union...               |
-| 6   | `testIsExtentLonLat`          | test | Test GeoUtilities.isExtentLonLat() validates lon/lat...            |
-| 7   | `testBufferExtent`            | test | Test GeoUtilities.bufferExtent() expands extent...                 |
-| 8   | `testIsGeoJSONObject`         | test | Test GeoUtilities.isGeoJSONObject() detects GeoJSON...             |
-| 9   | `testGeometryTypeConversions` | test | Test geometry type conversions...                                  |
-| 10  | `testEnsureServiceRequestUrl` | test | Test GeoUtilities.ensureServiceRequestUrl() normalizes params...   |
-| 11  | `testGetExtentIntersection`   | test | Test GeoUtilities.getExtentIntersection() computes intersection... |
+| #   | Method                                             | Type | Description                                                                      |
+| --- | -------------------------------------------------- | ---- | -------------------------------------------------------------------------------- |
+| 1   | `testGetBaseUrl`                                   | test | Test GeoUtilities.getBaseUrl() extracts base URL...                              |
+| 2   | `testGetMapServerUrl`                              | test | Test GeoUtilities.getMapServerUrl() truncates at MapServer...                    |
+| 3   | `testCoordFormatDMS`                               | test | Test GeoUtilities.coordFormatDMS() converts decimal degrees...                   |
+| 4   | `testIsPointInExtent`                              | test | Test GeoUtilities.isPointInExtent() checks containment...                        |
+| 5   | `testGetExtentUnion`                               | test | Test GeoUtilities.getExtentUnion() computes union...                             |
+| 6   | `testIsExtentLonLat`                               | test | Test GeoUtilities.isExtentLonLat() validates lon/lat...                          |
+| 7   | `testBufferExtent`                                 | test | Test GeoUtilities.bufferExtent() expands extent...                               |
+| 8   | `testIsGeoJSONObject`                              | test | Test GeoUtilities.isGeoJSONObject() detects GeoJSON...                           |
+| 9   | `testGeometryTypeConversions`                      | test | Test geometry type conversions...                                                |
+| 10  | `testEnsureServiceRequestUrl`                      | test | Test GeoUtilities.ensureServiceRequestUrl() normalizes params...                 |
+| 11  | `testGetExtentIntersection`                        | test | Test GeoUtilities.getExtentIntersection() computes intersection...               |
+| 12  | `testReadFeaturesFromGeoJSONProjectionObject`      | test | Test GeoJSON reader transforms features using an OpenLayers source projection... |
+| 13  | `testReadFeaturesFromGeoJSONEmbeddedCRSPrecedence` | test | Test embedded GeoJSON CRS overrides a conflicting source projection...           |
+| 14  | `testReadFeaturesFromEsriJSONProjectionObject`     | test | Test EsriJSON reader accepts an OpenLayers source projection...                  |
 
 #### 1.3.4 UtilitiesProjectionTester
 
@@ -342,14 +345,15 @@ This catalog lists every test in the GeoView test suite, organized by group, sui
 
 **File:** `tests/testers/utilities-projection-tester.ts`
 
-| #   | Method                        | Type | Description                                                       |
-| --- | ----------------------------- | ---- | ----------------------------------------------------------------- |
-| 1   | `testProjectionNames`         | test | Test Projection.PROJECTION_NAMES contains expected entries...     |
-| 2   | `testReadEPSGNumber`          | test | Test Projection.readEPSGNumber() extracts EPSG codes...           |
-| 3   | `testGetProjectionLonLat`     | test | Test Projection.getProjectionLonLat() returns EPSG:4326...        |
-| 4   | `testTransformPoints`         | test | Test Projection.transformPoints() transforms coordinates...       |
-| 5   | `testTransformExtentFromProj` | test | Test Projection.transformExtentFromProj() transforms extents...   |
-| 6   | `testGetProjectionFromString` | test | Test Projection.getProjectionFromString() resolves projections... |
+| #   | Method                             | Type | Description                                                                                          |
+| --- | ---------------------------------- | ---- | ---------------------------------------------------------------------------------------------------- |
+| 1   | `testProjectionNames`              | test | Test Projection.PROJECTION_NAMES contains expected entries...                                        |
+| 2   | `testReadEPSGNumber`               | test | Test Projection.readEPSGNumber() extracts EPSG codes...                                              |
+| 3   | `testGetProjectionLonLat`          | test | Test Projection.getProjectionLonLat() returns EPSG:4326...                                           |
+| 4   | `testTransformPoints`              | test | Test Projection.transformPoints() transforms coordinates...                                          |
+| 5   | `testTransformExtentFromProj`      | test | Test Projection.transformExtentFromProj() transforms extents...                                      |
+| 6   | `testGetProjectionFromString`      | test | Test Projection.getProjectionFromString() resolves projections...                                    |
+| 7   | `testAddProjectionIfMissingInputs` | test | Test addProjectionIfMissing accepts projection objects, identifiers and metadata without fetching... |
 
 ---
 
@@ -534,7 +538,7 @@ This catalog lists every test in the GeoView test suite, organized by group, sui
 [↑ Back to top](#table-of-contents)
 
 **Suite:** `suite-layer-functions` · **File:** `tests/suites/suite-layer-functions.ts` · **Tester:** `LayerTester` (`tests/testers/layer-tester.ts`)
-**Execution:** Mixed — parallel for the duplicate-group-names test, then sequential for zoom/query tests (they change zoom level) · **Guard:** None
+**Execution:** Mixed — parallel for the duplicate-group-names test, then sequential for zoom/query tests; injection/projection tests run after all parallel work settles · **Guard:** None
 
 > **Note:** This suite runs on a single map with EPSG: 3857, testing layer controller functions and feature-query behavior.
 
@@ -574,6 +578,15 @@ This catalog lists every test in the GeoView test suite, organized by group, sui
 | #   | Method                             | Type | Description                                                                                     |
 | --- | ---------------------------------- | ---- | ----------------------------------------------------------------------------------------------- |
 | 9   | `testReloadLayerPreservesPosition` | test | Test reloading a layer rebuilds it from scratch and keeps it at the same layer order (#3666)... |
+
+#### 2.2.5 GeoJSON Injection (sequential)
+
+[↑ Back to top](#table-of-contents)
+
+| #   | Method                                   | Type | Description                                                                         |
+| --- | ---------------------------------------- | ---- | ----------------------------------------------------------------------------------- |
+| 10  | `testSetGeojsonSourceReplacesFeatures`   | test | Test public GeoJSON object injection and JSON-string replacement...                 |
+| 11  | `testSetGeojsonSourceReprojectsFeatures` | test | Test public GeoJSON replacement features reproject after a map projection change... |
 
 ---
 
@@ -804,6 +817,10 @@ its expected error. Finalizers restore the host width, map target, and usable vi
 | --- | -------------------------------- | ---- | ------------------------------------------------------ |
 | 1   | `testGuideDetailsPanelTopAnchor` | test | Test Details Panel - Select and Find Top Anchor        |
 | 2   | `testControllerGetFooterHeight`  | test | Test UIController.getFooterHeight (non-React consumer) |
+| 3   | `testMapSectionScroll('partial')` | test | Clipped map-info and top clipping; complete section visibility and repeat stability |
+| 4   | `testMapSectionScroll('transitions')` | test | Real footer-tab, app-bar and map-info click paths and final viewport bounds |
+| 5   | `testMapSectionScroll('visible')` | test | Already visible map remains stationary on repeated activation |
+| 6   | `testMapSectionScroll('oversized')` | test | Taller-than-viewport map aligns with a 50px top gap and stays stable |
 
 ---
 
@@ -835,18 +852,19 @@ its expected error. Finalizers restore the host width, map target, and usable vi
 | #   | Method                                             | Type | Description                                                                      |
 | --- | -------------------------------------------------- | ---- | -------------------------------------------------------------------------------- |
 | 1   | `testAllFeaturesDataArrayPopulated`                | test | Test allFeaturesDataArray is populated for GeoJSON layer...                      |
-| 2   | `testRowCountMatchesStore`                         | test | Test row count matches allFeaturesDataArray length...                            |
+| 2   | `testAllFeaturesDataArrayPopulated`                | test | Test allFeaturesDataArray is populated for the 600-feature Esri layer...         |
 | 3   | `testGeoviewIdColumnHiddenByDefault`               | test | Test geoviewID column hidden by default...                                       |
-| 4   | `testMapFilteredRecordDefault`                     | test | Test mapFilteredRecord is true by default...                                     |
-| 5   | `testSetMapFilteredRecordFalse`                    | test | Test setting mapFilteredRecord to false...                                       |
-| 6   | `testGlobalFilterRecord`                           | test | Test global filter record updates store...                                       |
-| 7   | `testClearFiltersResetsState`                      | test | Test clear filters resets columnFiltersRecord...                                 |
-| 8   | `testColumnVisibilityToggle`                       | test | Test column visibility toggle updates store...                                   |
-| 9   | `testRowsFilteredRecordCount`                      | test | Test rowsFilteredRecord updates in store...                                      |
-| 10  | `testFilterByExtentUnavailableForEsriDynamic`      | test | Test filter-by-extent toggle absent for Esri Dynamic layer...                    |
-| 11  | `testFilterByExtentOnGeoJSON`                      | test | Test filter-by-extent on GeoJSON layer (zoom to Ontario)...                      |
-| 12  | `testShowUnsymbolizedFeaturesFalsePrefiltersTable` | test | Test showUnsymbolizedFeatures false pre-filters data table...                    |
-| 13  | `testEmptyFieldNameDoesNotCrashDataTable`          | test | Test a layer with an empty field name renders the data table without crashing... |
+| 4   | `testEmptyFieldNameDoesNotCrashDataTable`          | test | Test a layer with an empty field name renders the data table without crashing... |
+| 5   | `testMapFilteredRecordDefault`                     | test | Test mapFilteredRecord is true by default...                                     |
+| 6   | `testSetMapFilteredRecordFalse`                    | test | Test setting mapFilteredRecord to false...                                       |
+| 7   | `testGlobalFilterRecord`                           | test | Test global filter record updates store...                                       |
+| 8   | `testCitiesNameFilterCount`                        | test | Test Cities name filter for "mo" returns 30; population minimum 1,000,000 returns 6; maximum 1,750,000 returns 3... |
+| 9   | `testClearFiltersResetsState`                      | test | Test clear filters resets columnFiltersRecord...                                 |
+| 10  | `testColumnVisibilityToggle`                       | test | Test column visibility toggle updates store...                                  |
+| 11  | `testRowsFilteredRecordCount`                      | test | Test rowsFilteredRecord updates in store...                                      |
+| 12  | `testFilterByExtentUnavailableForEsriDynamic`      | test | Test filter-by-extent toggle absent for Esri Dynamic layer...                    |
+| 13  | `testFilterByExtentOnGeoJSONOntario`               | test | Test filter-by-extent on GeoJSON layer (zoom to Ontario)...                     |
+| 14  | `testShowUnsymbolizedFeaturesFalsePrefiltersTable` | test | Test showUnsymbolizedFeatures false pre-filters data table...                    |
 | 14  | `testTemporaryZoomHighlightExpires`                | test | Test temporary zoom highlight is removed automatically...                        |
 
 ---
