@@ -1,4 +1,4 @@
-/*! Package:fetch-esri-worker-script: 2.3.0-dev.bcd4e7e - "bcd4e7ed5d94a479ce3f977a62f4481f5c77abe5" - 2026-11-17T20:18:10.556Z */
+/*! Package:fetch-esri-worker-script: 2.3.0-dev.16e6911 - "16e6911bc1700e9d8b5f817ab88b93073b318d43" - 2026-11-18T21:05:56.226Z */
 /*
  * ATTENTION: An "eval-source-map" devtool has been used.
  * This devtool is neither made for production nor for readable output files.
