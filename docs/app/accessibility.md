@@ -563,7 +563,7 @@ When the Fullscreen API is active, browsers commonly use Esc to exit fullscreen 
 
 **Implication for UI design:** If browser fullscreen and a panel are both open, users may need two Esc presses: one to exit browser fullscreen and another to close the panel. The exact behavior depends on the browser and operating system.
 
-**Note:** This constraint applies only to browser fullscreen via the Fullscreen API, not panel "fullscreen views".
+**Note:** This constraint applies only to browser fullscreen via the Fullscreen API, not panel "fullscreen views". Where the Fullscreen API is unavailable (for example on iPhone), GeoView fills the browser viewport instead. Esc does not exit that mode, so a visible exit button is always available.
 
 ### SC 1.1.1 Non-text Content
 
