@@ -237,6 +237,7 @@ Preserve the keyboard focus indicator when adapting the control's appearance to 
 App-bar, map-info and data-table zoom-to-feature activation reveals the complete map section, including map-info, when it fits
 in the viewport, leaving a small gap above it (reduced when needed to fit the section). Sections already
 visible with that gap do not move. Taller sections use stable alignment with the same gap.
+About/Version and Notifications buttons and their popover contents do not trigger this page scrolling.
 Scrolling respects reduced-motion preferences and does not itself change focus. Footer-bar clicks,
 shortcuts that open a footer tab, and selections from a footer list align the footer bottom with the
 same gap below it when it fits; taller footers align at the top. Map-info buttons (expand, attribution, position, scale) stop
@@ -564,7 +565,7 @@ When the Fullscreen API is active, browsers commonly use Esc to exit fullscreen 
 
 **Implication for UI design:** If browser fullscreen and a panel are both open, users may need two Esc presses: one to exit browser fullscreen and another to close the panel. The exact behavior depends on the browser and operating system.
 
-**Note:** This constraint applies only to browser fullscreen via the Fullscreen API, not panel "fullscreen views". Where the Fullscreen API is unavailable (for example on iPhone), GeoView fills the browser viewport instead. Esc does not exit that mode, so a visible exit button is always available.
+**Note:** This constraint applies only to browser fullscreen via the Fullscreen API, not panel "fullscreen views". Where the Fullscreen API is unavailable (for example on iPhone), GeoView fills the browser viewport instead. Esc does not exit that mode. Use the fullscreen button to exit; if the footer is expanded to 100%, first reduce or close it to reveal the button.
 
 ### SC 1.1.1 Non-text Content
 
