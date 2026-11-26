@@ -144,7 +144,7 @@ Each release gets its own issue. Previous release test results are preserved as 
 | 1   | [01-global.md](01-global.md)                                   | Full screen, shortcuts, search, share, notifications                  | 25 min       | 60 (1/15/44)         |
 | 2   | [02-map.md](02-map.md)                                         | Projections, north pole, north arrow, rotation                        | 15 min       | 21 (2/7/12)          |
 | 3   | [03-config.md](03-config.md)                                   | Config validation, duplicate UUIDs, error layers                      | 15 min       | 25 (7/16/2)          |
-| 4   | [04-basemap.md](04-basemap.md)                                 | Basemap selector, labels, shaded relief                               | 5 min        | 9 (0/6/3)            |
+| 4   | [04-basemap.md](04-basemap.md)                                 | Basemap selector, labels, shaded relief                               | 5 min        | 10 (0/6/4)           |
 | 5   | [05-navbar.md](05-navbar.md)                                   | Navigation bar, zoom, measurement, drawer                             | 15 min       | 29 (0/9/20)          |
 | 6   | [06-overview-map.md](06-overview-map.md)                       | Overview map, hide on zoom, projection switch                         | 5 min        | 8 (5/0/3)            |
 | 7   | [07-legend.md](07-legend.md)                                   | Legend panel, show/hide all, full screen                              | 15 min       | 31 (0/12/19)         |
@@ -166,23 +166,23 @@ Each release gets its own issue. Previous release test results are preserved as 
 | 19  | [19-integration-flows.md](19-integration-flows.md)             | Multi-step workflows and cross-panel interactions                     | 25 min       | 18 (0/7/11)          |
 | 19b | [19b-store-verification.md](19b-store-verification.md)         | Zustand store state assertions (automation candidates)                | 10 min       | 13 (0/13/0)          |
 | 20  | [20-edge-cases.md](20-edge-cases.md)                           | Edge cases, outliers, overlays, sandbox, mobile                       | 25 min       | 28 (0/0/28)          |
-| 21  | [21-wcag-accessibility.md](21-wcag-accessibility.md)           | WCAG, keyboard nav, focus trap, screen reader                         | 30 min       | 74 (0/0/74)          |
+| 21  | [21-wcag-accessibility.md](21-wcag-accessibility.md)           | WCAG, keyboard nav, focus trap, screen reader                         | 30 min       | 98 (12/0/86)         |
 | 22  | [22-api-programmatic.md](22-api-programmatic.md)               | API functions, events, controllers, geometry, panels                  | 25 min       | 54 (0/13/41)         |
 | 23  | [23-config-loading-methods.md](23-config-loading-methods.md)   | Config loading (URL params, div attrs, function call)                 | 15 min       | 21 (0/0/21)          |
 | 24  | [24-cdtk-rcs-geocore-custom.md](24-cdtk-rcs-geocore-custom.md) | CDTK, RCS, Geocore custom/VCS configs                                 | 20 min       | 27 (0/0/27)          |
 | 25  | [25-developer-tools.md](25-developer-tools.md)                 | ESRI/WFS renderer tools                                               | 10 min       | 16 (0/0/16)          |
 | 26  | [26-production-configs.md](26-production-configs.md)           | OSDP, Open Maps, Arctic SDI, GSC, CGDI smoke tests                    | 20 min       | 34 (0/0/34)          |
 | 27  | [27-automation-candidates.md](27-automation-candidates.md)     | Tests recommended for automation via TestCreator                      | —            | 112 candidates       |
-|     | **TOTAL**                                                      |                                                                       | **~445 min** | **950 (63/169/718)** |
+|     | **TOTAL**                                                      |                                                                       | **~445 min** | **975 (75/169/731)** |
 
 **Test breakdown:**
 
 | Category          | Count   | Description                                                |
 | ----------------- | ------- | ---------------------------------------------------------- |
-| **A** — Automated | 63      | Covered by `geoview-test-suite` (no manual effort needed)  |
+| **A** — Automated | 75      | Covered by `geoview-test-suite` (no manual effort needed)  |
 | **C** — Candidate | 169     | Candidate for automation (manual today, automatable later) |
-| **M** — Manual    | 718     | Requires manual verification (UI, visual, interaction)     |
-| **Total**         | **950** | All tests across all files                                 |
+| **M** — Manual    | 731     | Requires manual verification (UI, visual, interaction)     |
+| **Total**         | **975** | All tests across all files                                 |
 
 > **Keeping counts in sync**: When modifying any release-testing file (changing M→C, M→A, C→A, or adding/removing tests), also update the "Tests (A/C/M)" column for that file and recalculate the TOTAL row. Format: `total (A/C/M)`.
 

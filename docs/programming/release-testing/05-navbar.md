@@ -57,9 +57,9 @@ Default navbar (when `navBar` is omitted from config): `["zoom", "rotation", "fu
 
 > Detailed projection tests are in [02 — Map](02-map.md#projections) and [13 — Projection](13-projection.md).
 
-| Test              | Description                 | Steps                                                                              | Expected Result                                                | Auto |
-| ----------------- | --------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---- |
-| Projection button | Switches between LCC and WM | 1. On Map 1, verify the projection button appears<br>2. Click to switch projection | Projection switches between LCC (EPSG:3978) and WM (EPSG:3857) | C    |
+| Test              | Description                                  | Steps                                                                              | Expected Result                                                                             | Auto |
+| ----------------- | -------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---- |
+| Projection button | Switches between LCC, WM and North Pole LAEA | 1. On Map 1, verify the projection button appears<br>2. Click to switch projection | Projection switches between LCC (EPSG:3978), WM (EPSG:3857) and North Pole LAEA (EPSG:3573) | C    |
 
 ## Measurement Tool
 
@@ -68,7 +68,8 @@ both use bold 14px sans-serif, white text, a 70%-black backing and 4px/8px paddi
 Compare their 4px rounded corners and 6px downward pointers, including two-line polygon totals.
 Set Map Rotation to 90° and verify the Measure total text and backing remain upright and screen-aligned,
 with line totals still above their endpoints and polygon totals inside their geometry. Check zoom
-and high-DPI rendering; Measure keeps its existing label anchor positions.
+and high-DPI rendering. Line totals sit above their end point with a gap, so the vertex and pointer stay visible,
+and polygon totals keep their interior anchor.
 Segment labels retain their distinct 13px/halo styling. Verify existing total labels remain present
 with their rounded backing and pointer in map exports; Drawer overlays are not added to exports by this styling alignment.
 
